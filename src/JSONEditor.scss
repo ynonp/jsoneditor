@@ -18,12 +18,13 @@
     position: relative;
 
     .button {
-      width: 32px;
-      height: 32px;
+      width: $menu-button-size;
+      height: $menu-button-size;
       border: none;
       background: transparent;
       color: white;
       cursor: pointer;
+      padding: 0;
 
       &:hover,
       &:focus {
@@ -41,11 +42,13 @@
     }
 
     .separator {
-      background: rgba(255, 255, 255, 0.2);
+      $margin: 3px;
+
+      background: rgba(255, 255, 255, 0.15);
       box-sizing: border-box;
       width: 1px;
-      height: 24px;
-      margin: 5px;
+      height: $menu-button-size - 2 * $margin;
+      margin: $margin;
     }
 
     .search-box-container {
