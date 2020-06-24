@@ -24,12 +24,14 @@ $error-border-color: #ffd700;
 $gray: #9d9d9d;
 $gray-icon: $gray;
 $light-gray: #c0c0c0;
+$selection-background: #e0e0e0;
 
 $line-height: 18px;
-$indentation-width: 18px;
+$indentation-width: 18px; // IMPORTANT: keep in sync with js constant INDENTATION_WIDTH
 $menu-button-size: 32px;
 $input-padding: 5px;
 $search-box-offset: 10px;
 $border-radius: 3px;
 
 $menu-padding: 5px;
+$bottom-height: 5px;

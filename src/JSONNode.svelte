@@ -1,18 +1,21 @@
 <script>
-  import { debounce, initial } from 'lodash-es'
+  import { debounce, initial, isEqual } from 'lodash-es'
   import {
-    DEBOUNCE_DELAY, DEFAULT_LIMIT,
-    STATE_EXPANDED, STATE_LIMIT, STATE_PROPS,
+    DEBOUNCE_DELAY,
+    DEFAULT_LIMIT,
+    STATE_EXPANDED,
+    STATE_LIMIT,
+    STATE_PROPS,
     STATE_SEARCH_PROPERTY,
-    STATE_SEARCH_VALUE
+    STATE_SEARCH_VALUE,
+    INDENTATION_WIDTH
   } from './constants.js'
+  import { singleton } from './singleton.js'
   import { getPlainText, setPlainText } from './utils/domUtils.js'
   import Icon from 'svelte-awesome'
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
-  import { findUniqueName } from './utils/stringUtils.js'
   import { isUrl, stringConvert, valueType } from './utils/typeUtils'
-  import { updateProps } from './utils/updateProps.js'
   import { compileJSONPointer } from './utils/jsonPointer'
 
   export let key = undefined // only applicable for object properties
@@ -23,6 +26,8 @@
   export let onPatch
   export let onExpand
   export let onLimit
+  export let onSelect
+  export let selectionMap
 
   $: expanded = state && state[STATE_EXPANDED]
   $: limit = state && state[STATE_LIMIT]
@@ -65,6 +70,10 @@
       // the cursor position.
       setPlainText(domValue, value)
     }
+  }
+
+  function getIndentationStyle(level) {
+    return `margin-left: ${level * INDENTATION_WIDTH}px`
   }
 
   function getValueClass (value, searchResult) {
@@ -182,11 +191,73 @@
   function handleShowMore () {
     onLimit(path, (Math.round(limit / DEFAULT_LIMIT) + 1) * DEFAULT_LIMIT)
   }
+
+  function handleMouseDown (event) {
+    // unselect existing selection on mouse down if any
+    if (singleton.selectionAnchor != null && singleton.selectionFocus != null) {
+      singleton.selectionAnchor = null
+      singleton.selectionFocus = null
+      onSelect(null, null)
+    }
+
+    // check if the mouse down is not happening in the key or value input fields
+    if (event.target.contentEditable !== 'true') {
+      // initialize dragging a selection
+      singleton.mousedown = true
+      singleton.selectionAnchor = path
+      singleton.selectionFocus = null
+      event.stopPropagation()
+    }
+
+    // we attache the mouse up event listener to the global document,
+    // so we will not miss if the mouse up is happening outside of the editor
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  function handleMouseMove (event) {
+    if (singleton.mousedown) {
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (singleton.selectionFocus == null) {
+        // First move event, no selection yet.
+        // Clear the default selection of the browser
+        if (window.getSelection) {
+          window.getSelection().empty()
+        }
+      }
+
+      if (!isEqual(path, singleton.selectionFocus)) {
+        singleton.selectionFocus = path
+        onSelect(singleton.selectionAnchor, singleton.selectionFocus)
+      }
+    }
+  }
+
+  function handleMouseUp (event) {
+    if (singleton.mousedown) {
+      event.preventDefault()
+      event.stopPropagation()
+
+      singleton.mousedown = false
+    }
+
+    document.removeEventListener('mouseup', handleMouseUp)
+  }
+
+  // FIXME: this is not efficient. Create a nested object with the selection and pass that
+  $: selected = selectionMap[compileJSONPointer(path)] === true
 </script>
 
-<div class='json-node'>
+<div
+  class='json-node'
+  class:root={path.length === 0}
+  class:selected={selected}
+  on:mousedown={handleMouseDown}
+  on:mousemove={handleMouseMove}
+>
   {#if type === 'array'}
-    <div class='header'>
+    <div class='header' style={getIndentationStyle(path.length)}>
       <button
         class='expand'
         on:click={toggleExpand}
@@ -230,20 +301,22 @@
             onPatch={onPatch}
             onExpand={onExpand}
             onLimit={onLimit}
+            onSelect={onSelect}
+            selectionMap={selectionMap}
           />
         {/each}
         {#if limited}
-          <div class='limit'>
+          <div class="limit" style={getIndentationStyle(path.length + 2)}>
             (showing {limit} of {value.length} items <button on:click={handleShowMore}>show more</button> <button on:click={handleShowAll}>show all</button>)
           </div>
         {/if}
       </div>
-      <div class="footer">
+      <div class="footer" style={getIndentationStyle(path.length)}>
         <span class="delimiter">]</span>
       </div>
     {/if}
   {:else if type === 'object'}
-    <div class='header'>
+    <div class='header' style={getIndentationStyle(path.length)}>
       <button
         class='expand'
         on:click={toggleExpand}
@@ -287,15 +360,17 @@
             onPatch={onPatch}
             onExpand={onExpand}
             onLimit={onLimit}
+            onSelect={onSelect}
+            selectionMap={selectionMap}
           />
         {/each}
       </div>
-      <div class="footer">
+      <div class="footer" style={getIndentationStyle(path.length)}>
         <span class="delimiter">}</span>
       </div>
     {/if}
   {:else}
-    <div class="contents">
+    <div class="contents" style={getIndentationStyle(path.length)}>
       {#if typeof key === 'string'}
         <div
           class={keyClass}

@@ -24,9 +24,9 @@ describe('syncState', () => {
     const expectedState = {}
     expectedState[STATE_EXPANDED] = true
     expectedState[STATE_PROPS] =  [
-      { 'id': '1', 'key': 'array' },
-      { 'id': '2', 'key': 'object' },
-      { 'id': '3', 'key': 'value' }
+      { 'id': state[STATE_PROPS][0].id, 'key': 'array' },
+      { 'id': state[STATE_PROPS][1].id, 'key': 'object' },
+      { 'id': state[STATE_PROPS][2].id, 'key': 'value' }
     ]
     expectedState.array = []
     expectedState.array[STATE_EXPANDED] = true
@@ -34,13 +34,13 @@ describe('syncState', () => {
     expectedState.array[2] = {}
     expectedState.array[2][STATE_EXPANDED] = false
     expectedState.array[2][STATE_PROPS] = [
-      { 'id': '4', 'key': 'c' } // FIXME: props should not be created because node is not expande
+      { 'id': state.array[2][STATE_PROPS][0].id, 'key': 'c' } // FIXME: props should not be created because node is not expanded
     ]
     expectedState.object = {}
     expectedState.object[STATE_EXPANDED] = true
     expectedState.object[STATE_PROPS] =  [
-      { 'id': '5', 'key': 'a' },
-      { 'id': '6', 'key': 'b' }
+      { 'id': state.object[STATE_PROPS][0].id, 'key': 'a' },
+      { 'id': state.object[STATE_PROPS][1].id, 'key': 'b' }
     ]
 
     assert.deepStrictEqual(state, expectedState)

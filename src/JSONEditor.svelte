@@ -11,6 +11,7 @@
   import { faSearch, faUndo, faRedo } from '@fortawesome/free-solid-svg-icons'
   import { createHistory } from './history.js'
   import Node from './JSONNode.svelte'
+  import { expandSelection } from './selection.js'
   import {
     existsIn,
     getIn,
@@ -36,6 +37,19 @@
 
   export let doc = {}
   let state = undefined
+  let selection = null
+  let selectionMap = {}
+
+  $: {
+    selectionMap = {}
+    if (selection != null) {
+      selection.forEach(path => {
+        selectionMap[compileJSONPointer(path)] = true
+      })
+    }
+  }
+
+  $: console.log('selectionMap', selectionMap)
 
   export let onChangeJson = () => {}
 
@@ -257,6 +271,14 @@
     state = setIn(state, path.concat(STATE_LIMIT), limit)
   }
 
+  function handleSelect (anchorPath, focusPath) {
+    if (anchorPath && focusPath) {
+      selection = expandSelection(doc, state, anchorPath, focusPath)
+    } else {
+      selection = null
+    }
+  }
+
   /**
    * Expand all nodes on given path
    * @param {Path} path
@@ -373,8 +395,9 @@
       onPatch={handlePatch}
       onExpand={handleExpand}
       onLimit={handleLimit}
+      onSelect={handleSelect}
+      selectionMap={selectionMap}
     />
-    <div class='bottom'></div>
   </div>
 </div>
 
