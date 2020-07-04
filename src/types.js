@@ -48,3 +48,7 @@
  *   error: Error | null
  * }} JSONPatchResult
  */
+
+/**
+ * @typedef {{paths: Path[]} | {beforePath: Path}} Selection
+ */

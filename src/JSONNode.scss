@@ -1,6 +1,7 @@
 @import './styles.scss';
 
 .json-node {
+  position: relative;
   font-family: $font-family;
   font-size: $font-size;
   color: $black;
@@ -15,6 +16,46 @@
   &.selected .contents,
   &.selected .footer {
     background-color: $selection-background;
+  }
+
+  $selector-height: 8px; // must be about half a line height
+
+  .props,
+  .items {
+    position: relative;
+  }
+
+  .before-node-selector,
+  .after-node-selector {
+    position: absolute;
+    left: 0;
+    right: $input-padding;
+    height: $selector-height;
+    box-sizing: border-box;
+
+    .selector {
+      margin-top: $selector-height / 2;
+    }
+
+    &:hover {
+      .selector {
+        border: 1px dashed $selection-background;
+      }
+    }
+
+    &.selected {
+      .selector {
+        border: 1px dashed $theme-color;
+      }
+    }
+  }
+
+  .before-node-selector {
+    top: -$selector-height/2 - 1px;
+  }
+
+  .after-node-selector {
+    bottom: -$selector-height/2 - 1px;
   }
 
   .header {

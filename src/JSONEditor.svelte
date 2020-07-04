@@ -8,10 +8,11 @@
   } from './constants.js'
   import SearchBox from './SearchBox.svelte'
   import Icon from 'svelte-awesome'
-  import { faSearch, faUndo, faRedo } from '@fortawesome/free-solid-svg-icons'
+  import { faCut, faCopy, faPaste, faSearch, faUndo, faRedo } from '@fortawesome/free-solid-svg-icons'
   import { createHistory } from './history.js'
   import Node from './JSONNode.svelte'
   import { expandSelection } from './selection.js'
+  import { singleton } from './singleton.js'
   import {
     existsIn,
     getIn,
@@ -22,42 +23,41 @@
   import { keyComboFromEvent } from './utils/keyBindings.js'
   import { flattenSearch, search } from './utils/search.js'
   import { immutableJSONPatch } from './utils/immutableJSONPatch'
-  import { isEqual, isNumber, initial, last } from 'lodash-es'
+  import { isEqual, isNumber, initial, last, cloneDeep } from 'lodash-es'
   import jump from './assets/jump.js/src/jump.js'
   import { syncState } from './utils/syncState.js'
 
   let divContents
 
-  beforeUpdate(() => {
-    console.time('render')
-  })
-  afterUpdate(() => {
-    console.timeEnd('render')
-  })
+  // beforeUpdate(() => {
+  //   console.time('render')
+  // })
+  // afterUpdate(() => {
+  //   console.timeEnd('render')
+  // })
 
   export let doc = {}
   let state = undefined
   let selection = null
   let selectionMap = {}
 
-  $: {
-    selectionMap = {}
-    if (selection != null) {
-      selection.forEach(path => {
-        selectionMap[compileJSONPointer(path)] = true
-      })
-    }
-  }
-
-  $: console.log('selectionMap', selectionMap)
+  // $: {
+  //   selectionMap = {}
+  //   if (selection != null) {
+  //     selection.forEach(path => {
+  //       selectionMap[compileJSONPointer(path)] = true
+  //     })
+  //   }
+  // }
 
   export let onChangeJson = () => {}
 
-  $: {
-    console.time('syncState')
-    state = syncState(doc, state, [], (path) => path.length < 1)
-    console.timeEnd('syncState')
-  }
+  let clipboard = null
+  $: canCut = selection != null
+  $: canCopy = selection != null
+  $: canPaste = clipboard != null
+
+  $: state = syncState(doc, state, [], (path) => path.length < 1)
 
   let showSearch = false
   let searchText = ''
@@ -131,6 +131,23 @@
       error: documentPatchResult.error,
       undo: documentPatchResult.revert,
       redo: operations
+    }
+  }
+
+  function handleCut() {
+    // FIXME: implement
+  }
+
+  function handleCopy() {
+    if (selection) {
+      clipboard = selection.map(path => cloneDeep(getIn(doc, path)))
+      console.log('copied to clipboard', clipboard)
+    }
+  }
+
+  function handlePaste() {
+    if (clipboard) {
+      console.log('focus', singleton.focus)
     }
   }
 
@@ -271,9 +288,36 @@
     state = setIn(state, path.concat(STATE_LIMIT), limit)
   }
 
-  function handleSelect (anchorPath, focusPath) {
-    if (anchorPath && focusPath) {
-      selection = expandSelection(doc, state, anchorPath, focusPath)
+  /**
+   * @param {Selection} newSelection
+   */
+  function handleSelect (newSelection) {
+    if (newSelection) {
+      const { anchorPath, focusPath, beforePath, afterPath } = newSelection
+
+      if (beforePath) {
+        selection = {
+          beforePath
+        }
+      } else if (afterPath) {
+        selection = {
+          afterPath
+        }
+      } else if (anchorPath && focusPath) {
+        // TODO: move expandSelection to JSONNode? (must change expandSelection to support relative path)
+        const paths = expandSelection(doc, state, anchorPath, focusPath)
+
+        const pathsMap = {}
+        paths.forEach(path => {
+          pathsMap[compileJSONPointer(path)] = true
+        })
+
+        selection = {
+          paths: pathsMap
+        }
+      } else {
+        console.error('Unknown type of selection', newSelection)
+      }
     } else {
       selection = null
     }
@@ -345,13 +389,42 @@
 <div class="jsoneditor" on:keydown={handleKeyDown}>
   <div class="menu">
     <button
+      class="button cut"
+      on:click={handleCut}
+      disabled={!canCut}
+      title="Cut (Ctrl+X)"
+    >
+      <Icon data={faCut} />
+    </button>
+    <button
+      class="button copy"
+      on:click={handleCopy}
+      disabled={!canCopy}
+      title="Copy (Ctrl+C)"
+    >
+      <Icon data={faCopy} />
+    </button>
+    <button
+      class="button paste"
+      on:click={handlePaste}
+      disabled={!canPaste}
+      title="Paste (Ctrl+V)"
+    >
+      <Icon data={faPaste} />
+    </button>
+
+    <div class="separator"></div>
+
+    <button
       class="button search"
       on:click={handleToggleSearch}
       title="Search (Ctrl+F)"
     >
       <Icon data={faSearch} />
     </button>
+
     <div class="separator"></div>
+
     <button
       class="button undo"
       disabled={!historyState.canUndo}
@@ -368,7 +441,9 @@
     >
       <Icon data={faRedo} />
     </button>
+
     <div class="space"></div>
+
     {#if showSearch}
       <div class="search-box-container">
         <SearchBox
@@ -396,7 +471,7 @@
       onExpand={handleExpand}
       onLimit={handleLimit}
       onSelect={handleSelect}
-      selectionMap={selectionMap}
+      selection={selection}
     />
   </div>
 </div>

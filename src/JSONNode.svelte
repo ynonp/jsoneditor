@@ -27,7 +27,7 @@
   export let onExpand
   export let onLimit
   export let onSelect
-  export let selectionMap
+  export let selection
 
   $: expanded = state && state[STATE_EXPANDED]
   $: limit = state && state[STATE_LIMIT]
@@ -158,7 +158,7 @@
     debouncedUpdateValue()
   }
 
-  function handleValueBlur (event) {
+  function handleValueBlur () {
     // handle any pending changes still waiting in the debounce function
     debouncedUpdateValue.flush()
 
@@ -206,6 +206,9 @@
       singleton.mousedown = true
       singleton.selectionAnchor = path
       singleton.selectionFocus = null
+
+      // TODO: select the clicked node directly
+
       event.stopPropagation()
     }
 
@@ -229,7 +232,11 @@
 
       if (!isEqual(path, singleton.selectionFocus)) {
         singleton.selectionFocus = path
-        onSelect(singleton.selectionAnchor, singleton.selectionFocus)
+
+        onSelect({
+          anchorPath: singleton.selectionAnchor,
+          focusPath: singleton.selectionFocus
+        })
       }
     }
   }
@@ -245,8 +252,38 @@
     document.removeEventListener('mouseup', handleMouseUp)
   }
 
+  function handleSelectBefore (event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    onSelect({
+      beforePath: path
+    })
+  }
+
+  function handleSelectAfter (event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    onSelect({
+      afterPath: path
+    })
+  }
+
   // FIXME: this is not efficient. Create a nested object with the selection and pass that
-  $: selected = selectionMap[compileJSONPointer(path)] === true
+  $: selected = (selection && selection.paths)
+    ? selection.paths[compileJSONPointer(path)] === true
+    : false
+
+  $: selectedBefore = (selection && selection.beforePath)
+    ? isEqual(selection.beforePath, path)
+    : false
+
+  $: selectedAfter = (selection && selection.afterPath)
+    ? isEqual(selection.afterPath, path)
+    : false
+
+  $: indentationStyle = getIndentationStyle(path.length)
 </script>
 
 <div
@@ -256,8 +293,16 @@
   on:mousedown={handleMouseDown}
   on:mousemove={handleMouseMove}
 >
+  <div
+    class="before-node-selector"
+    class:selected={selectedBefore}
+    style={indentationStyle}
+    on:click={handleSelectBefore}
+  >
+    <div class="selector"></div>
+  </div>
   {#if type === 'array'}
-    <div class='header' style={getIndentationStyle(path.length)}>
+    <div class='header' style={indentationStyle}>
       <button
         class='expand'
         on:click={toggleExpand}
@@ -302,21 +347,29 @@
             onExpand={onExpand}
             onLimit={onLimit}
             onSelect={onSelect}
-            selectionMap={selectionMap}
+            selection={selection}
           />
         {/each}
+        <div
+          class="after-node-selector"
+          class:selected={selectedAfter}
+          style={indentationStyle}
+          on:click={handleSelectAfter}
+        >
+          <div class="selector"></div>
+        </div>
         {#if limited}
           <div class="limit" style={getIndentationStyle(path.length + 2)}>
             (showing {limit} of {value.length} items <button on:click={handleShowMore}>show more</button> <button on:click={handleShowAll}>show all</button>)
           </div>
         {/if}
       </div>
-      <div class="footer" style={getIndentationStyle(path.length)}>
+      <div class="footer" style={indentationStyle}>
         <span class="delimiter">]</span>
       </div>
     {/if}
   {:else if type === 'object'}
-    <div class='header' style={getIndentationStyle(path.length)}>
+    <div class='header' style={indentationStyle}>
       <button
         class='expand'
         on:click={toggleExpand}
@@ -361,16 +414,24 @@
             onExpand={onExpand}
             onLimit={onLimit}
             onSelect={onSelect}
-            selectionMap={selectionMap}
+            selection={selection}
           />
         {/each}
+        <div
+          class="after-node-selector"
+          class:selected={selectedAfter}
+          style={indentationStyle}
+          on:click={handleSelectAfter}
+        >
+          <div class="selector"></div>
+        </div>
       </div>
-      <div class="footer" style={getIndentationStyle(path.length)}>
+      <div class="footer" style={indentationStyle}>
         <span class="delimiter">}</span>
       </div>
     {/if}
   {:else}
-    <div class="contents" style={getIndentationStyle(path.length)}>
+    <div class="contents" style={indentationStyle}>
       {#if typeof key === 'string'}
         <div
           class={keyClass}
