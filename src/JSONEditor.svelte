@@ -1,5 +1,6 @@
 <script>
   import { tick, beforeUpdate, afterUpdate } from 'svelte'
+  import { insertAfter, insertBefore, removeAll, replace } from './actions.js'
   import {
     DEFAULT_LIMIT,
     STATE_EXPANDED,
@@ -14,6 +15,7 @@
   import { expandSelection } from './selection.js'
   import { singleton } from './singleton.js'
   import {
+    deleteIn,
     existsIn,
     getIn,
     setIn,
@@ -26,6 +28,7 @@
   import { isEqual, isNumber, initial, last, cloneDeep } from 'lodash-es'
   import jump from './assets/jump.js/src/jump.js'
   import { syncState } from './utils/syncState.js'
+  import { isObject } from './utils/typeUtils.js'
 
   let divContents
 
@@ -41,21 +44,12 @@
   let selection = null
   let selectionMap = {}
 
-  // $: {
-  //   selectionMap = {}
-  //   if (selection != null) {
-  //     selection.forEach(path => {
-  //       selectionMap[compileJSONPointer(path)] = true
-  //     })
-  //   }
-  // }
-
   export let onChangeJson = () => {}
 
   let clipboard = null
-  $: canCut = selection != null
-  $: canCopy = selection != null
-  $: canPaste = clipboard != null
+  $: canCut = selection != null && selection.paths != null
+  $: canCopy = selection != null && selection.paths != null
+  $: canPaste = clipboard != null && selection != null
 
   $: state = syncState(doc, state, [], (path) => path.length < 1)
 
@@ -134,20 +128,60 @@
     }
   }
 
+  function selectionToClipboard (selection) {
+    if (!selection || !selection.paths) {
+      return null
+    }
+
+    return selection.paths.map(path => {
+      return {
+        key: String(last(path)),
+        value: cloneDeep(getIn(doc, path))
+      }
+    })
+  }
+
   function handleCut() {
-    // FIXME: implement
+    if (selection && selection.paths) {
+      clipboard = selectionToClipboard(selection)
+
+      const operations = removeAll(selection.paths)
+      handlePatch(operations)
+
+      console.log('cut', { selection, clipboard })
+    }
   }
 
   function handleCopy() {
-    if (selection) {
-      clipboard = selection.map(path => cloneDeep(getIn(doc, path)))
-      console.log('copied to clipboard', clipboard)
+    if (selection && selection.paths) {
+      clipboard = selectionToClipboard(selection)
+      console.log('copy', { clipboard })
     }
   }
 
   function handlePaste() {
-    if (clipboard) {
-      console.log('focus', singleton.focus)
+    if (selection && clipboard) {
+      console.log('paste', { clipboard, selection })
+
+      if (selection.beforePath) {
+        const operations = insertBefore(doc, selection.beforePath, clipboard)
+        console.log('patch', operations)
+        handlePatch(operations)
+
+        // FIXME: must adjust STATE_PROPS of the object where we inserted the clipboard
+      } else if (selection.afterPath) {
+        const operations = insertAfter(doc, selection.afterPath, clipboard)
+        console.log('patch', operations)
+        handlePatch(operations)
+
+        // FIXME: must adjust STATE_PROPS of the object where we inserted the clipboard
+      } else if (selection.paths) {
+        const operations = replace(doc, selection.paths, clipboard)
+        console.log('patch', operations)
+        handlePatch(operations)
+
+        // FIXME: must adjust STATE_PROPS of the object where we inserted the clipboard
+      }
     }
   }
 
@@ -313,7 +347,8 @@
         })
 
         selection = {
-          paths: pathsMap
+          paths,
+          pathsMap
         }
       } else {
         console.error('Unknown type of selection', newSelection)
@@ -382,6 +417,19 @@
       } else {
         handleRedo()
       }
+    }
+
+    if (combo === 'Ctrl+X' || combo === 'Command+X') {
+      event.preventDefault()
+      handleCut()
+    }
+    if (combo === 'Ctrl+C' || combo === 'Command+C') {
+      event.preventDefault()
+      handleCopy()
+    }
+    if (combo === 'Ctrl+V' || combo === 'Command+V') {
+      event.preventDefault()
+      handlePaste()
     }
   }
 </script>

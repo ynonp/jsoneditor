@@ -50,5 +50,5 @@
  */
 
 /**
- * @typedef {{paths: Path[]} | {beforePath: Path}} Selection
+ * @typedef {{paths: Path[], pathsMap: Object<string, boolean>}} | {beforePath: Path} | {afterPath: Path}} Selection
  */

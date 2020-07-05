@@ -1,5 +1,5 @@
 <script>
-  import { debounce, initial, isEqual } from 'lodash-es'
+  import { debounce, initial, isEqual, last } from 'lodash-es'
   import {
     DEBOUNCE_DELAY,
     DEFAULT_LIMIT,
@@ -194,10 +194,8 @@
 
   function handleMouseDown (event) {
     // unselect existing selection on mouse down if any
-    if (singleton.selectionAnchor != null && singleton.selectionFocus != null) {
-      singleton.selectionAnchor = null
-      singleton.selectionFocus = null
-      onSelect(null, null)
+    if (selection) {
+      onSelect(null)
     }
 
     // check if the mouse down is not happening in the key or value input fields
@@ -266,13 +264,15 @@
     event.stopPropagation()
 
     onSelect({
-      afterPath: path
+      afterPath: type === 'array'
+        ? path.concat(items.length)
+        : path.concat(last(props).key)
     })
   }
 
   // FIXME: this is not efficient. Create a nested object with the selection and pass that
-  $: selected = (selection && selection.paths)
-    ? selection.paths[compileJSONPointer(path)] === true
+  $: selected = (selection && selection.pathsMap)
+    ? selection.pathsMap[compileJSONPointer(path)] === true
     : false
 
   $: selectedBefore = (selection && selection.beforePath)
@@ -280,7 +280,7 @@
     : false
 
   $: selectedAfter = (selection && selection.afterPath)
-    ? isEqual(selection.afterPath, path)
+    ? isEqual(initial(selection.afterPath), path)
     : false
 
   $: indentationStyle = getIndentationStyle(path.length)
