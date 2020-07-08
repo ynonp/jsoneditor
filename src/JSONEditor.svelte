@@ -25,7 +25,7 @@
     setIn,
     updateIn
   } from './utils/immutabilityHelpers.js'
-  import { compileJSONPointer } from './utils/jsonPointer.js'
+  import { compileJSONPointer, parseJSONPointer } from './utils/jsonPointer.js'
   import { keyComboFromEvent } from './utils/keyBindings.js'
   import { flattenSearch, search } from './utils/search.js'
   import { immutableJSONPatch } from './utils/immutableJSONPatch'
@@ -140,33 +140,38 @@
     if (selection && clipboard) {
       console.log('paste', { clipboard, selection })
 
+      function selectAddOperations (operations) {
+        handleSelect({
+          paths: operations
+            .filter(operation => operation.op === 'add')
+            .map(operation => parseJSONPointer(operation.path))
+        })
+      }
+
       if (selection.beforePath) {
         const parentPath = initial(selection.beforePath)
         const beforeKey = last(selection.beforePath)
         const props = getIn(state, parentPath.concat(STATE_PROPS))
         const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
         const operations = insertBefore(doc, selection.beforePath, clipboard, nextKeys)
-        console.log('patch', operations)
-        handlePatch(operations)
 
-        // FIXME: must adjust STATE_PROPS of the object where we inserted the clipboard
+        handlePatch(operations)
+        selectAddOperations(operations)
       } else if (selection.appendPath) {
         const operations = append(doc, selection.appendPath, clipboard)
-        console.log('patch', operations)
-        handlePatch(operations)
 
-        // FIXME: must adjust STATE_PROPS of the object where we inserted the clipboard
+        handlePatch(operations)
+        selectAddOperations(operations)
       } else if (selection.paths) {
-        const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly
+        const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
         const parentPath = initial(lastPath)
         const beforeKey = last(lastPath)
         const props = getIn(state, parentPath.concat(STATE_PROPS))
         const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
         const operations = replace(doc, selection.paths, clipboard, nextKeys)
-        console.log('patch', operations)
-        handlePatch(operations)
 
-        // FIXME: must adjust STATE_PROPS of the object where we inserted the clipboard
+        handlePatch(operations)
+        selectAddOperations(operations)
       }
     }
   }
@@ -174,6 +179,7 @@
   // TODO: cleanup
   $: console.log('doc', doc)
   $: console.log('state', state)
+  $: console.log('selection', selection)
 
   function handleUndo() {
     if (history.getState().canUndo) {
@@ -278,9 +284,11 @@
   function handlePatch(operations) {
     // console.log('handlePatch', operations)
 
-    patch(operations)
+    const patchResult = patch(operations)
 
     emitOnChange()
+
+    return patchResult
   }
 
   function handleUpdateKey (oldKey, newKey) {
@@ -320,10 +328,22 @@
    * @param {Selection} newSelection
    */
   function handleSelect (newSelection) {
-    if (newSelection) {
-      const { anchorPath, focusPath, beforePath, appendPath } = newSelection
+    // TODO: refactor handleSelect: should be redundant except for the functionality to expand the selection and generate pathsMap
 
-      if (beforePath) {
+    if (newSelection) {
+      const { paths, anchorPath, focusPath, beforePath, appendPath } = newSelection
+
+      if (paths) {
+        const pathsMap = {}
+        paths.forEach(path => {
+          pathsMap[compileJSONPointer(path)] = true
+        })
+
+        selection = {
+          paths,
+          pathsMap
+        }
+      } else if (beforePath) {
         selection = {
           beforePath
         }
