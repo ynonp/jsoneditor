@@ -78,8 +78,13 @@
     history.clear()
   }
 
-  export function patch(operations) {
+  /**
+   * @param {JSONPatchDocument} operations
+   * @param {Selection} [newSelection]
+   */
+  export function patch(operations, newSelection) {
     const prevState = state
+    const prevSelection = selection
 
     console.log('operations', operations)
 
@@ -89,12 +94,17 @@
 
     doc = documentPatchResult.json
     state = patchProps(statePatchResult.json, operations)
+    if (newSelection) {
+      selection = newSelection
+    }
 
     history.add({
       undo: documentPatchResult.revert,
       redo: operations,
-      prevState: prevState,
-      state: state
+      prevState,
+      state,
+      prevSelection,
+      selection: newSelection
     })
 
     return {
@@ -140,12 +150,15 @@
     if (selection && clipboard) {
       console.log('paste', { clipboard, selection })
 
-      function selectAddOperations (operations) {
-        handleSelect({
-          paths: operations
-            .filter(operation => operation.op === 'add')
-            .map(operation => parseJSONPointer(operation.path))
-        })
+      function createNewSelection (operations) {
+        const paths = operations
+          .filter(operation => operation.op === 'add')
+          .map(operation => parseJSONPointer(operation.path))
+
+        return  {
+          paths,
+          pathsMap: createPathsMap(paths)
+        }
       }
 
       if (selection.beforePath) {
@@ -154,14 +167,14 @@
         const props = getIn(state, parentPath.concat(STATE_PROPS))
         const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
         const operations = insertBefore(doc, selection.beforePath, clipboard, nextKeys)
+        const newSelection = createNewSelection(operations)
 
-        handlePatch(operations)
-        selectAddOperations(operations)
+        handlePatch(operations, newSelection)
       } else if (selection.appendPath) {
         const operations = append(doc, selection.appendPath, clipboard)
+        const newSelection = createNewSelection(operations)
 
-        handlePatch(operations)
-        selectAddOperations(operations)
+        handlePatch(operations, newSelection)
       } else if (selection.paths) {
         const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
         const parentPath = initial(lastPath)
@@ -169,9 +182,9 @@
         const props = getIn(state, parentPath.concat(STATE_PROPS))
         const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
         const operations = replace(doc, selection.paths, clipboard, nextKeys)
+        const newSelection = createNewSelection(operations)
 
-        handlePatch(operations)
-        selectAddOperations(operations)
+        handlePatch(operations, newSelection)
       }
     }
   }
@@ -187,8 +200,9 @@
       if (item) {
         doc = immutableJSONPatch(doc, item.undo).json
         state = item.prevState
+        selection = item.prevSelection
 
-        console.log('undo', { item,  doc, state })
+        console.log('undo', { item,  doc, state, selection })
 
         emitOnChange()
       }
@@ -201,8 +215,9 @@
       if (item) {
         doc = immutableJSONPatch(doc, item.redo).json
         state = item.state
+        selection = item.selection
 
-        console.log('redo', { item,  doc, state })
+        console.log('redo', { item,  doc, state, selection })
 
         emitOnChange()
       }
@@ -280,11 +295,12 @@
 
   /**
    * @param {JSONPatchDocument} operations
+   * @param {Selection} [newSelection]
    */
-  function handlePatch(operations) {
+  function handlePatch(operations, newSelection) {
     // console.log('handlePatch', operations)
 
-    const patchResult = patch(operations)
+    const patchResult = patch(operations, newSelection)
 
     emitOnChange()
 
@@ -333,17 +349,7 @@
     if (newSelection) {
       const { paths, anchorPath, focusPath, beforePath, appendPath } = newSelection
 
-      if (paths) {
-        const pathsMap = {}
-        paths.forEach(path => {
-          pathsMap[compileJSONPointer(path)] = true
-        })
-
-        selection = {
-          paths,
-          pathsMap
-        }
-      } else if (beforePath) {
+      if (beforePath) {
         selection = {
           beforePath
         }
@@ -355,14 +361,9 @@
         // TODO: move expandSelection to JSONNode? (must change expandSelection to support relative path)
         const paths = expandSelection(doc, state, anchorPath, focusPath)
 
-        const pathsMap = {}
-        paths.forEach(path => {
-          pathsMap[compileJSONPointer(path)] = true
-        })
-
         selection = {
           paths,
-          pathsMap
+          pathsMap: createPathsMap(paths)
         }
       } else {
         console.error('Unknown type of selection', newSelection)
@@ -373,6 +374,16 @@
     } else {
       selection = null
     }
+  }
+
+  function createPathsMap (paths) {
+    const pathsMap = {}
+
+    paths.forEach(path => {
+      pathsMap[compileJSONPointer(path)] = true
+    })
+
+    return pathsMap
   }
 
   /**
