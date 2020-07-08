@@ -1,5 +1,5 @@
 <script>
-  import { tick, beforeUpdate, afterUpdate } from 'svelte'
+  import { tick } from 'svelte'
   import {
     append,
     insertBefore,
@@ -25,29 +25,21 @@
     setIn,
     updateIn
   } from './utils/immutabilityHelpers.js'
-  import { compileJSONPointer, parseJSONPointer } from './utils/jsonPointer.js'
+  import { compileJSONPointer } from './utils/jsonPointer.js'
   import { keyComboFromEvent } from './utils/keyBindings.js'
   import { flattenSearch, search } from './utils/search.js'
   import { immutableJSONPatch } from './utils/immutableJSONPatch'
   import { isEqual, isNumber, initial, last, cloneDeep } from 'lodash-es'
   import jump from './assets/jump.js/src/jump.js'
   import { syncState } from './utils/syncState.js'
-  import { isObject } from './utils/typeUtils.js'
   import { getNextKeys, patchProps } from './utils/updateProps.js'
 
   let divContents
-
-  // beforeUpdate(() => {
-  //   console.time('render')
-  // })
-  // afterUpdate(() => {
-  //   console.timeEnd('render')
-  // })
+  let domHiddenInput
 
   export let doc = {}
   let state = undefined
   let selection = null
-  let selectionMap = {}
 
   export let onChangeJson = () => {}
 
@@ -355,6 +347,9 @@
       } else {
         console.error('Unknown type of selection', newSelection)
       }
+
+      // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
+      setTimeout(() => domHiddenInput.focus())
     } else {
       selection = null
     }
@@ -420,6 +415,10 @@
         handleRedo()
       }
     }
+  }
+
+  function handleKeyDownHiddenInput (event) {
+    const combo = keyComboFromEvent(event)
 
     if (combo === 'Ctrl+X' || combo === 'Command+X') {
       event.preventDefault()
@@ -511,6 +510,14 @@
       </div>
     {/if}
   </div>
+  <label class="hidden-input-label">
+    <input
+      class="hidden-input"
+      class:visible={!!selection}
+      bind:this={domHiddenInput}
+      on:keydown={handleKeyDownHiddenInput}
+    />
+  </label>
   <div class="contents" bind:this={divContents}>
     <Node
       value={doc}
