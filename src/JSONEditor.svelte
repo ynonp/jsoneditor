@@ -33,7 +33,7 @@
   import jump from './assets/jump.js/src/jump.js'
   import { syncState } from './utils/syncState.js'
   import { isObject } from './utils/typeUtils.js'
-  import { patchProps } from './utils/updateProps.js'
+  import { getNextKeys, patchProps } from './utils/updateProps.js'
 
   let divContents
 
@@ -89,16 +89,14 @@
   export function patch(operations) {
     const prevState = state
 
+    console.log('operations', operations)
+
     const documentPatchResult = immutableJSONPatch(doc, operations)
     const statePatchResult = immutableJSONPatch(state, operations)
     // TODO: only apply operations to state for relevant operations: move, copy, delete? Figure out
 
     doc = documentPatchResult.json
-    state = statePatchResult.json
-
-    // if a property is renamed (move operation), rename it in the object's props
-    // so it maintains its identity and hence its index
-    state = patchProps(state, operations)
+    state = patchProps(statePatchResult.json, operations)
 
     history.add({
       undo: documentPatchResult.revert,
@@ -151,7 +149,11 @@
       console.log('paste', { clipboard, selection })
 
       if (selection.beforePath) {
-        const operations = insertBefore(doc, selection.beforePath, clipboard)
+        const parentPath = initial(selection.beforePath)
+        const beforeKey = last(selection.beforePath)
+        const props = getIn(state, parentPath.concat(STATE_PROPS))
+        const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
+        const operations = insertBefore(doc, selection.beforePath, clipboard, nextKeys)
         console.log('patch', operations)
         handlePatch(operations)
 
@@ -163,7 +165,12 @@
 
         // FIXME: must adjust STATE_PROPS of the object where we inserted the clipboard
       } else if (selection.paths) {
-        const operations = replace(doc, selection.paths, clipboard)
+        const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly
+        const parentPath = initial(lastPath)
+        const beforeKey = last(lastPath)
+        const props = getIn(state, parentPath.concat(STATE_PROPS))
+        const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
+        const operations = replace(doc, selection.paths, clipboard, nextKeys)
         console.log('patch', operations)
         handlePatch(operations)
 

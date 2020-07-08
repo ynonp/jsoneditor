@@ -19,6 +19,7 @@
   import { findUniqueName } from './utils/stringUtils.js'
   import { isUrl, stringConvert, valueType } from './utils/typeUtils'
   import { compileJSONPointer } from './utils/jsonPointer'
+  import { getNextKeys } from './utils/updateProps.js'
 
   export let key = undefined // only applicable for object properties
   export let value
@@ -109,11 +110,7 @@
 
   function handleUpdateKey (oldKey, newKey) {
     const newKeyUnique = findUniqueName(newKey, value)
-
-    const index = props.findIndex(prop => prop.key === oldKey)
-    const nextKeys = (index !== -1)
-      ? props.slice(index + 1).map(prop => prop.key)
-      : []
+    const nextKeys = getNextKeys(props, path, key, false)
 
     onPatch(rename(path, oldKey, newKeyUnique, nextKeys))
   }

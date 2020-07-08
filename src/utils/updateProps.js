@@ -49,18 +49,26 @@ export function patchProps (state, operations) {
         if (props) {
           const oldKey = last(pathFrom)
           const newKey = last(pathTo)
-          const index = props.findIndex(item => item.key === oldKey)
+          const oldIndex = props.findIndex(item => item.key === oldKey)
 
-          if (index !== -1) {
+          if (oldIndex !== -1) {
             if (oldKey !== newKey) {
-              // A property is renamed. Rename it in the object's props
-              // so it maintains its identity and hence its index
-              updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS, index, 'key']), newKey)
+              // A property is renamed.
+
+              // in case the new key shadows an existing key, remove the existing key
+              const newIndex = props.findIndex(item => item.key === newKey)
+              if (newIndex !== -1) {
+                const updatedProps = deleteIn(props, [newIndex])
+                updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps)
+              }
+
+              // Rename the key in the object's props so it maintains its identity and hence its index
+              updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS, oldIndex, 'key']), newKey)
             } else {
               // operation.from and operation.path are the same:
               // property is moved but stays the same -> move it to the end of the props
-              const oldProp = props[index]
-              const updatedProps = insertAt(deleteIn(props, [index]), [props.length - 1], oldProp)
+              const oldProp = props[oldIndex]
+              const updatedProps = insertAt(deleteIn(props, [oldIndex]), [props.length - 1], oldProp)
 
               updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps)
             }
@@ -74,10 +82,9 @@ export function patchProps (state, operations) {
       const parentPath = initial(path)
       const props = getIn(updatedState, parentPath.concat(STATE_PROPS))
       if (props) {
-        const key = last(path)
         const newProp = {
-          key,
-          id: uniqueId()
+          id: uniqueId(),
+          key: last(path)
         }
         const updatedProps = insertAt(props, [props.length], newProp)
 
@@ -87,4 +94,15 @@ export function patchProps (state, operations) {
   })
 
   return updatedState
+}
+
+export function getNextKeys(props, parentPath, key, includeKey = false) {
+  if (props) {
+    const index = props.findIndex(prop => prop.key === key)
+    if (index !== -1) {
+      return props.slice(index + (includeKey ? 0 : 1)).map(prop => prop.key)
+    }
+  }
+
+  return []
 }
