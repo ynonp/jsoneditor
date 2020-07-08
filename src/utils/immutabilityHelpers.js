@@ -195,7 +195,7 @@ export function insertAt (object, path, value) {
       throw new TypeError('Array expected at path ' + JSON.stringify(parentPath))
     }
 
-    const updatedItems = items.slice()
+    const updatedItems = shallowClone(items)
     updatedItems.splice(index, 0, value)
 
     return updatedItems

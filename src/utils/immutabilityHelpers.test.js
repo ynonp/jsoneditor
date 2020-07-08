@@ -285,6 +285,18 @@ describe('immutabilityHelpers', () => {
     assert.deepStrictEqual(updated, {a: [1,2,8,3]})
   })
 
+  it('insertAt should copy symbols', () => {
+    const symbol = Symbol('test symbol')
+    const obj = { a: [1,2,3] }
+    obj.a[symbol] = 'test'
+
+    const updated = insertAt(obj, ['a', '2'], 8)
+
+    const expected = {a: [1,2,8,3]}
+    expected.a[symbol] = 'test'
+    assert.deepStrictEqual(updated, expected)
+  })
+
   it('transform (no change)', () => {
     const json = {a: [1,2,3], b: {c: 4}}
     const updated = transform(json, (value, path) => value)
