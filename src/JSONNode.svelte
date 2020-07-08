@@ -1,5 +1,6 @@
 <script>
-  import { debounce, initial, isEqual, last } from 'lodash-es'
+  import { debounce, isEqual } from 'lodash-es'
+  import { rename } from './actions.js'
   import {
     DEBOUNCE_DELAY,
     DEFAULT_LIMIT,
@@ -24,6 +25,7 @@
   export let state
   export let searchResult
   export let onPatch
+  export let onUpdateKey
   export let onExpand
   export let onLimit
   export let onSelect
@@ -98,15 +100,20 @@
 
   function updateKey () {
     const newKey = getPlainText(domKey)
-    const parentPath = initial(path)
 
-    onPatch([{
-      op: 'move',
-      from: compileJSONPointer(parentPath.concat(key)),
-      path: compileJSONPointer(parentPath.concat(newKey))
-    }])
+    // must be handled by the parent which has knowledge about the other keys
+    onUpdateKey(key, newKey)
   }
   const updateKeyDebounced = debounce(updateKey, DEBOUNCE_DELAY)
+
+  function handleUpdateKey (oldKey, newKey) {
+    const index = props.findIndex(prop => prop.key === oldKey)
+    const nextKeys = (index !== -1)
+      ? props.slice(index + 1).map(prop => prop.key)
+      : []
+
+    onPatch(rename(path, oldKey, newKey, nextKeys))
+  }
 
   function handleKeyInput (event) {
     const newKey = getPlainText(event.target)
@@ -342,6 +349,7 @@
             state={state && state[index]}
             searchResult={searchResult ? searchResult[index] : undefined}
             onPatch={onPatch}
+            onUpdateKey={handleUpdateKey}
             onExpand={onExpand}
             onLimit={onLimit}
             onSelect={onSelect}
@@ -409,6 +417,7 @@
             state={state && state[prop.key]}
             searchResult={searchResult ? searchResult[prop.key] : undefined}
             onPatch={onPatch}
+            onUpdateKey={handleUpdateKey}
             onExpand={onExpand}
             onLimit={onLimit}
             onSelect={onSelect}

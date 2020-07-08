@@ -9,6 +9,7 @@ describe('updateProps', () => {
 
     const props2 = updateProps({a: 1, b: 2}, props1)
     assert.deepStrictEqual(props2.map(item => item.key), ['b', 'a'])
+    assert.deepStrictEqual(props2[0], props1[0]) // b must still have the same id
   })
 
   it('updateProps (2)', () => {

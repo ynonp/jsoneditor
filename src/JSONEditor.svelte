@@ -19,9 +19,7 @@
   import { createHistory } from './history.js'
   import Node from './JSONNode.svelte'
   import { expandSelection } from './selection.js'
-  import { singleton } from './singleton.js'
   import {
-    deleteIn,
     existsIn,
     getIn,
     setIn,
@@ -35,6 +33,7 @@
   import jump from './assets/jump.js/src/jump.js'
   import { syncState } from './utils/syncState.js'
   import { isObject } from './utils/typeUtils.js'
+  import { patchProps } from './utils/updateProps.js'
 
   let divContents
 
@@ -99,25 +98,7 @@
 
     // if a property is renamed (move operation), rename it in the object's props
     // so it maintains its identity and hence its index
-    operations
-      .filter(operation => {
-        return operation.op === 'move' && isEqual(
-          initial(parseJSONPointer(operation.from)),
-          initial(parseJSONPointer(operation.path))
-        )
-      })
-      .forEach(operation => {
-        const pathFrom = parseJSONPointer(operation.from)
-        const to = parseJSONPointer(operation.path)
-        const parentPath = initial(pathFrom)
-        const oldKey = last(pathFrom)
-        const newKey = last(to)
-        const props = getIn(state, parentPath.concat(STATE_PROPS))
-        const index = props.findIndex(item => item.key === oldKey)
-        if (index !== -1) {
-          state = setIn(state, parentPath.concat([STATE_PROPS, index, 'key']), newKey)
-        }
-      })
+    state = patchProps(state, operations)
 
     history.add({
       undo: documentPatchResult.revert,
@@ -301,6 +282,10 @@
     patch(operations)
 
     emitOnChange()
+  }
+
+  function handleUpdateKey (oldKey, newKey) {
+    // should never be called on the root
   }
 
   function handleToggleSearch() {
@@ -526,6 +511,7 @@
       state={state}
       searchResult={searchResultWithActive}
       onPatch={handlePatch}
+      onUpdateKey={handleUpdateKey}
       onExpand={handleExpand}
       onLimit={handleLimit}
       onSelect={handleSelect}

@@ -98,6 +98,38 @@ export function append (json, path, values) {  // TODO: find a better name and d
 }
 
 /**
+ * Rename an object key
+ *
+ * @param {Path} parentPath
+ * @param {string} oldKey
+ * @param {string} newKey
+ * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
+ *                              used to maintain the position of the renamed key.
+ *                              If not provided, the renamed key will be moved
+ *                              to the bottom of the list with keys.
+ * @returns {Array}
+ */
+export function rename(parentPath, oldKey, newKey, nextKeys) {
+  return [
+    // rename a key
+    {
+      op: 'move',
+      from: compileJSONPointer(parentPath.concat(oldKey)),
+      path: compileJSONPointer(parentPath.concat(newKey))
+    },
+
+    // move all lower down keys so the renamed key will maintain it's position
+    ...nextKeys.map(key => {
+      return {
+        op: 'move',
+        from: compileJSONPointer(parentPath.concat(key)),
+        path: compileJSONPointer(parentPath.concat(key))
+      }
+    })
+  ]
+}
+
+/**
  * Create a JSONPatch for an insert action.
  *
  * This function needs the current data in order to be able to determine
