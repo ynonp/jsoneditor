@@ -99,6 +99,7 @@ export function append (json, path, values) {  // TODO: find a better name and d
 
 /**
  * Rename an object key
+ * Not applicable to arrays
  *
  * @param {Path} parentPath
  * @param {string} oldKey

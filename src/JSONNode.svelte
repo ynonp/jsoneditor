@@ -16,6 +16,7 @@
   import Icon from 'svelte-awesome'
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
+  import { findUniqueName } from './utils/stringUtils.js'
   import { isUrl, stringConvert, valueType } from './utils/typeUtils'
   import { compileJSONPointer } from './utils/jsonPointer'
 
@@ -107,12 +108,14 @@
   const updateKeyDebounced = debounce(updateKey, DEBOUNCE_DELAY)
 
   function handleUpdateKey (oldKey, newKey) {
+    const newKeyUnique = findUniqueName(newKey, value)
+
     const index = props.findIndex(prop => prop.key === oldKey)
     const nextKeys = (index !== -1)
       ? props.slice(index + 1).map(prop => prop.key)
       : []
 
-    onPatch(rename(path, oldKey, newKey, nextKeys))
+    onPatch(rename(path, oldKey, newKeyUnique, nextKeys))
   }
 
   function handleKeyInput (event) {
