@@ -264,9 +264,7 @@
     event.stopPropagation()
 
     onSelect({
-      afterPath: type === 'array'
-        ? path.concat(items.length)
-        : path.concat(last(props).key)
+      appendPath: path
     })
   }
 
@@ -279,8 +277,8 @@
     ? isEqual(selection.beforePath, path)
     : false
 
-  $: selectedAfter = (selection && selection.afterPath)
-    ? isEqual(initial(selection.afterPath), path)
+  $: selectedAppend = (selection && selection.appendPath)
+    ? isEqual(selection.appendPath, path)
     : false
 
   $: indentationStyle = getIndentationStyle(path.length)
@@ -351,8 +349,8 @@
           />
         {/each}
         <div
-          class="after-node-selector"
-          class:selected={selectedAfter}
+          class="append-node-selector"
+          class:selected={selectedAppend}
           style={indentationStyle}
           on:click={handleSelectAfter}
         >
@@ -418,8 +416,8 @@
           />
         {/each}
         <div
-          class="after-node-selector"
-          class:selected={selectedAfter}
+          class="append-node-selector"
+          class:selected={selectedAppend}
           style={indentationStyle}
           on:click={handleSelectAfter}
         >

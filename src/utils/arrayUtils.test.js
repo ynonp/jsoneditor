@@ -1,27 +1,30 @@
-import { compareArrays } from './arrayUtils'
+import assert from "assert"
+import { compareArrays } from './arrayUtils.js'
 
-test('compareArrays', () => {
-  expect(compareArrays([], [])).toEqual(0)
-  expect(compareArrays(['a'], ['a'])).toEqual(0)
-  expect(compareArrays(['a'], ['b'])).toEqual(-1)
-  expect(compareArrays(['b'], ['a'])).toEqual(1)
-  expect(compareArrays(['a'], ['a', 'b'])).toEqual(-1)
-  expect(compareArrays(['a', 'b'], ['a'])).toEqual(1)
-  expect(compareArrays(['a', 'b'], ['a', 'b'])).toEqual(0)
+describe('arrayUtils', () => {
+  it('compareArrays', () => {
+    assert.strictEqual(compareArrays([], []), 0)
+    assert.strictEqual(compareArrays(['a'], ['a']), 0)
+    assert.strictEqual(compareArrays(['a'], ['b']), -1)
+    assert.strictEqual(compareArrays(['b'], ['a']), 1)
+    assert.strictEqual(compareArrays(['a'], ['a', 'b']), -1)
+    assert.strictEqual(compareArrays(['a', 'b'], ['a']), 1)
+    assert.strictEqual(compareArrays(['a', 'b'], ['a', 'b']), 0)
 
-  const arrays = [
-    ['b', 'a'],
-    ['a'],
-    [],
-    ['b', 'c'],
-    ['b'],
-  ]
+    const arrays = [
+      ['b', 'a'],
+      ['a'],
+      [],
+      ['b', 'c'],
+      ['b'],
+    ]
 
-  expect(arrays.sort(compareArrays)).toEqual([
-    [],
-    ['a'],
-    ['b'],
-    ['b', 'a'],
-    ['b', 'c']
-  ])
+    assert.deepStrictEqual(arrays.sort(compareArrays), [
+      [],
+      ['a'],
+      ['b'],
+      ['b', 'a'],
+      ['b', 'c']
+    ])
+  })
 })

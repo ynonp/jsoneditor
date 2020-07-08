@@ -1,11 +1,17 @@
 <script>
   import { tick, beforeUpdate, afterUpdate } from 'svelte'
-  import { insertAfter, insertBefore, removeAll, replace } from './actions.js'
+  import {
+    append,
+    insertBefore,
+    removeAll,
+    replace
+  } from './actions.js'
   import {
     DEFAULT_LIMIT,
     STATE_EXPANDED,
     STATE_LIMIT,
-    SCROLL_DURATION, STATE_PROPS
+    SCROLL_DURATION,
+    STATE_PROPS
   } from './constants.js'
   import SearchBox from './SearchBox.svelte'
   import Icon from 'svelte-awesome'
@@ -169,8 +175,8 @@
         handlePatch(operations)
 
         // FIXME: must adjust STATE_PROPS of the object where we inserted the clipboard
-      } else if (selection.afterPath) {
-        const operations = insertAfter(doc, selection.afterPath, clipboard)
+      } else if (selection.appendPath) {
+        const operations = append(doc, selection.appendPath, clipboard)
         console.log('patch', operations)
         handlePatch(operations)
 
@@ -184,6 +190,10 @@
       }
     }
   }
+
+  // TODO: cleanup
+  $: console.log('doc', doc)
+  $: console.log('state', state)
 
   function handleUndo() {
     if (history.getState().canUndo) {
@@ -327,15 +337,15 @@
    */
   function handleSelect (newSelection) {
     if (newSelection) {
-      const { anchorPath, focusPath, beforePath, afterPath } = newSelection
+      const { anchorPath, focusPath, beforePath, appendPath } = newSelection
 
       if (beforePath) {
         selection = {
           beforePath
         }
-      } else if (afterPath) {
+      } else if (appendPath) {
         selection = {
-          afterPath
+          appendPath
         }
       } else if (anchorPath && focusPath) {
         // TODO: move expandSelection to JSONNode? (must change expandSelection to support relative path)

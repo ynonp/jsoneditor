@@ -62,7 +62,8 @@ export function insertBefore (json, path, values) {  // TODO: find a better name
 }
 
 /**
- * Create a JSONPatch for an insert action.
+ * Create a JSONPatch for an append action. The values will be appended
+ * to the end of the array or object.
  *
  * This function needs the current data in order to be able to determine
  * a unique property name for the inserted node in case of duplicating
@@ -73,16 +74,14 @@ export function insertBefore (json, path, values) {  // TODO: find a better name
  * @param {Array.<{key?: string, value: JSON}>} values
  * @return {Array}
  */
-export function insertAfter (json, path, values) {  // TODO: find a better name and define datastructure for values
-  // TODO: refactor. path should be parent path
-  const parentPath = initial(path)
-  const parent = getIn(json, parentPath)
+export function append (json, path, values) {  // TODO: find a better name and define datastructure for values
+  const parent = getIn(json, path)
 
   if (Array.isArray(parent)) {
-    const startIndex = parseInt(last(path), 10)
+    const index = parent.length
     return values.map((entry, offset) => ({
       op: 'add',
-      path: compileJSONPointer(parentPath.concat(startIndex + 1 + offset)), // +1 to insert after
+      path: compileJSONPointer(path.concat(index)),
       value: entry.value
     }))
   }
@@ -91,7 +90,7 @@ export function insertAfter (json, path, values) {  // TODO: find a better name 
       const newProp = findUniqueName(entry.key, parent)
       return {
         op: 'add',
-        path: compileJSONPointer(parentPath.concat(newProp)),
+        path: compileJSONPointer(path.concat(newProp)),
         value: entry.value
       }
     })
