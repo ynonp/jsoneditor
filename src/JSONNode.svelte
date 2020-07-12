@@ -12,7 +12,11 @@
     INDENTATION_WIDTH
   } from './constants.js'
   import { singleton } from './singleton.js'
-  import { getPlainText, setPlainText } from './utils/domUtils.js'
+  import {
+    getPlainText,
+    isChildOfButton, isContentEditableDiv,
+    setPlainText
+  } from './utils/domUtils.js'
   import Icon from 'svelte-awesome'
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
@@ -96,8 +100,16 @@
   }
 
   function toggleExpand (event) {
+    event.stopPropagation()
+
     const recursive = event.ctrlKey
     onExpand(path, !expanded, recursive)
+  }
+
+  function handleExpand (event) {
+    event.stopPropagation()
+
+    onExpand(path, true)
   }
 
   function updateKey () {
@@ -205,14 +217,17 @@
       onSelect(null)
     }
 
-    // check if the mouse down is not happening in the key or value input fields
-    if (event.target.contentEditable !== 'true') {
+    // check if the mouse down is not happening in the key or value input fields or on a button
+    if (!isContentEditableDiv(event.target) && !isChildOfButton(event.target)) {
       // initialize dragging a selection
       singleton.mousedown = true
       singleton.selectionAnchor = path
-      singleton.selectionFocus = null
+      singleton.selectionFocus = path
 
-      // TODO: select the clicked node directly
+      onSelect({
+        anchorPath: singleton.selectionAnchor,
+        focusPath: singleton.selectionFocus
+      })
 
       event.stopPropagation()
     }
@@ -335,7 +350,7 @@
         <div class="delimiter">[</div>
       {:else}
         <div class="delimiter">[</div>
-        <button class="tag" on:click={() => onExpand(path, true)}>{value.length} items</button>
+        <button class="tag" on:click={handleExpand}>{value.length} items</button>
         <div class="delimiter">]</div>
       {/if}
     </div>
@@ -403,7 +418,7 @@
         <span class="delimiter">&#123;</span>
       {:else}
         <span class="delimiter"> &#123;</span>
-        <button class="tag" on:click={() => onExpand(path, true)}>{Object.keys(value).length} props</button>
+        <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
         <span class="delimiter">}</span>
       {/if}
     </div>

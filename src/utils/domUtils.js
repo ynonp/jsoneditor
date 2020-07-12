@@ -178,3 +178,19 @@ export function traverseInnerText (element, buffer) {
   // br or unknown
   return ''
 }
+
+// test whether a DOM element is a child of a button
+export function isChildOfButton (element) {
+  let e = element
+
+  while (e && e.nodeName !== 'BUTTON') {
+    e = e.parentNode
+  }
+
+  return e && e.nodeName === 'BUTTON'
+}
+
+// test whether a DOM element is a content editable div
+export function isContentEditableDiv (element) {
+  return (element.nodeName === 'DIV' && element.contentEditable === 'true')
+}

@@ -19,6 +19,7 @@
   import { createHistory } from './history.js'
   import Node from './JSONNode.svelte'
   import { expandSelection } from './selection.js'
+  import { isContentEditableDiv } from './utils/domUtils.js'
   import {
     existsIn,
     getIn,
@@ -410,10 +411,7 @@
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
 
-    const targetIsContentEditableDiv = (
-      event.target.nodeName === 'DIV' && event.target.contentEditable === 'true')
-
-    if (!targetIsContentEditableDiv) {
+    if (!isContentEditableDiv(event.target)) {
       if (combo === 'Ctrl+X' || combo === 'Command+X') {
         event.preventDefault()
         handleCut()
