@@ -30,7 +30,7 @@
   import { keyComboFromEvent } from './utils/keyBindings.js'
   import { flattenSearch, search } from './utils/search.js'
   import { immutableJSONPatch } from './utils/immutableJSONPatch'
-  import { isEqual, isNumber, initial, last, cloneDeep } from 'lodash-es'
+  import { isEqual, isNumber, initial, last, cloneDeep, first } from 'lodash-es'
   import jump from './assets/jump.js/src/jump.js'
   import { syncState } from './utils/syncState.js'
   import { getNextKeys, patchProps } from './utils/updateProps.js'
@@ -253,12 +253,12 @@
       : undefined
 
   function nextSearchResult () {
-    activeSearchResult = flatSearchResult[activeSearchResultIndex + 1] || activeSearchResult
+    activeSearchResult = flatSearchResult[activeSearchResultIndex + 1] || first(flatSearchResult)
     focusActiveSearchResult()
   }
 
   function previousSearchResult () {
-    activeSearchResult = flatSearchResult[activeSearchResultIndex - 1] || activeSearchResult
+    activeSearchResult = flatSearchResult[activeSearchResultIndex - 1] || last(flatSearchResult)
     focusActiveSearchResult()
   }
 
