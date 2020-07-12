@@ -1,6 +1,4 @@
-import first from 'lodash/first'
-import initial from 'lodash/initial'
-import last from 'lodash/last'
+import { first, initial, last, pickBy } from 'lodash-es'
 import { getIn } from './utils/immutabilityHelpers'
 import { compileJSONPointer } from './utils/jsonPointer'
 import { findUniqueName } from './utils/stringUtils'
@@ -149,13 +147,18 @@ export function replace (json, paths, values, nextKeys) {  // TODO: find a bette
     ]
   }
   else { // parent is Object
+    // if we're going to replace an existing object with key "a" with a new
+    // key "a", we must not create a new unique name "a (copy)".
+    const removeKeys = new Set(paths.map(path => last(path)))
+    const parentWithoutRemovedKeys = pickBy(parent, (value, key) => !removeKeys.has(key))
+
     return [
       // remove operations
       ...removeAll(paths),
 
       // insert operations
       ...values.map(entry => {
-        const newProp = findUniqueName(entry.key, parent)
+        const newProp = findUniqueName(entry.key, parentWithoutRemovedKeys)
         return {
           op: 'add',
           path: compileJSONPointer(parentPath.concat(newProp)),

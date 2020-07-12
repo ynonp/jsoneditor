@@ -78,17 +78,21 @@ export function patchProps (state, operations) {
     }
 
     if (operation.op === 'add') {
-      const path = parseJSONPointer(operation.path)
-      const parentPath = initial(path)
+      const pathTo = parseJSONPointer(operation.path)
+      const parentPath = initial(pathTo)
+      const key = last(pathTo)
       const props = getIn(updatedState, parentPath.concat(STATE_PROPS))
       if (props) {
-        const newProp = {
-          id: uniqueId(),
-          key: last(path)
-        }
-        const updatedProps = insertAt(props, [props.length], newProp)
+        const index = props.findIndex(item => item.key === key)
+        if (index === -1) {
+          const newProp = {
+            id: uniqueId(),
+            key
+          }
+          const updatedProps = insertAt(props, [props.length], newProp)
 
-        updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps)
+          updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps)
+        }
       }
     }
   })
