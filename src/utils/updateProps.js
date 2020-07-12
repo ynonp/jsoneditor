@@ -1,9 +1,8 @@
-import initial from 'lodash-es/initial.js'
+import { initial, isEqual, last, uniqueId } from 'lodash-es'
 import { STATE_PROPS } from '../constants.js'
 import { deleteIn, getIn, insertAt, setIn } from './immutabilityHelpers.js'
 import { parseJSONPointer } from './jsonPointer.js'
 import { isObject } from './typeUtils.js'
-import { isEqual, last, uniqueId } from 'lodash-es'
 
 export function updateProps (value, prevProps) {
   if (!isObject(value)) {
