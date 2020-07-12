@@ -410,6 +410,24 @@
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
 
+    const targetIsContentEditableDiv = (
+      event.target.nodeName === 'DIV' && event.target.contentEditable === 'true')
+
+    if (!targetIsContentEditableDiv) {
+      if (combo === 'Ctrl+X' || combo === 'Command+X') {
+        event.preventDefault()
+        handleCut()
+      }
+      if (combo === 'Ctrl+C' || combo === 'Command+C') {
+        event.preventDefault()
+        handleCopy()
+      }
+      if (combo === 'Ctrl+V' || combo === 'Command+V') {
+        event.preventDefault()
+        handlePaste()
+      }
+    }
+
     if (combo === 'Ctrl+F' || combo === 'Command+F') {
       event.preventDefault()
       showSearch = true
@@ -445,23 +463,6 @@
       } else {
         handleRedo()
       }
-    }
-  }
-
-  function handleKeyDownHiddenInput (event) {
-    const combo = keyComboFromEvent(event)
-
-    if (combo === 'Ctrl+X' || combo === 'Command+X') {
-      event.preventDefault()
-      handleCut()
-    }
-    if (combo === 'Ctrl+C' || combo === 'Command+C') {
-      event.preventDefault()
-      handleCopy()
-    }
-    if (combo === 'Ctrl+V' || combo === 'Command+V') {
-      event.preventDefault()
-      handlePaste()
     }
   }
 </script>
@@ -546,7 +547,6 @@
       class="hidden-input"
       class:visible={!!selection}
       bind:this={domHiddenInput}
-      on:keydown={handleKeyDownHiddenInput}
     />
   </label>
   <div class="contents" bind:this={divContents}>
