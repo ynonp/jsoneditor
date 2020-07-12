@@ -6,7 +6,7 @@ import { compileJSONPointer } from './utils/jsonPointer'
 import { findUniqueName } from './utils/stringUtils'
 
 /**
- * Create a JSONPatch for an insert action.
+ * Create a JSONPatch for an insert operation.
  *
  * This function needs the current data in order to be able to determine
  * a unique property name for the inserted node in case of duplicating
@@ -51,7 +51,7 @@ export function insertBefore (json, path, values, nextKeys) {  // TODO: find a b
 }
 
 /**
- * Create a JSONPatch for an append action. The values will be appended
+ * Create a JSONPatch for an append operation. The values will be appended
  * to the end of the array or object.
  *
  * This function needs the current data in order to be able to determine
@@ -113,7 +113,7 @@ export function rename(parentPath, oldKey, newKey, nextKeys) {
 }
 
 /**
- * Create a JSONPatch for an insert action.
+ * Create a JSONPatch for an insert operation.
  *
  * This function needs the current data in order to be able to determine
  * a unique property name for the inserted node in case of duplicating
@@ -136,14 +136,17 @@ export function replace (json, paths, values, nextKeys) {  // TODO: find a bette
     const firstPath = first(paths)
     const offset = firstPath ? parseInt(last(firstPath), 10) : 0
 
-    const removeActions = removeAll(paths)
-    const insertActions = values.map((entry, index) => ({
-      op: 'add',
-      path: compileJSONPointer(parentPath.concat(index + offset)),
-      value: entry.value
-    }))
+    return [
+      // remove operations
+      ...removeAll(paths),
 
-    return removeActions.concat(insertActions)
+      // insert operations
+      values.map((entry, index) => ({
+        op: 'add',
+        path: compileJSONPointer(parentPath.concat(index + offset)),
+        value: entry.value
+      }))
+    ]
   }
   else { // parent is Object
     return [
@@ -168,7 +171,7 @@ export function replace (json, paths, values, nextKeys) {  // TODO: find a bette
 }
 
 /**
- * Create a JSONPatch for a remove action
+ * Create a JSONPatch for a remove operation
  * @param {Path} path
  * @return {JSONPatchDocument}
  */
@@ -180,7 +183,7 @@ export function remove (path) {
 }
 
 /**
- * Create a JSONPatch for a multiple remove action
+ * Create a JSONPatch for a multiple remove operation
  * @param {Path[]} paths
  * @return {JSONPatchDocument}
  */

@@ -13,7 +13,7 @@ import { isEqual, initial } from 'lodash-es'
  * The original JSON object will not be changed,
  * instead, the patch is applied in an immutable way
  * @param {JSON} json
- * @param {JSONPatchDocument} operations    Array with JSON patch actions
+ * @param {JSONPatchDocument} operations    Array with JSON patch operations
  * @return {{json: JSON, revert: JSONPatchDocument, error: Error | null}}
  */
 export function immutableJSONPatch (json, operations) {
@@ -54,7 +54,7 @@ export function immutableJSONPatch (json, operations) {
           return {
             json: updatedJson,
             revert: [],
-            error: new Error('Property "from" expected in copy action ' + JSON.stringify(operation))
+            error: new Error('Property "from" expected in copy operation ' + JSON.stringify(operation))
           }
         }
 
@@ -70,7 +70,7 @@ export function immutableJSONPatch (json, operations) {
           return {
             json: updatedJson,
             revert: [],
-            error: new Error('Property "from" expected in move action ' + JSON.stringify(operation))
+            error: new Error('Property "from" expected in move operation ' + JSON.stringify(operation))
           }
         }
 

@@ -1,6 +1,6 @@
 <script>
   import { debounce, isEqual } from 'lodash-es'
-  import { rename } from './actions.js'
+  import { rename } from './operations.js'
   import {
     DEBOUNCE_DELAY,
     DEFAULT_LIMIT,

@@ -5,7 +5,7 @@
     insertBefore,
     removeAll,
     replace
-  } from './actions.js'
+  } from './operations.js'
   import {
     DEFAULT_LIMIT,
     STATE_EXPANDED,
