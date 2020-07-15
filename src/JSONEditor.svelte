@@ -424,6 +424,10 @@
         event.preventDefault()
         handlePaste()
       }
+      if (combo === 'Escape') {
+        event.preventDefault()
+        selection = null
+      }
     }
 
     if (combo === 'Ctrl+F' || combo === 'Command+F') {
