@@ -262,7 +262,7 @@
   }
 
   function handleMouseMove (event) {
-    if (singleton.mousedown) { // TODO: Remove the need for this, only create mousemove handle when mouse is down
+    if (singleton.mousedown) {
       event.preventDefault()
       event.stopPropagation()
 
