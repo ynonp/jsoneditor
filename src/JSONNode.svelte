@@ -14,7 +14,10 @@
   import { singleton } from './singleton.js'
   import {
     getPlainText,
-    isChildOfButton, isContentEditableDiv,
+    isAppendNodeSelector,
+    isBeforeNodeSelector,
+    isChildOfButton,
+    isContentEditableDiv,
     setPlainText
   } from './utils/domUtils.js'
   import Icon from 'svelte-awesome'
@@ -218,7 +221,27 @@
     }
 
     // check if the mouse down is not happening in the key or value input fields or on a button
-    if (!isContentEditableDiv(event.target) && !isChildOfButton(event.target)) {
+    if (isContentEditableDiv(event.target) || isChildOfButton(event.target)) {
+      return
+    }
+
+    if (isBeforeNodeSelector(event.target)) {
+      singleton.mousedown = true
+      singleton.selectionAnchor = path
+      singleton.selectionFocus = null
+
+      onSelect({
+        beforePath: path
+      })
+    } else if (isAppendNodeSelector(event.target)) {
+      singleton.mousedown = true
+      singleton.selectionAnchor = path
+      singleton.selectionFocus = null
+
+      onSelect({
+        appendPath: path
+      })
+    } else {
       // initialize dragging a selection
       singleton.mousedown = true
       singleton.selectionAnchor = path
@@ -228,9 +251,10 @@
         anchorPath: singleton.selectionAnchor,
         focusPath: singleton.selectionFocus
       })
-
-      event.stopPropagation()
     }
+
+    event.stopPropagation()
+    event.preventDefault()
 
     // we attache the mouse up event listener to the global document,
     // so we will not miss if the mouse up is happening outside of the editor
@@ -238,7 +262,7 @@
   }
 
   function handleMouseMove (event) {
-    if (singleton.mousedown) {
+    if (singleton.mousedown) { // TODO: Remove the need for this, only create mousemove handle when mouse is down
       event.preventDefault()
       event.stopPropagation()
 
@@ -314,10 +338,10 @@
   on:mousemove={handleMouseMove}
 >
   <div
+    data-type="before-node-selector"
     class="before-node-selector"
     class:selected={selectedBefore}
     style={indentationStyle}
-    on:click={handleSelectBefore}
   >
     <div class="selector"></div>
   </div>
@@ -372,10 +396,10 @@
           />
         {/each}
         <div
+          data-type="append-node-selector"
           class="append-node-selector"
           class:selected={selectedAppend}
           style={indentationStyle}
-          on:click={handleSelectAfter}
         >
           <div class="selector"></div>
         </div>
@@ -440,10 +464,10 @@
           />
         {/each}
         <div
+          data-type="append-node-selector"
           class="append-node-selector"
           class:selected={selectedAppend}
           style={indentationStyle}
-          on:click={handleSelectAfter}
         >
           <div class="selector"></div>
         </div>

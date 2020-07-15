@@ -32,6 +32,8 @@
     right: $input-padding;
     height: $selector-height;
     box-sizing: border-box;
+    padding-left: $indentation-width;
+    z-index: 1;
 
     .selector {
       margin-top: $selector-height / 2;
@@ -39,13 +41,13 @@
 
     &:hover {
       .selector {
-        border: 1px dashed $selection-background;
+        border: 1px dashed $theme-color;
       }
     }
 
     &.selected {
       .selector {
-        border: 1px dashed $theme-color;
+        border: 1px dashed $gray;
       }
     }
   }
@@ -54,8 +56,12 @@
     top: -$selector-height/2 - 1px;
   }
 
-  .after-node-selector {
+  .append-node-selector {
     bottom: -$selector-height/2 - 1px;
+
+    .selector {
+      margin-top: $selector-height / 2 - 2px;
+    }
   }
 
   .header {

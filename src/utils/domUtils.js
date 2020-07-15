@@ -181,16 +181,44 @@ export function traverseInnerText (element, buffer) {
 
 // test whether a DOM element is a child of a button
 export function isChildOfButton (element) {
-  let e = element
-
-  while (e && e.nodeName !== 'BUTTON') {
-    e = e.parentNode
-  }
-
-  return e && e.nodeName === 'BUTTON'
+  return isChildOf(element, e => e.nodeName === 'BUTTON')
 }
 
 // test whether a DOM element is a content editable div
 export function isContentEditableDiv (element) {
   return (element.nodeName === 'DIV' && element.contentEditable === 'true')
+}
+
+export function isBeforeNodeSelector (element) {
+  return isChildOf(element, e => {
+    return hasAttribute(e, 'data-type', 'before-node-selector')
+  })
+}
+
+export function isAppendNodeSelector (element) {
+  return isChildOf(element, e => {
+    return hasAttribute(e, 'data-type', 'append-node-selector')
+  })
+}
+
+function hasAttribute(element, name, value) {
+  return typeof element.getAttribute === 'function' && element.getAttribute(name) === value
+}
+
+/**
+ * Test if the element or one of it's parents has a certain predicate
+ * Can be use for example to check whether the element or it's parent has
+ * a specific attribute or nodeName.
+ * @param {HTMLElement} element
+ * @param {function (element: HTMLElement) : boolean} predicate
+ * @returns {*}
+ */
+export function isChildOf (element, predicate) {
+  let e = element
+
+  while (e && !predicate(e)) {
+    e = e.parentNode
+  }
+
+  return e && predicate(e)
 }
