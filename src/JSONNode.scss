@@ -56,8 +56,10 @@
   &:active {
     .before-node-selector,
     .append-node-selector {
-      .selector {
-        border: none;
+      &:not(.selected) {
+        .selector {
+          border: none;
+        }
       }
     }
   }
