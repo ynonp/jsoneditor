@@ -1,13 +1,13 @@
 <script>
   import { tick } from 'svelte'
   import {
-    append, duplicate,
+    append,
+    duplicate,
     insertBefore,
     removeAll,
     replace
   } from './operations.js'
   import {
-    DEFAULT_LIMIT,
     STATE_EXPANDED,
     STATE_LIMIT,
     SCROLL_DURATION,
@@ -25,7 +25,6 @@
   } from './selection.js'
   import { isContentEditableDiv } from './utils/domUtils.js'
   import {
-    existsIn,
     getIn,
     setIn,
     updateIn
@@ -34,9 +33,9 @@
   import { keyComboFromEvent } from './utils/keyBindings.js'
   import { search, searchNext, searchPrevious } from './utils/search.js'
   import { immutableJSONPatch } from './utils/immutableJSONPatch'
-  import { isNumber, initial, last, cloneDeep } from 'lodash-es'
+  import { initial, last, cloneDeep } from 'lodash-es'
   import jump from './assets/jump.js/src/jump.js'
-  import { stateUtils } from './utils/stateUtils.js'
+  import { expandPath, stateUtils } from './utils/stateUtils.js'
   import { getNextKeys, patchProps } from './utils/updateProps.js'
 
   let divContents
@@ -268,7 +267,7 @@
 
   async function focusActiveSearchResult (activeItem) {
     if (activeItem) {
-      expandPath(activeItem.path)
+      state = expandPath(state, activeItem.path)
 
       await tick()
 
@@ -371,27 +370,6 @@
       setTimeout(() => domHiddenInput.focus())
     } else {
       selection = null
-    }
-  }
-
-  /**
-   * Expand all nodes on given path
-   * @param {Path} path
-   */
-  function expandPath (path) {
-    for (let i = 1; i < path.length; i++) {
-      const partialPath = path.slice(0, i)
-      state = setIn(state, partialPath.concat(STATE_EXPANDED), true)
-
-      // if needed, enlarge the limit such that the search result becomes visible
-      const key = path[i]
-      if (isNumber(key)) {
-        const limit = getIn(state, partialPath.concat(STATE_LIMIT)) || DEFAULT_LIMIT
-        if (key > limit) {
-          const newLimit = Math.ceil(key / DEFAULT_LIMIT) * DEFAULT_LIMIT
-          state = setIn(state, partialPath.concat(STATE_LIMIT), newLimit)
-        }
-      }
     }
   }
 

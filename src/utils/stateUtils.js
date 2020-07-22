@@ -1,9 +1,11 @@
+import { isNumber } from 'lodash-es'
 import {
   DEFAULT_LIMIT,
   STATE_EXPANDED,
   STATE_LIMIT,
   STATE_PROPS
 } from '../constants.js'
+import { setIn } from './immutabilityHelpers.js'
 import { isObject, isObjectOrArray } from './typeUtils.js'
 import { updateProps } from './updateProps.js'
 
@@ -70,4 +72,33 @@ export function stateUtils (doc, state = undefined, path, expand, forceRefresh =
 
   // primitive values have no state
   return undefined
+}
+
+/**
+ * Expand all nodes on given path
+ * @param {JSON} state
+ * @param {Path} path
+ * @return {JSON} returns the updated state
+ */
+// TODO: write unit tests for expandPath
+export function expandPath (state, path) {
+  let updatedState = state
+
+  for (let i = 1; i < path.length; i++) {
+    const partialPath = path.slice(0, i)
+    // FIXME: setIn has to create object first
+    updatedState = setIn(updatedState, partialPath.concat(STATE_EXPANDED), true)
+
+    // if needed, enlarge the limit such that the search result becomes visible
+    const key = path[i]
+    if (isNumber(key)) {
+      const limit = getIn(updatedState, partialPath.concat(STATE_LIMIT)) || DEFAULT_LIMIT
+      if (key > limit) {
+        const newLimit = Math.ceil(key / DEFAULT_LIMIT) * DEFAULT_LIMIT
+        updatedState = setIn(updatedState, partialPath.concat(STATE_LIMIT), newLimit)
+      }
+    }
+  }
+
+  return updatedState
 }
