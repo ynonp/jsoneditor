@@ -1,9 +1,103 @@
-import { isNumber } from 'lodash-es'
+import { isEqual, isNumber } from 'lodash-es'
 import { STATE_SEARCH_PROPERTY, STATE_SEARCH_VALUE } from '../constants.js'
+import { existsIn, setIn } from './immutabilityHelpers.js'
 import { valueType } from './typeUtils.js'
 
-export function search (doc, searchText) {
-  return searchRecursive(null, doc, searchText)
+
+/**
+ * @typedef {{path: Path, what: Symbol}} SearchItem
+ */
+
+/**
+ * @typedef {Object} SearchResult
+ * @property {Object} items
+ * @property {Object} itemsWithActive
+ * @property {SearchItem[]} flatItems
+ * @property {SearchItem} activeItem
+ * @property {number} activeIndex
+ * @property {number} count
+ */
+
+/**
+ * @param {JSON} doc
+ * @param {string} searchText
+ * @param {SearchResult} [previousResult]
+ * @returns {SearchResult}
+ */
+export function search (doc, searchText, previousResult) {
+  if (!searchText || searchText === '') {
+    return undefined
+  }
+
+  const items = searchRecursive(null, doc, searchText)
+
+  const flatItems = flattenSearch(items)
+
+  const activeItem = (previousResult && previousResult.activeItem &&
+    existsIn(items, previousResult.activeItem.path.concat(previousResult.activeItem.what)))
+    ? previousResult.activeItem
+    : flatItems[0]
+
+  const activeIndex = flatItems.findIndex(item => isEqual(item, activeItem))
+
+  const itemsWithActive = (items && activeItem)
+    ? setIn(items, activeItem.path.concat(activeItem.what), 'search active')
+    : items
+
+  return {
+    items,
+    itemsWithActive,
+    flatItems,
+    count: flatItems.length,
+    activeItem,
+    activeIndex
+  }
+}
+
+/**
+ * @param {SearchResult} searchResult
+ * @return {SearchResult} nextResult
+ */
+export function searchNext (searchResult) {
+  const nextActiveIndex = searchResult.activeIndex < searchResult.flatItems.length - 1
+    ? searchResult.activeIndex + 1
+    : 0
+
+  const nextActiveItem = searchResult.flatItems[nextActiveIndex]
+
+  const itemsWithActive = nextActiveItem
+    ? setIn(searchResult.items, nextActiveItem.path.concat(nextActiveItem.what), 'search active')
+    : searchResult.items
+
+  return {
+    ...searchResult,
+    itemsWithActive,
+    activeItem: nextActiveItem,
+    activeIndex: nextActiveIndex
+  }
+}
+
+/**
+ * @param {SearchResult} searchResult
+ * @return {SearchResult} nextResult
+ */
+export function searchPrevious (searchResult) {
+  const previousActiveIndex = searchResult.activeIndex > 0
+    ? searchResult.activeIndex - 1
+    : searchResult.flatItems.length - 1
+
+  const previousActiveItem = searchResult.flatItems[previousActiveIndex]
+
+  const itemsWithActive = previousActiveItem
+    ? setIn(searchResult.items, previousActiveItem.path.concat(previousActiveItem.what), 'search active')
+    : searchResult.items
+
+  return {
+    ...searchResult,
+    itemsWithActive,
+    activeItem: previousActiveItem,
+    activeIndex: previousActiveIndex
+  }
 }
 
 function searchRecursive (key, doc, searchText) {
@@ -37,7 +131,7 @@ function searchRecursive (key, doc, searchText) {
   return results
 }
 
-export function flattenSearch (searchResult) {
+function flattenSearch (searchResult) {
   const resultArray = []
 
   function _flattenSearch (value, path) {

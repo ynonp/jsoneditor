@@ -54,16 +54,24 @@
  *   paths: Path[],
  *   pathsMap: Object<string, boolean>
  * }} MultiSelection
- *
- * @typedef {{beforePath: Path}} BeforeSelection
- *
- * @typedef {{appendPath: Path}} AppendSelection
+ */
 
+/**
+ * @typedef {{beforePath: Path}} BeforeSelection
+ */
+
+/**
+ * @typedef {{appendPath: Path}} AppendSelection
+ */
+
+/**
  * @typedef {MultiSelection | BeforeSelection | AppendSelection} Selection
  */
 
 /**
  * @typedef {{anchorPath: Path, focusPath: Path}} MultiSelectionSchema
- *
+ */
+
+/**
  * @typedef {MultiSelectionSchema  | BeforeSelection | AppendSelection} SelectionSchema
  */

@@ -32,9 +32,9 @@
   } from './utils/immutabilityHelpers.js'
   import { compileJSONPointer, parseJSONPointer } from './utils/jsonPointer.js'
   import { keyComboFromEvent } from './utils/keyBindings.js'
-  import { flattenSearch, search } from './utils/search.js'
+  import { search, searchNext, searchPrevious } from './utils/search.js'
   import { immutableJSONPatch } from './utils/immutableJSONPatch'
-  import { isEqual, isNumber, initial, last, cloneDeep, first } from 'lodash-es'
+  import { isNumber, initial, last, cloneDeep } from 'lodash-es'
   import jump from './assets/jump.js/src/jump.js'
   import { syncState } from './utils/syncState.js'
   import { getNextKeys, patchProps } from './utils/updateProps.js'
@@ -42,12 +42,13 @@
   let divContents
   let domHiddenInput
 
-  export let doc = {}
-  let state = undefined
-  let selection = null
-
   export let onChangeJson = () => {}
 
+  export let doc = {}
+  let state = undefined
+  let searchResult = undefined
+
+  let selection = null
   let clipboard = null
   $: hasSelectionContents = selection != null && selection.paths != null
   $: hasClipboardContents = clipboard != null && selection != null
@@ -78,6 +79,7 @@
 
   export function set(newDocument) {
     doc = newDocument
+    searchResult = undefined
     state = undefined
     history.clear()
   }
@@ -98,6 +100,7 @@
 
     doc = documentPatchResult.json
     state = patchProps(statePatchResult.json, operations)
+    searchResult = search(doc, searchText, searchResult)
     if (newSelection) {
       selection = newSelection
     }
@@ -222,6 +225,7 @@
       if (item) {
         doc = immutableJSONPatch(doc, item.undo).json
         state = item.prevState
+        searchResult = search(doc, searchText, searchResult)
         selection = item.prevSelection
 
         console.log('undo', { item,  doc, state, selection })
@@ -237,6 +241,7 @@
       if (item) {
         doc = immutableJSONPatch(doc, item.redo).json
         state = item.state
+        searchResult = search(doc, searchText, searchResult)
         selection = item.selection
 
         console.log('redo', { item,  doc, state, selection })
@@ -246,49 +251,28 @@
     }
   }
 
-  // TODO: refactor the search solution and move it in a separate component
-  // in: doc, searchText, activeSearchResultIndex
-  // out: searchResultWithActive
-  // callbacks: change searchText, change doc, change activeSearchResultIndex
-  let searchResult
-  let activeSearchResult = undefined
-  let activeSearchResultIndex
-  let flatSearchResult
-  let searchResultWithActive
-  $: searchResult = searchText ? search(doc, searchText) : undefined
-  $: flatSearchResult = flattenSearch(searchResult)
-
-  $: {
-    if (!activeSearchResult || !existsIn(searchResult, activeSearchResult.path.concat(activeSearchResult.what))) {
-      activeSearchResult = flatSearchResult[0]
-      focusActiveSearchResult()
-    }
+  function changeSearchText (text) {
+    searchText = text
+    searchResult = search(doc, searchText, searchResult)
   }
 
-  $: activeSearchResultIndex = flatSearchResult.findIndex(item => isEqual(item, activeSearchResult))
-  $: searchResultWithActive = searchResult
-      ? activeSearchResult
-        ? setIn(searchResult, activeSearchResult.path.concat(activeSearchResult.what), 'search active')
-        : searchResult
-      : undefined
-
   function nextSearchResult () {
-    activeSearchResult = flatSearchResult[activeSearchResultIndex + 1] || first(flatSearchResult)
-    focusActiveSearchResult()
+    searchResult = searchNext(searchResult)
+    focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
   function previousSearchResult () {
-    activeSearchResult = flatSearchResult[activeSearchResultIndex - 1] || last(flatSearchResult)
-    focusActiveSearchResult()
+    searchResult = searchPrevious(searchResult)
+    focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
-  async function focusActiveSearchResult () {
-    if (activeSearchResult) {
-      expandPath(activeSearchResult.path)
+  async function focusActiveSearchResult (activeItem) {
+    if (activeItem) {
+      expandPath(activeItem.path)
 
       await tick()
 
-      scrollTo(activeSearchResult.path.concat(activeSearchResult.what))
+      scrollTo(activeItem.path.concat(activeItem.what))
     }
   }
 
@@ -549,9 +533,9 @@
       <div class="search-box-container">
         <SearchBox
           text={searchText}
-          resultCount={flatSearchResult.length}
-          activeIndex={activeSearchResultIndex}
-          onChange={(text) => searchText = text}
+          resultCount={searchResult ? searchResult.count : 0}
+          activeIndex={searchResult ? searchResult.activeIndex : 0}
+          onChange={changeSearchText}
           onNext={nextSearchResult}
           onPrevious={previousSearchResult}
           onClose={() => {
@@ -574,7 +558,7 @@
       value={doc}
       path={[]}
       state={state}
-      searchResult={searchResultWithActive}
+      searchResult={searchResult && searchResult.itemsWithActive}
       onPatch={handlePatch}
       onUpdateKey={handleUpdateKey}
       onExpand={handleExpand}
