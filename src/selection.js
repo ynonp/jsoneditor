@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash-es'
+import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
 import { STATE_PROPS } from './constants.js'
 import { getIn } from './utils/immutabilityHelpers.js'
 import { isObject } from './utils/typeUtils.js'
@@ -11,7 +11,7 @@ import { isObject } from './utils/typeUtils.js'
  * @param {JSON} state
  * @param {Path} anchorPath
  * @param {Path} focusPath
- * @return {Path[]} selection
+ * @return {Path[]} paths
  */
 export function expandSelection (doc, state, anchorPath, focusPath) {
   if (isEqual(anchorPath, focusPath)) {
@@ -26,14 +26,14 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
       return [ sharedPath ]
     }
 
-    const anchorProp = anchorPath[sharedPath.length]
-    const focusProp = focusPath[sharedPath.length]
+    const anchorKey = anchorPath[sharedPath.length]
+    const focusKey = focusPath[sharedPath.length]
     const value = getIn(doc, sharedPath)
 
     if (isObject(value)) {
       const props = getIn(state, sharedPath.concat(STATE_PROPS))
-      const anchorIndex = props.findIndex(prop => prop.key === anchorProp)
-      const focusIndex = props.findIndex(prop => prop.key === focusProp)
+      const anchorIndex = props.findIndex(prop => prop.key === anchorKey)
+      const focusIndex = props.findIndex(prop => prop.key === focusKey)
 
       if (anchorIndex !== -1 && focusIndex !== -1) {
         const startIndex = Math.min(anchorIndex, focusIndex)
@@ -49,8 +49,8 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
     }
 
     if (Array.isArray(value)) {
-      const startIndex = Math.min(anchorProp, focusProp)
-      const endIndex = Math.max(anchorProp, focusProp)
+      const startIndex = Math.min(anchorKey, focusKey)
+      const endIndex = Math.max(anchorKey, focusKey)
       const paths = []
 
       for (let i = startIndex; i <= endIndex; i++) {
@@ -61,8 +61,7 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
     }
   }
 
-  // should never happen
-  return []
+  throw new Error('Failed to create selection')
 }
 
 /**

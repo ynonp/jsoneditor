@@ -25,7 +25,7 @@
  */
 
 /**
- * @typedef {<string | number>[]} Path
+ * @typedef {Array<string | number>} Path
  */
 
 /**
@@ -50,5 +50,20 @@
  */
 
 /**
- * @typedef {{paths: Path[], pathsMap: Object<string, boolean>}} | {beforePath: Path} | {appendPath: Path}} Selection
+ * @typedef {{
+ *   paths: Path[],
+ *   pathsMap: Object<string, boolean>
+ * }} MultiSelection
+ *
+ * @typedef {{beforePath: Path}} BeforeSelection
+ *
+ * @typedef {{appendPath: Path}} AppendSelection
+
+ * @typedef {MultiSelection | BeforeSelection | AppendSelection} Selection
+ */
+
+/**
+ * @typedef {{anchorPath: Path, focusPath: Path}} MultiSelectionSchema
+ *
+ * @typedef {MultiSelectionSchema  | BeforeSelection | AppendSelection} SelectionSchema
  */

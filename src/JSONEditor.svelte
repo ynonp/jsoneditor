@@ -17,7 +17,7 @@
   import Icon from 'svelte-awesome'
   import { faCut, faCopy, faPaste, faSearch, faUndo, faRedo } from '@fortawesome/free-solid-svg-icons'
   import { createHistory } from './history.js'
-  import Node from './JSONNode.svelte'
+  import JSONNode from './JSONNode.svelte'
   import { expandSelection } from './selection.js'
   import { isContentEditableDiv } from './utils/domUtils.js'
   import {
@@ -342,24 +342,17 @@
   }
 
   /**
-   * @param {Selection} newSelection
+   * @param {SelectionSchema} selectionSchema
    */
-  function handleSelect (newSelection) {
-    // TODO: refactor handleSelect: should be redundant except for the functionality to expand the selection and generate pathsMap
-
-    if (newSelection) {
-      const { paths, anchorPath, focusPath, beforePath, appendPath } = newSelection
+  function handleSelect (selectionSchema) {
+    if (selectionSchema) {
+      const { anchorPath, focusPath, beforePath, appendPath } = selectionSchema
 
       if (beforePath) {
-        selection = {
-          beforePath
-        }
+        selection = { beforePath }
       } else if (appendPath) {
-        selection = {
-          appendPath
-        }
+        selection = { appendPath }
       } else if (anchorPath && focusPath) {
-        // TODO: move expandSelection to JSONNode? (must change expandSelection to support relative path)
         const paths = expandSelection(doc, state, anchorPath, focusPath)
 
         selection = {
@@ -367,7 +360,7 @@
           pathsMap: createPathsMap(paths)
         }
       } else {
-        console.error('Unknown type of selection', newSelection)
+        console.error('Unknown type of selection', selectionSchema)
       }
 
       // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
@@ -552,7 +545,7 @@
     />
   </label>
   <div class="contents" bind:this={divContents}>
-    <Node
+    <JSONNode
       value={doc}
       path={[]}
       state={state}

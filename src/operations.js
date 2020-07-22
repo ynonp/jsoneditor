@@ -23,10 +23,10 @@ export function insertBefore (json, path, values, nextKeys) {  // TODO: find a b
   const parent = getIn(json, parentPath)
 
   if (Array.isArray(parent)) {
-    const startIndex = parseInt(last(path), 10)
-    return values.map((entry, offset) => ({
+    const offset = parseInt(last(path), 10)
+    return values.map((entry, index) => ({
       op: 'add',
-      path: compileJSONPointer(parentPath.concat(startIndex + offset)),
+      path: compileJSONPointer(parentPath.concat(offset + index)),
       value: entry.value
     }))
   }
@@ -65,10 +65,10 @@ export function append (json, path, values) {  // TODO: find a better name and d
   const parent = getIn(json, path)
 
   if (Array.isArray(parent)) {
-    const index = parent.length
-    return values.map((entry, offset) => ({
+    const offset = parent.length
+    return values.map((entry, index) => ({
       op: 'add',
-      path: compileJSONPointer(path.concat(index)),
+      path: compileJSONPointer(path.concat(offset + index)),
       value: entry.value
     }))
   }
