@@ -246,17 +246,16 @@
     }
   }
 
-  function doSearch(doc, searchText) {
-    return search(null, doc, searchText)
-  }
-
   // TODO: refactor the search solution and move it in a separate component
+  // in: doc, searchText, activeSearchResultIndex
+  // out: searchResultWithActive
+  // callbacks: change searchText, change doc, change activeSearchResultIndex
   let searchResult
   let activeSearchResult = undefined
   let activeSearchResultIndex
   let flatSearchResult
   let searchResultWithActive
-  $: searchResult = searchText ? doSearch(doc, searchText) : undefined
+  $: searchResult = searchText ? search(doc, searchText) : undefined
   $: flatSearchResult = flattenSearch(searchResult)
 
   $: {

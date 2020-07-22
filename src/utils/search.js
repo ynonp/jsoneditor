@@ -2,30 +2,34 @@ import { isNumber } from 'lodash-es'
 import { STATE_SEARCH_PROPERTY, STATE_SEARCH_VALUE } from '../constants.js'
 import { valueType } from './typeUtils.js'
 
-export function search (key, value, searchText) {
+export function search (doc, searchText) {
+  return searchRecursive(null, doc, searchText)
+}
+
+function searchRecursive (key, doc, searchText) {
   let results = undefined
 
   if (typeof key === 'string' && containsCaseInsensitive(key, searchText)) {
     results = createOrAdd(results, STATE_SEARCH_PROPERTY, 'search')
   }
 
-  const type = valueType(value)
+  const type = valueType(doc)
   if (type === 'array') {
-    value.forEach((item, index) => {
-      let childResults = search(index, item, searchText)
+    doc.forEach((item, index) => {
+      let childResults = searchRecursive(index, item, searchText)
       if (childResults) {
         results = createOrAdd(results, index, childResults)
       }
     })
   } else if (type === 'object') {
-    Object.keys(value).forEach(prop => {
-      let childResults = search(prop, value[prop], searchText)
+    Object.keys(doc).forEach(prop => {
+      let childResults = searchRecursive(prop, doc[prop], searchText)
       if (childResults) {
         results = createOrAdd(results, prop, childResults)
       }
     })
   } else { // type is a value
-    if (containsCaseInsensitive(value, searchText)) {
+    if (containsCaseInsensitive(doc, searchText)) {
       results = createOrAdd(results, STATE_SEARCH_VALUE, 'search')
     }
   }
