@@ -52,6 +52,16 @@
     }
   }
 
+  // selector must not be visible whilst dragging (mouse down)
+  &:active {
+    .before-node-selector,
+    .append-node-selector {
+      .selector {
+        border: none;
+      }
+    }
+  }
+
   .before-node-selector {
     top: -$selector-height/2 - 1px;
   }

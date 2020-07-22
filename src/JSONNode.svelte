@@ -254,7 +254,8 @@
     }
 
     event.stopPropagation()
-    event.preventDefault()
+    // IMPORTANT: do not use event.preventDefault() here,
+    //  else the :active style doesn't work!
 
     // we attache the mouse up event listener to the global document,
     // so we will not miss if the mouse up is happening outside of the editor
@@ -287,7 +288,6 @@
 
   function handleMouseUp (event) {
     if (singleton.mousedown) {
-      event.preventDefault()
       event.stopPropagation()
 
       singleton.mousedown = false
@@ -297,7 +297,6 @@
   }
 
   function handleSelectBefore (event) {
-    event.preventDefault()
     event.stopPropagation()
 
     onSelect({
