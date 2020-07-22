@@ -1,7 +1,7 @@
 <script>
   import { tick } from 'svelte'
   import {
-    append,
+    append, duplicate,
     insertBefore,
     removeAll,
     replace
@@ -15,10 +15,14 @@
   } from './constants.js'
   import SearchBox from './SearchBox.svelte'
   import Icon from 'svelte-awesome'
-  import { faCut, faCopy, faPaste, faSearch, faUndo, faRedo } from '@fortawesome/free-solid-svg-icons'
+  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo } from '@fortawesome/free-solid-svg-icons'
   import { createHistory } from './history.js'
   import JSONNode from './JSONNode.svelte'
-  import { expandSelection } from './selection.js'
+  import {
+    createPathsMap,
+    createSelectionFromOperations,
+    expandSelection
+  } from './selection.js'
   import { isContentEditableDiv } from './utils/domUtils.js'
   import {
     existsIn,
@@ -45,9 +49,8 @@
   export let onChangeJson = () => {}
 
   let clipboard = null
-  $: canCut = selection != null && selection.paths != null
-  $: canCopy = selection != null && selection.paths != null
-  $: canPaste = clipboard != null && selection != null
+  $: hasSelectionContents = selection != null && selection.paths != null
+  $: hasClipboardContents = clipboard != null && selection != null
 
   $: state = syncState(doc, state, [], (path) => path.length < 1)
 
@@ -168,12 +171,12 @@
         const props = getIn(state, parentPath.concat(STATE_PROPS))
         const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
         const operations = insertBefore(doc, selection.beforePath, clipboard, nextKeys)
-        const newSelection = createNewSelection(operations)
+        const newSelection = createSelectionFromOperations(operations)
 
         handlePatch(operations, newSelection)
       } else if (selection.appendPath) {
         const operations = append(doc, selection.appendPath, clipboard)
-        const newSelection = createNewSelection(operations)
+        const newSelection = createSelectionFromOperations(operations)
 
         handlePatch(operations, newSelection)
       } else if (selection.paths) {
@@ -183,10 +186,28 @@
         const props = getIn(state, parentPath.concat(STATE_PROPS))
         const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
         const operations = replace(doc, selection.paths, clipboard, nextKeys)
-        const newSelection = createNewSelection(operations)
+        const newSelection = createSelectionFromOperations(operations)
 
         handlePatch(operations, newSelection)
       }
+    }
+  }
+
+  function handleDuplicate() {
+    if (selection && selection.paths) {
+      console.log('duplicate', { selection })
+
+      const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
+      const parentPath = initial(lastPath)
+      const beforeKey = last(lastPath)
+      const props = getIn(state, parentPath.concat(STATE_PROPS))
+      const nextKeys = getNextKeys(props, parentPath, beforeKey, false)
+
+      const operations = duplicate(doc, selection.paths, nextKeys)
+      const newSelection = createSelectionFromOperations(operations)
+
+      console.log('newSelection', newSelection)
+      handlePatch(operations, newSelection)
     }
   }
 
@@ -370,16 +391,6 @@
     }
   }
 
-  function createPathsMap (paths) {
-    const pathsMap = {}
-
-    paths.forEach(path => {
-      pathsMap[compileJSONPointer(path)] = true
-    })
-
-    return pathsMap
-  }
-
   /**
    * Expand all nodes on given path
    * @param {Path} path
@@ -416,6 +427,10 @@
       if (combo === 'Ctrl+V' || combo === 'Command+V') {
         event.preventDefault()
         handlePaste()
+      }
+      if (combo === 'Ctrl+D' || combo === 'Command+D') {
+        event.preventDefault()
+        handleDuplicate()
       }
       if (combo === 'Escape') {
         event.preventDefault()
@@ -467,7 +482,7 @@
     <button
       class="button cut"
       on:click={handleCut}
-      disabled={!canCut}
+      disabled={!hasSelectionContents}
       title="Cut (Ctrl+X)"
     >
       <Icon data={faCut} />
@@ -475,7 +490,7 @@
     <button
       class="button copy"
       on:click={handleCopy}
-      disabled={!canCopy}
+      disabled={!hasSelectionContents}
       title="Copy (Ctrl+C)"
     >
       <Icon data={faCopy} />
@@ -483,10 +498,21 @@
     <button
       class="button paste"
       on:click={handlePaste}
-      disabled={!canPaste}
+      disabled={!hasClipboardContents}
       title="Paste (Ctrl+V)"
     >
       <Icon data={faPaste} />
+    </button>
+
+    <div class="separator"></div>
+
+    <button
+      class="button duplicate"
+      on:click={handleDuplicate}
+      disabled={!hasSelectionContents}
+      title="Duplicate (Ctrl+D)"
+    >
+      <Icon data={faClone} />
     </button>
 
     <div class="separator"></div>

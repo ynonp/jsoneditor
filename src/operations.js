@@ -16,7 +16,7 @@ import { findUniqueName } from './utils/stringUtils'
  * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
  *                              these keys will be moved down, so the renamed
  *                              key will maintain it's position above these keys
- * @return {Array}
+ * @return {JSONPatchDocument}
  */
 export function insertBefore (json, path, values, nextKeys) {  // TODO: find a better name and define datastructure for values
   const parentPath = initial(path)
@@ -59,7 +59,7 @@ export function insertBefore (json, path, values, nextKeys) {  // TODO: find a b
  * @param {JSON} json
  * @param {Path} path
  * @param {Array.<{key?: string, value: JSON}>} values
- * @return {Array}
+ * @return {JSONPatchDocument}
  */
 export function append (json, path, values) {  // TODO: find a better name and define datastructure for values
   const parent = getIn(json, path)
@@ -94,7 +94,7 @@ export function append (json, path, values) {  // TODO: find a better name and d
  * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
  *                              these keys will be moved down, so the renamed
  *                              key will maintain it's position above these keys
- * @returns {Array}
+ * @returns {JSONPatchDocument}
  */
 export function rename(parentPath, oldKey, newKey, nextKeys) {
   return [
@@ -123,7 +123,7 @@ export function rename(parentPath, oldKey, newKey, nextKeys) {
  * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
  *                              these keys will be moved down, so the renamed
  *                              key will maintain it's position above these keys
- * @return {Array}
+ * @return {JSONPatchDocument}
  */
 export function replace (json, paths, values, nextKeys) {  // TODO: find a better name and define datastructure for values
   const firstPath = first(paths)
@@ -163,6 +163,62 @@ export function replace (json, paths, values, nextKeys) {  // TODO: find a bette
           op: 'add',
           path: compileJSONPointer(parentPath.concat(newProp)),
           value: entry.value
+        }
+      }),
+
+      // move down operations
+      // move all lower down keys so the renamed key will maintain it's position
+      ...nextKeys.map(key => moveDown(parentPath, key))
+    ]
+  }
+}
+
+/**
+ * Create a JSONPatch for a duplicate action.
+ *
+ * This function needs the current data in order to be able to determine
+ * a unique property name for the duplicated node in case of duplicating
+ * and object property
+ *
+ * @param {JSON} json
+ * @param {Path[]} paths
+ * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
+ *                              these keys will be moved down, so the renamed
+ *                              key will maintain it's position above these keys
+ * @return {JSONPatchDocument}
+ */
+export function duplicate (json, paths, nextKeys) {
+  const firstPath = first(paths)
+  const parentPath = initial(firstPath)
+  const parent = getIn(json, parentPath)
+
+  if (Array.isArray(parent)) {
+    const lastPath = last(paths)
+    const offset = lastPath ? (parseInt(last(lastPath), 10) + 1) : 0
+
+    return [
+      // copy operations
+      ...paths.map((path, index) => ({
+        op: 'copy',
+        from: compileJSONPointer(path),
+        path: compileJSONPointer(parentPath.concat(index + offset))
+      })),
+
+      // move down operations
+      // move all lower down keys so the renamed key will maintain it's position
+      ...nextKeys.map(key => moveDown(parentPath, key))
+    ]
+  } else { // 'object'
+    return [
+      // copy operations
+      ...paths.map(path => {
+        const prop = last(path)
+        const newProp = findUniqueName(prop, parent)
+
+        return {
+          op: 'copy',
+          from: compileJSONPointer(path),
+          path: compileJSONPointer(parentPath.concat(newProp))
         }
       }),
 

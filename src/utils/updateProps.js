@@ -76,7 +76,7 @@ export function patchProps (state, operations) {
       }
     }
 
-    if (operation.op === 'add') {
+    if (operation.op === 'add' || operation.op === 'copy') {
       const pathTo = parseJSONPointer(operation.path)
       const parentPath = initial(pathTo)
       const key = last(pathTo)

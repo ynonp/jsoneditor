@@ -9,9 +9,12 @@ export function findUniqueName (name, existingProps) {
   let validName = name
   let i = 1
 
+  // remove any " (copy)" or " (copy 2)" suffix from the name
+  const nameWithoutCopySuffix = name.replace(/ \(copy( \d+)?\)$/, '')
+
   while (validName in existingProps) {
     const copy = 'copy' + (i > 1 ? (' ' + i) : '')
-    validName = `${name} (${copy})`
+    validName = `${nameWithoutCopySuffix} (${copy})`
     i++
   }
 

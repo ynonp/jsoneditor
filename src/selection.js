@@ -1,6 +1,7 @@
 import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
 import { STATE_PROPS } from './constants.js'
 import { getIn } from './utils/immutabilityHelpers.js'
+import { compileJSONPointer, parseJSONPointer } from './utils/jsonPointer.js'
 import { isObject } from './utils/typeUtils.js'
 
 /**
@@ -62,6 +63,35 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
   }
 
   throw new Error('Failed to create selection')
+}
+
+/**
+ * @param {JSONPatchDocument} operations
+ * @returns {MultiSelection}
+ */
+export function createSelectionFromOperations (operations) {
+  const paths = operations
+    .filter(operation => operation.op === 'add' || operation.op === 'copy')
+    .map(operation => parseJSONPointer(operation.path))
+
+  return  {
+    paths,
+    pathsMap: createPathsMap(paths)
+  }
+}
+
+/**
+ * @param {Path[]} paths
+ * @returns {Object}
+ */
+export function createPathsMap (paths) {
+  const pathsMap = {}
+
+  paths.forEach(path => {
+    pathsMap[compileJSONPointer(path)] = true
+  })
+
+  return pathsMap
 }
 
 /**
