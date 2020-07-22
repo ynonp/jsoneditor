@@ -36,7 +36,7 @@
   import { immutableJSONPatch } from './utils/immutableJSONPatch'
   import { isNumber, initial, last, cloneDeep } from 'lodash-es'
   import jump from './assets/jump.js/src/jump.js'
-  import { syncState } from './utils/syncState.js'
+  import { stateUtils } from './utils/stateUtils.js'
   import { getNextKeys, patchProps } from './utils/updateProps.js'
 
   let divContents
@@ -53,7 +53,7 @@
   $: hasSelectionContents = selection != null && selection.paths != null
   $: hasClipboardContents = clipboard != null && selection != null
 
-  $: state = syncState(doc, state, [], (path) => path.length < 1)
+  $: state = stateUtils(doc, state, [], (path) => path.length < 1)
 
   let showSearch = false
   let searchText = ''
@@ -66,11 +66,11 @@
   let historyState = history.getState()
 
   export function expand (callback = () => true) {
-    state = syncState(doc, state, [], callback, true)
+    state = stateUtils(doc, state, [], callback, true)
   }
 
   export function collapse (callback = () => false) {
-    state = syncState(doc, state, [], callback, true)
+    state = stateUtils(doc, state, [], callback, true)
   }
 
   export function get() {
@@ -329,7 +329,7 @@
   function handleExpand (path, expanded, recursive = false) {
     if (recursive) {
       state = updateIn(state, path, (childState) => {
-        return syncState(getIn(doc, path), childState, [], () => expanded, true)
+        return stateUtils(getIn(doc, path), childState, [], () => expanded, true)
       })
     } else {
       state = setIn(state, path.concat(STATE_EXPANDED), expanded)

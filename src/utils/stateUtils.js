@@ -8,32 +8,34 @@ import { isObject, isObjectOrArray } from './typeUtils.js'
 import { updateProps } from './updateProps.js'
 
 /**
- * @param {JSON} document
+ * Sync a state object with the doc it belongs to: update props, limit, and expanded state
+ *
+ * @param {JSON} doc
  * @param {JSON | undefined} state
  * @param {Path} path
  * @param {function (path: Path) : boolean} expand
  * @param {boolean} [forceRefresh=false] if true, force refreshing the expanded state
  * @returns {JSON | undefined}
  */
-export function syncState (document, state = undefined, path, expand, forceRefresh = false) {
+export function stateUtils (doc, state = undefined, path, expand, forceRefresh = false) {
   // TODO: this function can be made way more efficient if we pass prevState:
   //  when immutable, we can simply be done already when the state === prevState
 
-  if (isObject(document)) {
+  if (isObject(doc)) {
     const updatedState = {}
 
-    updatedState[STATE_PROPS] = updateProps(document, state && state[STATE_PROPS])
+    updatedState[STATE_PROPS] = updateProps(doc, state && state[STATE_PROPS])
 
     updatedState[STATE_EXPANDED] = (state && !forceRefresh)
       ? state[STATE_EXPANDED]
       : expand(path)
 
     if (updatedState[STATE_EXPANDED]) {
-      Object.keys(document).forEach(key => {
-        const childDocument = document[key]
+      Object.keys(doc).forEach(key => {
+        const childDocument = doc[key]
         if (isObjectOrArray(childDocument)) {
           const childState = state && state[key]
-          updatedState[key] = syncState(childDocument, childState, path.concat(key), expand, forceRefresh)
+          updatedState[key] = stateUtils(childDocument, childState, path.concat(key), expand, forceRefresh)
         }
       })
     }
@@ -41,7 +43,7 @@ export function syncState (document, state = undefined, path, expand, forceRefre
     return updatedState
   }
 
-  if (Array.isArray(document)) {
+  if (Array.isArray(doc)) {
     const updatedState = []
 
     updatedState[STATE_EXPANDED] = (state && !forceRefresh)
@@ -54,11 +56,11 @@ export function syncState (document, state = undefined, path, expand, forceRefre
       : DEFAULT_LIMIT
 
     if (updatedState[STATE_EXPANDED]) {
-      for (let i = 0; i < Math.min(document.length, updatedState[STATE_LIMIT]); i++) {
-        const childDocument = document[i]
+      for (let i = 0; i < Math.min(doc.length, updatedState[STATE_LIMIT]); i++) {
+        const childDocument = doc[i]
         if (isObjectOrArray(childDocument)) {
           const childState = state && state[i]
-          updatedState[i] = syncState(childDocument, childState, path.concat(i), expand, forceRefresh)
+          updatedState[i] = stateUtils(childDocument, childState, path.concat(i), expand, forceRefresh)
         }
       }
     }

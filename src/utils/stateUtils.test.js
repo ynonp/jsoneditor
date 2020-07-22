@@ -5,7 +5,7 @@ import {
   STATE_LIMIT,
   STATE_PROPS
 } from '../constants.js'
-import { syncState } from './syncState.js'
+import { stateUtils } from './stateUtils.js'
 
 describe('syncState', () => {
   it('syncState', () => {
@@ -19,7 +19,7 @@ describe('syncState', () => {
       return path.length <= 1
     }
 
-    const state = syncState(document, undefined, [], expand)
+    const state = stateUtils(document, undefined, [], expand)
 
     const expectedState = {}
     expectedState[STATE_EXPANDED] = true
@@ -46,5 +46,5 @@ describe('syncState', () => {
     assert.deepStrictEqual(state, expectedState)
   })
 
-  // TODO: write more unit tests for syncState
+  // TODO: write more unit tests for stateUtils
 })
