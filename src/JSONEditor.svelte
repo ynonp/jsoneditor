@@ -253,6 +253,7 @@
   function changeSearchText (text) {
     searchText = text
     searchResult = search(doc, searchText, searchResult)
+    focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
   function nextSearchResult () {
@@ -331,7 +332,7 @@
         return stateUtils(getIn(doc, path), childState, [], () => expanded, true)
       })
     } else {
-      state = setIn(state, path.concat(STATE_EXPANDED), expanded)
+      state = setIn(state, path.concat(STATE_EXPANDED), expanded, true)
     }
   }
 
@@ -341,7 +342,7 @@
    * @param {boolean} limit
    */
   function handleLimit (path, limit) {
-    state = setIn(state, path.concat(STATE_LIMIT), limit)
+    state = setIn(state, path.concat(STATE_LIMIT), limit, true)
   }
 
   /**

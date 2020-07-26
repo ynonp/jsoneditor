@@ -442,7 +442,7 @@
       {:else}
         <span class="delimiter"> &#123;</span>
         <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
-        <span class="delimiter">}</span>
+        <span class="delimiter">&rbrace;</span>
       {/if}
     </div>
     {#if expanded}
@@ -472,7 +472,7 @@
         </div>
       </div>
       <div class="footer" style={indentationStyle}>
-        <span class="delimiter">}</span>
+        <span class="delimiter">&rbrace;</span>
       </div>
     {/if}
   {:else}

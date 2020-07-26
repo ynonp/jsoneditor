@@ -41,7 +41,7 @@ export function search (doc, searchText, previousResult) {
   const activeIndex = flatItems.findIndex(item => isEqual(item, activeItem))
 
   const itemsWithActive = (items && activeItem)
-    ? setIn(items, activeItem.path.concat(activeItem.what), 'search active')
+    ? setIn(items, activeItem.path.concat(activeItem.what), 'search active', true)
     : items
 
   return {
@@ -66,7 +66,7 @@ export function searchNext (searchResult) {
   const nextActiveItem = searchResult.flatItems[nextActiveIndex]
 
   const itemsWithActive = nextActiveItem
-    ? setIn(searchResult.items, nextActiveItem.path.concat(nextActiveItem.what), 'search active')
+    ? setIn(searchResult.items, nextActiveItem.path.concat(nextActiveItem.what), 'search active', true)
     : searchResult.items
 
   return {
@@ -89,7 +89,7 @@ export function searchPrevious (searchResult) {
   const previousActiveItem = searchResult.flatItems[previousActiveIndex]
 
   const itemsWithActive = previousActiveItem
-    ? setIn(searchResult.items, previousActiveItem.path.concat(previousActiveItem.what), 'search active')
+    ? setIn(searchResult.items, previousActiveItem.path.concat(previousActiveItem.what), 'search active', true)
     : searchResult.items
 
   return {

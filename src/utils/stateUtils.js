@@ -5,7 +5,7 @@ import {
   STATE_LIMIT,
   STATE_PROPS
 } from '../constants.js'
-import { setIn } from './immutabilityHelpers.js'
+import { getIn, setIn } from './immutabilityHelpers.js'
 import { isObject, isObjectOrArray } from './typeUtils.js'
 import { updateProps } from './updateProps.js'
 
@@ -87,7 +87,7 @@ export function expandPath (state, path) {
   for (let i = 1; i < path.length; i++) {
     const partialPath = path.slice(0, i)
     // FIXME: setIn has to create object first
-    updatedState = setIn(updatedState, partialPath.concat(STATE_EXPANDED), true)
+    updatedState = setIn(updatedState, partialPath.concat(STATE_EXPANDED), true, true)
 
     // if needed, enlarge the limit such that the search result becomes visible
     const key = path[i]
@@ -95,7 +95,7 @@ export function expandPath (state, path) {
       const limit = getIn(updatedState, partialPath.concat(STATE_LIMIT)) || DEFAULT_LIMIT
       if (key > limit) {
         const newLimit = Math.ceil(key / DEFAULT_LIMIT) * DEFAULT_LIMIT
-        updatedState = setIn(updatedState, partialPath.concat(STATE_LIMIT), newLimit)
+        updatedState = setIn(updatedState, partialPath.concat(STATE_LIMIT), newLimit, true)
       }
     }
   }

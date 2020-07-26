@@ -58,18 +58,18 @@ export function patchProps (state, operations) {
               const newIndex = props.findIndex(item => item.key === newKey)
               if (newIndex !== -1) {
                 const updatedProps = deleteIn(props, [newIndex])
-                updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps)
+                updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps, true)
               }
 
               // Rename the key in the object's props so it maintains its identity and hence its index
-              updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS, oldIndex, 'key']), newKey)
+              updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS, oldIndex, 'key']), newKey, true)
             } else {
               // operation.from and operation.path are the same:
               // property is moved but stays the same -> move it to the end of the props
               const oldProp = props[oldIndex]
               const updatedProps = insertAt(deleteIn(props, [oldIndex]), [props.length - 1], oldProp)
 
-              updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps)
+              updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps, true)
             }
           }
         }
@@ -90,7 +90,7 @@ export function patchProps (state, operations) {
           }
           const updatedProps = insertAt(props, [props.length], newProp)
 
-          updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps)
+          updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps, true)
         }
       }
     }

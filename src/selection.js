@@ -1,4 +1,4 @@
-import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
+import { isEqual } from 'lodash-es'
 import { STATE_PROPS } from './constants.js'
 import { getIn } from './utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from './utils/jsonPointer.js'
