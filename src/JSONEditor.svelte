@@ -13,9 +13,6 @@
     SCROLL_DURATION,
     STATE_PROPS
   } from './constants.js'
-  import SearchBox from './SearchBox.svelte'
-  import Icon from 'svelte-awesome'
-  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo } from '@fortawesome/free-solid-svg-icons'
   import { createHistory } from './history.js'
   import JSONNode from './JSONNode.svelte'
   import {
@@ -37,6 +34,7 @@
   import jump from './assets/jump.js/src/jump.js'
   import { expandPath, stateUtils } from './utils/stateUtils.js'
   import { getNextKeys, patchProps } from './utils/updateProps.js'
+  import Menu from './Menu.svelte'
 
   let divContents
   let domHiddenInput
@@ -247,25 +245,20 @@
     }
   }
 
-  async function changeSearchText (text) {
+  async function handleSearchText (text) {
     searchText = text
     await tick() // await for the search results to be updated
     focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
-  async function nextSearchResult () {
+  async function handleNextSearchResult () {
     searchResult = searchNext(searchResult)
     focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
-  function previousSearchResult () {
+  function handlePreviousSearchResult () {
     searchResult = searchPrevious(searchResult)
     focusActiveSearchResult(searchResult && searchResult.activeItem)
-  }
-
-  function clearSearchResult () {
-    showSearch = false
-    searchText = ''
   }
 
   async function focusActiveSearchResult (activeItem) {
@@ -314,10 +307,6 @@
 
   function handleUpdateKey (oldKey, newKey) {
     // should never be called on the root
-  }
-
-  function handleToggleSearch() {
-    showSearch = !showSearch
   }
 
   /**
@@ -440,88 +429,25 @@
 </script>
 
 <div class="jsoneditor" on:keydown={handleKeyDown}>
-  <div class="menu">
-    <button
-      class="button cut"
-      on:click={handleCut}
-      disabled={!hasSelectionContents}
-      title="Cut (Ctrl+X)"
-    >
-      <Icon data={faCut} />
-    </button>
-    <button
-      class="button copy"
-      on:click={handleCopy}
-      disabled={!hasSelectionContents}
-      title="Copy (Ctrl+C)"
-    >
-      <Icon data={faCopy} />
-    </button>
-    <button
-      class="button paste"
-      on:click={handlePaste}
-      disabled={!hasClipboardContents}
-      title="Paste (Ctrl+V)"
-    >
-      <Icon data={faPaste} />
-    </button>
+  <Menu 
+    historyState={historyState}
+    searchText={searchText}
+    searchResult={searchResult}
+    bind:showSearch
+    hasSelectionContents={hasSelectionContents}
+    hasClipboardContents={hasClipboardContents}
 
-    <div class="separator"></div>
+    onCut={handleCut}
+    onCopy={handleCopy}
+    onPaste={handlePaste}
+    onDuplicate={handleDuplicate}
+    onUndo={handleUndo}
+    onRedo={handleRedo}
 
-    <button
-      class="button duplicate"
-      on:click={handleDuplicate}
-      disabled={!hasSelectionContents}
-      title="Duplicate (Ctrl+D)"
-    >
-      <Icon data={faClone} />
-    </button>
-
-    <div class="separator"></div>
-
-    <button
-      class="button search"
-      on:click={handleToggleSearch}
-      title="Search (Ctrl+F)"
-    >
-      <Icon data={faSearch} />
-    </button>
-
-    <div class="separator"></div>
-
-    <button
-      class="button undo"
-      disabled={!historyState.canUndo}
-      on:click={handleUndo}
-      title="Undo (Ctrl+Z)"
-    >
-      <Icon data={faUndo} />
-    </button>
-    <button
-      class="button redo"
-      disabled={!historyState.canRedo}
-      on:click={handleRedo}
-      title="Redo (Ctrl+Shift+Z)"
-    >
-      <Icon data={faRedo} />
-    </button>
-
-    <div class="space"></div>
-
-    {#if showSearch}
-      <div class="search-box-container">
-        <SearchBox
-          text={searchText}
-          resultCount={searchResult ? searchResult.count : 0}
-          activeIndex={searchResult ? searchResult.activeIndex : 0}
-          onChange={changeSearchText}
-          onNext={nextSearchResult}
-          onPrevious={previousSearchResult}
-          onClose={clearSearchResult}
-        />
-      </div>
-    {/if}
-  </div>
+    onSearchText={handleSearchText}
+    onNextSearchResult={handleNextSearchResult}
+    onPreviousSearchResult={handlePreviousSearchResult}
+  />
   <label class="hidden-input-label">
     <input
       class="hidden-input"
