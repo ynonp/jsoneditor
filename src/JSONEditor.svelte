@@ -261,6 +261,12 @@
     focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
+  function clearSearchResult () {
+    showSearch = false
+    searchText = ''
+    searchResult = search(doc, searchText, searchResult)
+  }
+
   function previousSearchResult () {
     searchResult = searchPrevious(searchResult)
     focusActiveSearchResult(searchResult && searchResult.activeItem)
@@ -517,10 +523,7 @@
           onChange={changeSearchText}
           onNext={nextSearchResult}
           onPrevious={previousSearchResult}
-          onClose={() => {
-            showSearch = false
-            searchText = ''
-          }}
+          onClose={clearSearchResult}
         />
       </div>
     {/if}
