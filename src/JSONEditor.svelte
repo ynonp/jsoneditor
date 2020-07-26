@@ -45,7 +45,6 @@
 
   export let doc = {}
   let state = undefined
-  let searchResult = undefined
 
   let selection = null
   let clipboard = null
@@ -56,6 +55,7 @@
 
   let showSearch = false
   let searchText = ''
+  $: searchResult = search(doc, searchText, searchResult)
 
   const history = createHistory({
     onChange: (state) => {
@@ -99,7 +99,6 @@
 
     doc = documentPatchResult.json
     state = patchProps(statePatchResult.json, operations)
-    searchResult = search(doc, searchText, searchResult)
     if (newSelection) {
       selection = newSelection
     }
@@ -224,7 +223,6 @@
       if (item) {
         doc = immutableJSONPatch(doc, item.undo).json
         state = item.prevState
-        searchResult = search(doc, searchText, searchResult)
         selection = item.prevSelection
 
         console.log('undo', { item,  doc, state, selection })
@@ -240,7 +238,6 @@
       if (item) {
         doc = immutableJSONPatch(doc, item.redo).json
         state = item.state
-        searchResult = search(doc, searchText, searchResult)
         selection = item.selection
 
         console.log('redo', { item,  doc, state, selection })
@@ -250,21 +247,15 @@
     }
   }
 
-  function changeSearchText (text) {
+  async function changeSearchText (text) {
     searchText = text
-    searchResult = search(doc, searchText, searchResult)
+    await tick() // await for the search results to be updated
     focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
-  function nextSearchResult () {
+  async function nextSearchResult () {
     searchResult = searchNext(searchResult)
     focusActiveSearchResult(searchResult && searchResult.activeItem)
-  }
-
-  function clearSearchResult () {
-    showSearch = false
-    searchText = ''
-    searchResult = search(doc, searchText, searchResult)
   }
 
   function previousSearchResult () {
@@ -272,12 +263,15 @@
     focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
+  function clearSearchResult () {
+    showSearch = false
+    searchText = ''
+  }
+
   async function focusActiveSearchResult (activeItem) {
     if (activeItem) {
       state = expandPath(state, activeItem.path)
-
       await tick()
-
       scrollTo(activeItem.path.concat(activeItem.what))
     }
   }
