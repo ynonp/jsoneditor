@@ -287,12 +287,5 @@ export function existsIn (json, path) {
     return true
   }
 
-  if (Array.isArray(json)) {
-    // index of an array
-    return existsIn(json[parseInt(path[0], 10)], path.slice(1))
-  }
-  else { // Object
-    // object property. find the index of this property
-    return existsIn(json[path[0]], path.slice(1))
-  }
+  return existsIn(json[path[0]], path.slice(1))
 }

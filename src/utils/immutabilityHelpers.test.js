@@ -72,7 +72,7 @@ describe('immutabilityHelpers', () => {
     assert.throws(() => setIn(obj, ['a', 'b', 'c'], 4), /Path does not exist/)
   })
 
-  it.only('setIn non existing path with createPath=true', () => {
+  it('setIn non existing path with createPath=true', () => {
     const obj = {}
 
     assert.deepStrictEqual(setIn(obj, ['a', 'b', 'c'], 4, true), {
@@ -365,5 +365,26 @@ describe('immutabilityHelpers', () => {
     assert.deepStrictEqual(existsIn(json, ['obj', 'foo']), false)
     assert.deepStrictEqual(existsIn(json, ['obj', 'foo', 'bar']), false)
     assert.deepStrictEqual(existsIn(json, []), true)
+  })
+  
+  it('existsIn should find symbols', () => {
+    const json = {
+      "obj": {
+        "arr": [1,2, {"first":3,"last":4}]
+      },
+      "str": "hello world",
+      "nill": null,
+      "bool": false
+    }
+
+    const symbol = Symbol('mySymbol')
+
+    const arrWithSymbol = [1, 2, 3]
+    arrWithSymbol[symbol] = 'yes'
+
+    assert.deepStrictEqual(existsIn(arrWithSymbol, [symbol]), true)
+    assert.deepStrictEqual(existsIn([1, 2, 3], [symbol]), false)
+    assert.deepStrictEqual(existsIn({ a: 1, [symbol]: 2 }, [symbol]), true)
+    assert.deepStrictEqual(existsIn({ a: 1 }, [symbol]), false)
   })
 })
