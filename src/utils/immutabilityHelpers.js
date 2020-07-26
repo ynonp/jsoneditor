@@ -94,19 +94,35 @@ export function getIn (object, path) {
  * @param {Object | Array} object
  * @param {Path} path
  * @param {*} value
+ * @param {boolean} [createPath=false]
+ *                    If true, `path` will be created when (partly) missing in
+ *                    the object. For correctly creating nested Arrays or
+ *                    Objects, the function relies on `path` containing a number
+ *                    in case of array indexes.
+ *                    If false (default), an error will be thrown when the
+ *                    path doesn't exist.
  * @return {Object | Array} Returns a new, updated object or array
  */
-export function setIn (object, path, value) {
+export function setIn (object, path, value, createPath = false) {
   if (path.length === 0) {
     return value
   }
 
+  const key = path[0]
+  const updatedValue = setIn(object ? object[key] : undefined, path.slice(1), value, createPath)
+
   if (!isObjectOrArray(object)) {
-    throw new Error('Path does not exist')
+    if (createPath) {
+      const newObject = typeof key === 'number'
+        ? []
+        : {}
+      newObject[key] = updatedValue
+      return newObject
+    } else {
+      throw new Error('Path does not exist')
+    }
   }
 
-  const key = path[0]
-  const updatedValue = setIn(object[key], path.slice(1), value)
   return applyProp(object, key, updatedValue)
 }
 

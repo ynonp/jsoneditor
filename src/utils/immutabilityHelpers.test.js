@@ -72,6 +72,32 @@ describe('immutabilityHelpers', () => {
     assert.throws(() => setIn(obj, ['a', 'b', 'c'], 4), /Path does not exist/)
   })
 
+  it.only('setIn non existing path with createPath=true', () => {
+    const obj = {}
+
+    assert.deepStrictEqual(setIn(obj, ['a', 'b', 'c'], 4, true), {
+      a: {
+        b: {
+          c: 4
+        }
+      }
+    })
+    assert.deepStrictEqual(obj, {})
+  })
+
+  it('setIn non existing path with createPath=true and nested array', () => {
+    const obj = {}
+
+    assert.deepStrictEqual(setIn(obj, ['a', 2, 'c'], 4, true), {
+      a: [
+        ,
+        ,
+        { c : 4 }
+      ]
+    })
+    assert.deepStrictEqual(obj, {})
+  })
+
   it('setIn replace value with object should throw an exception', () => {
     const obj = {
       a: 42,
