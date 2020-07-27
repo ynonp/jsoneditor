@@ -1,6 +1,6 @@
 <script>
   import { debounce, isEqual } from 'lodash-es'
-  import { rename } from './operations.js'
+  import { rename } from '../logic/operations.js'
   import {
     DEBOUNCE_DELAY,
     DEFAULT_LIMIT,
@@ -10,8 +10,8 @@
     STATE_SEARCH_PROPERTY,
     STATE_SEARCH_VALUE,
     INDENTATION_WIDTH
-  } from './constants.js'
-  import { singleton } from './singleton.js'
+  } from '../constants.js'
+  import { singleton } from '../singleton.js'
   import {
     getPlainText,
     isAppendNodeSelector,
@@ -19,14 +19,14 @@
     isChildOfButton,
     isContentEditableDiv,
     setPlainText
-  } from './utils/domUtils.js'
+  } from '../utils/domUtils.js'
   import Icon from 'svelte-awesome'
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
-  import { findUniqueName } from './utils/stringUtils.js'
-  import { isUrl, stringConvert, valueType } from './utils/typeUtils'
-  import { compileJSONPointer } from './utils/jsonPointer'
-  import { getNextKeys } from './utils/updateProps.js'
+  import { findUniqueName } from '../utils/stringUtils.js'
+  import { isUrl, stringConvert, valueType } from '../utils/typeUtils'
+  import { compileJSONPointer } from '../utils/jsonPointer'
+  import { getNextKeys } from '../logic/documentState.js'
 
   export let key = undefined // only applicable for object properties
   export let value
@@ -125,7 +125,7 @@
 
   function handleUpdateKey (oldKey, newKey) {
     const newKeyUnique = findUniqueName(newKey, value)
-    const nextKeys = getNextKeys(props, path, key, false)
+    const nextKeys = getNextKeys(props, key, false)
 
     onPatch(rename(path, oldKey, newKeyUnique, nextKeys))
   }
@@ -505,4 +505,4 @@
   {/if}
 </div>
 
-<style src="JSONNode.scss"></style>
+<style src="./JSONNode.scss"></style>

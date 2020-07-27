@@ -2,8 +2,8 @@
   import { debounce } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import { faSearch, faChevronDown, faChevronUp, faTimes } from '@fortawesome/free-solid-svg-icons'
-  import { DEBOUNCE_DELAY } from './constants.js'
-  import { keyComboFromEvent } from './utils/keyBindings.js'
+  import { DEBOUNCE_DELAY } from '../constants.js'
+  import { keyComboFromEvent } from '../utils/keyBindings.js'
 
   export let text = ''
   let inputText = ''
@@ -84,4 +84,4 @@
   </form>
 </div>
 
-<style src="SearchBox.scss"></style>
+<style src="./SearchBox.scss"></style>

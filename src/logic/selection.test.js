@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { expandSelection } from './selection.js'
-import { stateUtils } from './utils/stateUtils.js'
+import { syncState } from './documentState.js'
 
 describe ('selection', () => {
   const doc = {
@@ -11,7 +11,7 @@ describe ('selection', () => {
     "nill": null,
     "bool": false
   }
-  const state = stateUtils(doc, undefined, [], () => true)
+  const state = syncState(doc, undefined, [], () => true)
 
   it('should expand a selection (object)', () => {
     const start = ['obj', 'arr', '2', 'last']

@@ -1,4 +1,4 @@
-import JSONEditor from './JSONEditor.svelte'
+import JSONEditor from './components/JSONEditor.svelte'
 
 export default function jsoneditor (config) {
 	return new JSONEditor(config)

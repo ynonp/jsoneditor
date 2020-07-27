@@ -1,7 +1,7 @@
 import { isEqual, isNumber } from 'lodash-es'
 import { STATE_SEARCH_PROPERTY, STATE_SEARCH_VALUE } from '../constants.js'
-import { existsIn, setIn } from './immutabilityHelpers.js'
-import { valueType } from './typeUtils.js'
+import { existsIn, setIn } from '../utils/immutabilityHelpers.js'
+import { valueType } from '../utils/typeUtils.js'
 
 
 /**

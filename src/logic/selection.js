@@ -1,8 +1,8 @@
 import { isEqual } from 'lodash-es'
-import { STATE_PROPS } from './constants.js'
-import { getIn } from './utils/immutabilityHelpers.js'
-import { compileJSONPointer, parseJSONPointer } from './utils/jsonPointer.js'
-import { isObject } from './utils/typeUtils.js'
+import { STATE_PROPS } from '../constants.js'
+import { getIn } from '../utils/immutabilityHelpers.js'
+import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
+import { isObject } from '../utils/typeUtils.js'
 
 /**
  * Expand a selection start and end into an array containing all paths

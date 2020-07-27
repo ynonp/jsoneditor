@@ -6,34 +6,33 @@
     insertBefore,
     removeAll,
     replace
-  } from './operations.js'
+  } from '../logic/operations.js'
   import {
     STATE_EXPANDED,
     STATE_LIMIT,
     SCROLL_DURATION,
     STATE_PROPS
-  } from './constants.js'
-  import { createHistory } from './history.js'
+  } from '../constants.js'
+  import { createHistory } from '../logic/history.js'
   import JSONNode from './JSONNode.svelte'
   import {
     createPathsMap,
     createSelectionFromOperations,
     expandSelection
-  } from './selection.js'
-  import { isContentEditableDiv } from './utils/domUtils.js'
+  } from '../logic/selection.js'
+  import { isContentEditableDiv } from '../utils/domUtils.js'
   import {
     getIn,
     setIn,
     updateIn
-  } from './utils/immutabilityHelpers.js'
-  import { compileJSONPointer, parseJSONPointer } from './utils/jsonPointer.js'
-  import { keyComboFromEvent } from './utils/keyBindings.js'
-  import { search, searchNext, searchPrevious } from './utils/search.js'
-  import { immutableJSONPatch } from './utils/immutableJSONPatch'
+  } from '../utils/immutabilityHelpers.js'
+  import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
+  import { keyComboFromEvent } from '../utils/keyBindings.js'
+  import { search, searchNext, searchPrevious } from '../logic/search.js'
+  import { immutableJSONPatch } from '../utils/immutableJSONPatch'
   import { initial, last, cloneDeep } from 'lodash-es'
-  import jump from './assets/jump.js/src/jump.js'
-  import { expandPath, stateUtils } from './utils/stateUtils.js'
-  import { getNextKeys, patchProps } from './utils/updateProps.js'
+  import jump from '../assets/jump.js/src/jump.js'
+  import { expandPath, syncState, getNextKeys, patchProps } from '../logic/documentState.js'
   import Menu from './Menu.svelte'
 
   let divContents
@@ -49,7 +48,7 @@
   $: hasSelectionContents = selection != null && selection.paths != null
   $: hasClipboardContents = clipboard != null && selection != null
 
-  $: state = stateUtils(doc, state, [], (path) => path.length < 1)
+  $: state = syncState(doc, state, [], (path) => path.length < 1)
 
   let showSearch = false
   let searchText = ''
@@ -63,11 +62,11 @@
   let historyState = history.getState()
 
   export function expand (callback = () => true) {
-    state = stateUtils(doc, state, [], callback, true)
+    state = syncState(doc, state, [], callback, true)
   }
 
   export function collapse (callback = () => false) {
-    state = stateUtils(doc, state, [], callback, true)
+    state = syncState(doc, state, [], callback, true)
   }
 
   export function get() {
@@ -168,7 +167,7 @@
         const parentPath = initial(selection.beforePath)
         const beforeKey = last(selection.beforePath)
         const props = getIn(state, parentPath.concat(STATE_PROPS))
-        const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
+        const nextKeys = getNextKeys(props, beforeKey, true)
         const operations = insertBefore(doc, selection.beforePath, clipboard, nextKeys)
         const newSelection = createSelectionFromOperations(operations)
 
@@ -183,7 +182,7 @@
         const parentPath = initial(lastPath)
         const beforeKey = last(lastPath)
         const props = getIn(state, parentPath.concat(STATE_PROPS))
-        const nextKeys = getNextKeys(props, parentPath, beforeKey, true)
+        const nextKeys = getNextKeys(props, beforeKey, true)
         const operations = replace(doc, selection.paths, clipboard, nextKeys)
         const newSelection = createSelectionFromOperations(operations)
 
@@ -200,7 +199,7 @@
       const parentPath = initial(lastPath)
       const beforeKey = last(lastPath)
       const props = getIn(state, parentPath.concat(STATE_PROPS))
-      const nextKeys = getNextKeys(props, parentPath, beforeKey, false)
+      const nextKeys = getNextKeys(props, beforeKey, false)
 
       const operations = duplicate(doc, selection.paths, nextKeys)
       const newSelection = createSelectionFromOperations(operations)
@@ -318,7 +317,7 @@
   function handleExpand (path, expanded, recursive = false) {
     if (recursive) {
       state = updateIn(state, path, (childState) => {
-        return stateUtils(getIn(doc, path), childState, [], () => expanded, true)
+        return syncState(getIn(doc, path), childState, [], () => expanded, true)
       })
     } else {
       state = setIn(state, path.concat(STATE_EXPANDED), expanded, true)
@@ -471,4 +470,4 @@
   </div>
 </div>
 
-<style src="JSONEditor.scss"></style>
+<style src="./JSONEditor.scss"></style>

@@ -1,7 +1,7 @@
 import { first, initial, last, pickBy } from 'lodash-es'
-import { getIn } from './utils/immutabilityHelpers'
-import { compileJSONPointer } from './utils/jsonPointer'
-import { findUniqueName } from './utils/stringUtils'
+import { getIn } from '../utils/immutabilityHelpers'
+import { compileJSONPointer } from '../utils/jsonPointer'
+import { findUniqueName } from '../utils/stringUtils'
 
 /**
  * Create a JSONPatch for an insert operation.

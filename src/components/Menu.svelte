@@ -115,4 +115,4 @@
   {/if}
 </div>
 
-<style src="Menu.scss"></style>
+<style src="./Menu.scss"></style>
