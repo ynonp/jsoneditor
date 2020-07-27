@@ -105,11 +105,10 @@
     class="button remove"
     on:click={onRemove}
     disabled={!hasSelectionContents}
-    title="remove (Delete)"
+    title="Remove (Delete)"
   >
     <Icon data={faTimes} />
   </button>
-
   <button
     class="button duplicate"
     on:click={onDuplicate}
