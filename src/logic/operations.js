@@ -185,17 +185,19 @@ export function replace (json, paths, values, nextKeys) {  // TODO: find a bette
  * and object property
  *
  * @param {JSON} json
+ * @param {JSON} doc
  * @param {Path[]} paths
- * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
- *                              these keys will be moved down, so the renamed
- *                              key will maintain it's position above these keys
  * @return {JSONPatchDocument}
  */
-export function duplicate (json, paths, nextKeys) {
-  const firstPath = first(paths)
-  const parentPath = initial(firstPath)
-  const parent = getIn(json, parentPath)
-
+export function duplicate (doc, state, paths) {
+  // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
+  const lastPath = last(paths) 
+  const parentPath = initial(lastPath)
+  const beforeKey = last(lastPath)
+  const props = getIn(state, parentPath.concat(STATE_PROPS))
+  const nextKeys = getNextKeys(props, beforeKey, false)
+  const parent = getIn(doc, parentPath)
+  
   if (Array.isArray(parent)) {
     const lastPath = last(paths)
     const offset = lastPath ? (parseInt(last(lastPath), 10) + 1) : 0
@@ -240,6 +242,7 @@ export function insert (doc, state, selection, values) {
     const props = getIn(state, parentPath.concat(STATE_PROPS))
     const nextKeys = getNextKeys(props, beforeKey, true)
     const operations = insertBefore(doc, selection.beforePath, values, nextKeys)
+    // TODO: move calculation of nextKeys inside insertBefore?
     
     return operations
   } else if (selection.appendPath) {
@@ -253,6 +256,7 @@ export function insert (doc, state, selection, values) {
     const props = getIn(state, parentPath.concat(STATE_PROPS))
     const nextKeys = getNextKeys(props, beforeKey, true)
     const operations = replace(doc, selection.paths, values, nextKeys)
+    // TODO: move calculation of nextKeys inside replace?
     
     return operations
   }

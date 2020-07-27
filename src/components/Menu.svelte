@@ -3,13 +3,10 @@
   import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus } from '@fortawesome/free-solid-svg-icons'
   import SearchBox from './SearchBox.svelte'
   import DropdownMenu from './DropdownMenu.svelte'
-  import { getParentPath } from '../logic/selection'
-  import { getIn } from '../utils/immutabilityHelpers'
 
   export let searchText
   export let searchResult
   export let showSearch = false
-  export let doc
   export let selection
   export let clipboard
   export let historyState
@@ -40,8 +37,8 @@
     onSearchText('')
   }
 
-  function handleInsertValue () {
-    onInsert('value')
+  function handleInsertStructure () {
+    onInsert('structure')
   }
 
   /** @type {MenuDropdownItem[]} */
@@ -49,7 +46,7 @@
     {
       text: 'Insert value',
       title: 'Insert a new value',
-      onClick: handleInsertValue,
+      onClick: () => onInsert('value'),
       disabled: !hasSelectionWithoutContents,
       default: true
     },
@@ -69,7 +66,7 @@
       text: 'Insert structure',
       title: 'Insert a new item with the same structure as other items. ' +
         'Only applicable inside an array',
-      onClick: () => onInsert('structure'),
+      onClick: handleInsertStructure,
       disabled: !hasSelectionWithoutContents
     }
   ]
@@ -119,7 +116,7 @@
     <button 
       class="button insert"
       slot="defaultItem" 
-      on:click={handleInsertValue}
+      on:click={handleInsertStructure}
       disabled={!hasSelectionWithoutContents}
     >
       <Icon data={faPlus} />

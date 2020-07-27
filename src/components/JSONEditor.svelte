@@ -9,16 +9,14 @@
   import {
     STATE_EXPANDED,
     STATE_LIMIT,
-    SCROLL_DURATION,
-    STATE_PROPS
+    SCROLL_DURATION
   } from '../constants.js'
   import { createHistory } from '../logic/history.js'
   import JSONNode from './JSONNode.svelte'
   import {
     createPathsMap,
     createSelectionFromOperations,
-    expandSelection,
-getParentPath
+    expandSelection
   } from '../logic/selection.js'
   import { isContentEditableDiv } from '../utils/domUtils.js'
   import {
@@ -30,11 +28,11 @@ getParentPath
   import { keyComboFromEvent } from '../utils/keyBindings.js'
   import { search, searchNext, searchPrevious } from '../logic/search.js'
   import { immutableJSONPatch } from '../utils/immutableJSONPatch'
-  import { initial, last, cloneDeep } from 'lodash-es'
+  import { last, cloneDeep } from 'lodash-es'
   import jump from '../assets/jump.js/src/jump.js'
-  import { expandPath, syncState, getNextKeys, patchProps } from '../logic/documentState.js'
+  import { expandPath, syncState, patchProps } from '../logic/documentState.js'
   import Menu from './Menu.svelte'
-import { isObjectOrArray } from '../utils/typeUtils.js';
+import { isObjectOrArray } from '../utils/typeUtils.js'
 
   let divContents
   let domHiddenInput
@@ -162,15 +160,7 @@ import { isObjectOrArray } from '../utils/typeUtils.js';
     if (selection && selection.paths) {
       console.log('duplicate', { selection })
 
-    // TODO: move this logic inside duplicate()
-
-      const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
-      const parentPath = initial(lastPath)
-      const beforeKey = last(lastPath)
-      const props = getIn(state, parentPath.concat(STATE_PROPS))
-      const nextKeys = getNextKeys(props, beforeKey, false)
-
-      const operations = duplicate(doc, selection.paths, nextKeys)
+      const operations = duplicate(doc, state, selection.paths)
       const newSelection = createSelectionFromOperations(operations)
 
       handlePatch(operations, newSelection)
@@ -434,7 +424,6 @@ import { isObjectOrArray } from '../utils/typeUtils.js';
     searchResult={searchResult}
     bind:showSearch
 
-    doc={doc}
     selection={selection}
     clipboard={clipboard}
     

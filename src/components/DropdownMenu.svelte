@@ -51,7 +51,7 @@
       {#each items as item}
         <li>
           <button 
-            on:click={item.onClick} 
+            on:click={() => item.onClick()} 
             title={item.title}
             disabled={item.disabled}
           >
