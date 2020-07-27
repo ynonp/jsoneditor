@@ -11,7 +11,6 @@
     STATE_SEARCH_VALUE,
     INDENTATION_WIDTH
   } from '../constants.js'
-  import { singleton } from '../singleton.js'
   import {
     getPlainText,
     isAppendNodeSelector,
@@ -39,6 +38,12 @@
   export let onLimit
   export let onSelect
   export let selection
+  
+  const singleton = {
+    mousedown: false,
+    selectionAnchor: null, // Path
+    selectionFocus: null // Path
+  }
 
   $: expanded = state && state[STATE_EXPANDED]
   $: limit = state && state[STATE_LIMIT]
