@@ -129,12 +129,13 @@ import { isObjectOrArray } from '../utils/typeUtils.js'
 
   function handleCut() {
     if (selection && selection.paths) {
-      clipboard = selectionToClipboard(selection)
+      console.log('cut', { selection, clipboard })
 
+      clipboard = selectionToClipboard(selection)
+      
       const operations = removeAll(selection.paths)
       handlePatch(operations)
-
-      console.log('cut', { selection, clipboard })
+      selection = null
     }
   }
 
@@ -153,6 +154,17 @@ import { isObjectOrArray } from '../utils/typeUtils.js'
       const newSelection = createSelectionFromOperations(operations)
 
       handlePatch(operations, newSelection)
+    }
+  }
+
+  function handleRemove() {
+    if (selection && selection.paths) {
+      console.log('remove', { selection })
+
+      const operations = removeAll(selection.paths)
+      handlePatch(operations)
+      
+      selection = null
     }
   }
 
@@ -368,7 +380,11 @@ import { isObjectOrArray } from '../utils/typeUtils.js'
         event.preventDefault()
         handleDuplicate()
       }
-      if (combo === 'Ctrl+Insert' || combo === 'Command+Insert') {
+      if (combo === 'Delete') {
+        event.preventDefault()
+        handleRemove()
+      }
+      if (combo === 'Insert' || combo === 'Insert') {
         event.preventDefault()
         handleInsert('structure')
       }
@@ -430,6 +446,7 @@ import { isObjectOrArray } from '../utils/typeUtils.js'
     onCut={handleCut}
     onCopy={handleCopy}
     onPaste={handlePaste}
+    onRemove={handleRemove}
     onDuplicate={handleDuplicate}
     onInsert={handleInsert}
     onUndo={handleUndo}

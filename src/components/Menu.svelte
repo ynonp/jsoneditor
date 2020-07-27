@@ -1,6 +1,6 @@
 <script>
   import Icon from 'svelte-awesome'
-  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus } from '@fortawesome/free-solid-svg-icons'
+  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons'
   import SearchBox from './SearchBox.svelte'
   import DropdownMenu from './DropdownMenu.svelte'
 
@@ -14,6 +14,7 @@
   export let onCut
   export let onCopy
   export let onPaste
+  export let onRemove
   export let onDuplicate
   export let onInsert
   export let onUndo
@@ -101,6 +102,15 @@
   <div class="separator"></div>
 
   <button
+    class="button remove"
+    on:click={onRemove}
+    disabled={!hasSelectionContents}
+    title="remove (Delete)"
+  >
+    <Icon data={faTimes} />
+  </button>
+
+  <button
     class="button duplicate"
     on:click={onDuplicate}
     disabled={!hasSelectionContents}
@@ -108,10 +118,9 @@
   >
     <Icon data={faClone} />
   </button>
-
   <DropdownMenu 
     items={insertItems} 
-    title="Insert new value (Ctrl+Insert)"
+    title="Insert new value (Insert)"
   >
     <button 
       class="button insert"
