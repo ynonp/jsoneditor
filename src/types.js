@@ -75,3 +75,10 @@
 /**
  * @typedef {MultiSelectionSchema  | BeforeSelection | AppendSelection} SelectionSchema
  */
+
+/**
+ * @typedef {Object} MenuDropdownItem
+ * @property {string} text
+ * @property {function} onClick
+ * @property {boolean} [default=false]
+ **/ 

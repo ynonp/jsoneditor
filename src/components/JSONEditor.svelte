@@ -45,8 +45,6 @@
 
   let selection = null
   let clipboard = null
-  $: hasSelectionContents = selection != null && selection.paths != null
-  $: hasClipboardContents = clipboard != null && selection != null
 
   $: state = syncState(doc, state, [], (path) => path.length < 1)
 
@@ -206,6 +204,15 @@
 
       console.log('newSelection', newSelection)
       handlePatch(operations, newSelection)
+    }
+  }
+
+  function handleInsert() {
+
+    if (selection != null) {
+      console.log('insert', { selection })
+
+      // TODO: impelemnt insert
     }
   }
 
@@ -382,6 +389,10 @@
         event.preventDefault()
         handleDuplicate()
       }
+      if (combo === 'Ctrl+Insert' || combo === 'Command+Insert') {
+        event.preventDefault()
+        handleInsert()
+      }
       if (combo === 'Escape') {
         event.preventDefault()
         selection = null
@@ -433,9 +444,9 @@
     searchText={searchText}
     searchResult={searchResult}
     bind:showSearch
-    hasSelectionContents={hasSelectionContents}
-    hasClipboardContents={hasClipboardContents}
-
+    selection={selection}
+    clipboard={clipboard}
+    
     onCut={handleCut}
     onCopy={handleCopy}
     onPaste={handlePaste}

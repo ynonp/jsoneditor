@@ -1,13 +1,14 @@
 <script>
   import Icon from 'svelte-awesome'
-  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo } from '@fortawesome/free-solid-svg-icons'
+  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus } from '@fortawesome/free-solid-svg-icons'
   import SearchBox from './SearchBox.svelte'
+  import DropdownMenu from './DropdownMenu.svelte'
 
   export let searchText
   export let searchResult
   export let showSearch = false
-  export let hasSelectionContents
-  export let hasClipboardContents
+  export let selection
+  export let clipboard
   export let historyState
 
   export let onCut
@@ -21,6 +22,10 @@
   export let onNextSearchResult
   export let onPreviousSearchResult
 
+  $: hasSelection = selection != null
+  $: hasSelectionContents = selection != null && selection.paths != null
+  $: hasClipboardContents = clipboard != null && selection != null
+
   function handleToggleSearch() {
     showSearch = !showSearch
   }
@@ -30,6 +35,36 @@
     onSearchText('')
   }
 
+  function handleInsertValue () {
+    console.log('TODO: insert value')
+  }
+
+  /** @type {MenuDropdownItem[]} */
+  const insertItems = [
+    {
+      text: "Insert value",
+      onClick: handleInsertValue,
+      default: true
+    },
+    {
+      text: "Insert object",
+      onClick: () => {
+        console.log('TODO: insert object')
+      }
+    },
+    {
+      text: "Insert array",
+      onClick: () => {
+        console.log('TODO: insert array')
+      }
+    },
+    {
+      text: "Insert structure",
+      onClick: () => {
+        console.log('TODO: insert structure')
+      }
+    }
+  ]
 </script>
 
 <div class="menu">
@@ -68,6 +103,21 @@
   >
     <Icon data={faClone} />
   </button>
+
+  <DropdownMenu 
+    items={insertItems} 
+    title="Insert new value (Ctrl+Insert)"
+    disabled={!hasSelection}
+  >
+    <button 
+      class="button insert"
+      slot="defaultItem" 
+      on:click={handleInsertValue}
+      disabled={!hasSelection}
+    >
+      <Icon data={faPlus} />
+    </button>
+  </DropdownMenu>
 
   <div class="separator"></div>
 

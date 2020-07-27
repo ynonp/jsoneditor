@@ -6,7 +6,7 @@ $search-size: 24px;
   border: 2px solid $theme-color;
   border-radius: $border-radius;
   background: $white;
-  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.24);
+  box-shadow: $box-shadow;
 
   .search-form {
     display: flex;

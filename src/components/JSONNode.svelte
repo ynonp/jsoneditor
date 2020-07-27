@@ -1,6 +1,7 @@
 <script>
   import { debounce, isEqual } from 'lodash-es'
   import { rename } from '../logic/operations.js'
+  import { singleton } from './singleton.js'
   import {
     DEBOUNCE_DELAY,
     DEFAULT_LIMIT,
@@ -39,12 +40,6 @@
   export let onSelect
   export let selection
   
-  const singleton = {
-    mousedown: false,
-    selectionAnchor: null, // Path
-    selectionFocus: null // Path
-  }
-
   $: expanded = state && state[STATE_EXPANDED]
   $: limit = state && state[STATE_LIMIT]
   $: props = state && state[STATE_PROPS]
