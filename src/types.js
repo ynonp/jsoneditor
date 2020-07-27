@@ -80,5 +80,6 @@
  * @typedef {Object} MenuDropdownItem
  * @property {string} text
  * @property {function} onClick
+ * @property {string} [title=undefined]
  * @property {boolean} [default=false]
- **/ 
+ */ 

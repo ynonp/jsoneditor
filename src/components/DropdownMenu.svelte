@@ -10,7 +10,6 @@
   export let title = null
   export let width = '120px'
   export let visible = false
-  export let disabled = false
   
   function toggleShow (event) {
     event.stopPropagation()
@@ -51,7 +50,11 @@
     <ul>
       {#each items as item}
         <li>
-          <button on:click={item.onClick} disabled={disabled}>
+          <button 
+            on:click={item.onClick} 
+            title={item.title}
+            disabled={item.disabled}
+          >
             {item.text}
           </button>
         </li>

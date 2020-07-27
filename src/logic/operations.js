@@ -1,7 +1,11 @@
-import { first, initial, last, pickBy } from 'lodash-es'
-import { getIn } from '../utils/immutabilityHelpers'
-import { compileJSONPointer } from '../utils/jsonPointer'
-import { findUniqueName } from '../utils/stringUtils'
+import { first, initial, isEmpty, last, pickBy, cloneDeepWith } from 'lodash-es'
+import { STATE_PROPS } from '../constants.js'
+import { getNextKeys } from '../logic/documentState.js'
+import { getParentPath } from '../logic/selection.js'
+import { getIn } from '../utils/immutabilityHelpers.js'
+import { compileJSONPointer } from '../utils/jsonPointer.js'
+import { findUniqueName } from '../utils/stringUtils.js'
+import { isObjectOrArray } from '../utils/typeUtils.js'
 
 /**
  * Create a JSONPatch for an insert operation.
@@ -226,6 +230,66 @@ export function duplicate (json, paths, nextKeys) {
       // move all lower down keys so the renamed key will maintain it's position
       ...nextKeys.map(key => moveDown(parentPath, key))
     ]
+  }
+}
+
+export function insert (doc, state, selection, values) {
+  if (selection.beforePath) {
+    const parentPath = initial(selection.beforePath)
+    const beforeKey = last(selection.beforePath)
+    const props = getIn(state, parentPath.concat(STATE_PROPS))
+    const nextKeys = getNextKeys(props, beforeKey, true)
+    const operations = insertBefore(doc, selection.beforePath, values, nextKeys)
+    
+    return operations
+  } else if (selection.appendPath) {
+    const operations = append(doc, selection.appendPath, values)
+
+    return operations
+  } else if (selection.paths) {
+    const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
+    const parentPath = initial(lastPath)
+    const beforeKey = last(lastPath)
+    const props = getIn(state, parentPath.concat(STATE_PROPS))
+    const nextKeys = getNextKeys(props, beforeKey, true)
+    const operations = replace(doc, selection.paths, values, nextKeys)
+    
+    return operations
+  }
+}
+
+export function createNewValue (doc, selection, type) {
+  switch (type) {
+    case 'value': 
+      return ''
+    
+    case 'object': 
+      return {}
+    
+    case 'array': 
+      return []
+
+    case 'structure': 
+      const parentPath = getParentPath(selection)
+      const parent = getIn(doc, parentPath)
+
+      if (Array.isArray(parent) && !isEmpty(parent)) {
+        const jsonExample = first(parent)
+        const structure = cloneDeepWith(jsonExample, (value) => {
+          return isObjectOrArray(value)
+              ? undefined // leave as is
+              : ''
+        })
+
+        console.log('structure', jsonExample, structure)
+
+        return structure
+      } else {
+        // no example structure
+        return ''
+      }
+
+    default: ''
   }
 }
 

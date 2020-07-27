@@ -3,10 +3,13 @@
   import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus } from '@fortawesome/free-solid-svg-icons'
   import SearchBox from './SearchBox.svelte'
   import DropdownMenu from './DropdownMenu.svelte'
+  import { getParentPath } from '../logic/selection'
+  import { getIn } from '../utils/immutabilityHelpers'
 
   export let searchText
   export let searchResult
   export let showSearch = false
+  export let doc
   export let selection
   export let clipboard
   export let historyState
@@ -15,6 +18,7 @@
   export let onCopy
   export let onPaste
   export let onDuplicate
+  export let onInsert
   export let onUndo
   export let onRedo
 
@@ -24,6 +28,7 @@
 
   $: hasSelection = selection != null
   $: hasSelectionContents = selection != null && selection.paths != null
+  $: hasSelectionWithoutContents = selection != null && selection.paths == null
   $: hasClipboardContents = clipboard != null && selection != null
 
   function handleToggleSearch() {
@@ -36,33 +41,36 @@
   }
 
   function handleInsertValue () {
-    console.log('TODO: insert value')
+    onInsert('value')
   }
 
   /** @type {MenuDropdownItem[]} */
-  const insertItems = [
+  $: insertItems = [
     {
-      text: "Insert value",
+      text: 'Insert value',
+      title: 'Insert a new value',
       onClick: handleInsertValue,
+      disabled: !hasSelectionWithoutContents,
       default: true
     },
     {
-      text: "Insert object",
-      onClick: () => {
-        console.log('TODO: insert object')
-      }
+      text: 'Insert object',
+      title: 'Insert a new object',
+      onClick: () => onInsert('object'),
+      disabled: !hasSelectionWithoutContents
     },
     {
-      text: "Insert array",
-      onClick: () => {
-        console.log('TODO: insert array')
-      }
+      text: 'Insert array',
+      title: 'Insert a new array',
+      onClick: () => onInsert('array'),
+      disabled: !hasSelectionWithoutContents
     },
     {
-      text: "Insert structure",
-      onClick: () => {
-        console.log('TODO: insert structure')
-      }
+      text: 'Insert structure',
+      title: 'Insert a new item with the same structure as other items. ' +
+        'Only applicable inside an array',
+      onClick: () => onInsert('structure'),
+      disabled: !hasSelectionWithoutContents
     }
   ]
 </script>
@@ -107,13 +115,12 @@
   <DropdownMenu 
     items={insertItems} 
     title="Insert new value (Ctrl+Insert)"
-    disabled={!hasSelection}
   >
     <button 
       class="button insert"
       slot="defaultItem" 
       on:click={handleInsertValue}
-      disabled={!hasSelection}
+      disabled={!hasSelectionWithoutContents}
     >
       <Icon data={faPlus} />
     </button>

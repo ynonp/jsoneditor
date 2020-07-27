@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash-es'
+import { first, initial, isEqual } from 'lodash-es'
 import { STATE_PROPS } from '../constants.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
@@ -63,6 +63,26 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
   }
 
   throw new Error('Failed to create selection')
+}
+
+/**
+ * 
+ * @param {Selection} selection 
+ * @return {Path} Returns parent path
+ */
+export function getParentPath (selection) {
+  if (selection.beforePath) {
+    return initial(selection.beforePath)
+  }
+
+  if (selection.appendPath) {
+    return selection.appendPath
+  }
+
+  if (selection.paths) {
+    const firstPath = first(selection.paths)
+    return initial(firstPath)
+  }
 }
 
 /**

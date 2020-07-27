@@ -1,11 +1,10 @@
 <script>
   import { tick } from 'svelte'
   import {
-    append,
     duplicate,
-    insertBefore,
-    removeAll,
-    replace
+    insert,
+    createNewValue,
+    removeAll
   } from '../logic/operations.js'
   import {
     STATE_EXPANDED,
@@ -18,7 +17,8 @@
   import {
     createPathsMap,
     createSelectionFromOperations,
-    expandSelection
+    expandSelection,
+getParentPath
   } from '../logic/selection.js'
   import { isContentEditableDiv } from '../utils/domUtils.js'
   import {
@@ -34,6 +34,7 @@
   import jump from '../assets/jump.js/src/jump.js'
   import { expandPath, syncState, getNextKeys, patchProps } from '../logic/documentState.js'
   import Menu from './Menu.svelte'
+import { isObjectOrArray } from '../utils/typeUtils.js';
 
   let divContents
   let domHiddenInput
@@ -150,48 +151,18 @@
     if (selection && clipboard) {
       console.log('paste', { clipboard, selection })
 
-      function createNewSelection (operations) {
-        const paths = operations
-          .filter(operation => operation.op === 'add')
-          .map(operation => parseJSONPointer(operation.path))
+      const operations = insert(doc, state, selection, clipboard)
+      const newSelection = createSelectionFromOperations(operations)
 
-        return  {
-          paths,
-          pathsMap: createPathsMap(paths)
-        }
-      }
-
-      if (selection.beforePath) {
-        const parentPath = initial(selection.beforePath)
-        const beforeKey = last(selection.beforePath)
-        const props = getIn(state, parentPath.concat(STATE_PROPS))
-        const nextKeys = getNextKeys(props, beforeKey, true)
-        const operations = insertBefore(doc, selection.beforePath, clipboard, nextKeys)
-        const newSelection = createSelectionFromOperations(operations)
-
-        handlePatch(operations, newSelection)
-      } else if (selection.appendPath) {
-        const operations = append(doc, selection.appendPath, clipboard)
-        const newSelection = createSelectionFromOperations(operations)
-
-        handlePatch(operations, newSelection)
-      } else if (selection.paths) {
-        const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
-        const parentPath = initial(lastPath)
-        const beforeKey = last(lastPath)
-        const props = getIn(state, parentPath.concat(STATE_PROPS))
-        const nextKeys = getNextKeys(props, beforeKey, true)
-        const operations = replace(doc, selection.paths, clipboard, nextKeys)
-        const newSelection = createSelectionFromOperations(operations)
-
-        handlePatch(operations, newSelection)
-      }
+      handlePatch(operations, newSelection)
     }
   }
 
   function handleDuplicate() {
     if (selection && selection.paths) {
       console.log('duplicate', { selection })
+
+    // TODO: move this logic inside duplicate()
 
       const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
       const parentPath = initial(lastPath)
@@ -202,17 +173,35 @@
       const operations = duplicate(doc, selection.paths, nextKeys)
       const newSelection = createSelectionFromOperations(operations)
 
-      console.log('newSelection', newSelection)
       handlePatch(operations, newSelection)
     }
   }
 
-  function handleInsert() {
-
+  /**
+   * @param {'value' | 'object' | 'array' | 'structure'} type
+   */ 
+  function handleInsert(type) {
     if (selection != null) {
-      console.log('insert', { selection })
+      console.log('insert', { type, selection })
 
-      // TODO: impelemnt insert
+      const value = createNewValue(doc, selection, type)
+      const values = [
+        { 
+          key: 'new', 
+          value
+        }
+      ]
+      const operations = insert(doc, state, selection, values)
+      const newSelection = createSelectionFromOperations(operations)
+
+      handlePatch(operations, newSelection)
+
+      if (isObjectOrArray(value)) {
+        // expand the new object/array in case of inserting a structure
+        operations
+          .filter(operation => operation.op === 'add')
+          .forEach(operation => handleExpand(parseJSONPointer(operation.path), true, true))
+      }
     }
   }
 
@@ -391,7 +380,7 @@
       }
       if (combo === 'Ctrl+Insert' || combo === 'Command+Insert') {
         event.preventDefault()
-        handleInsert()
+        handleInsert('structure')
       }
       if (combo === 'Escape') {
         event.preventDefault()
@@ -444,6 +433,8 @@
     searchText={searchText}
     searchResult={searchResult}
     bind:showSearch
+
+    doc={doc}
     selection={selection}
     clipboard={clipboard}
     
@@ -451,6 +442,7 @@
     onCopy={handleCopy}
     onPaste={handlePaste}
     onDuplicate={handleDuplicate}
+    onInsert={handleInsert}
     onUndo={handleUndo}
     onRedo={handleRedo}
 

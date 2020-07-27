@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { expandSelection } from './selection.js'
+import { expandSelection, getParentPath } from './selection.js'
 import { syncState } from './documentState.js'
 
 describe ('selection', () => {
@@ -64,5 +64,15 @@ describe ('selection', () => {
     assert.deepStrictEqual(actual, [
       ['obj', 'arr']
     ])
+  })
+
+  it('should get parent path from a selection', () => {
+      assert.deepStrictEqual(getParentPath({ beforePath: ['a', 'b']}), ['a'])
+      assert.deepStrictEqual(getParentPath({ appendPath: ['a', 'b']}), ['a', 'b'])
+      assert.deepStrictEqual(getParentPath({ paths:[
+        ['a', 'b'],
+        ['a', 'c'],
+        ['a', 'd']
+      ]}), ['a'])
   })
 })
