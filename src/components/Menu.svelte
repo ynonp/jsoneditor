@@ -119,7 +119,7 @@
   </button>
   <DropdownMenu 
     items={insertItems} 
-    title="Insert new value (Insert)"
+    title="Insert new structure (Insert)"
   >
     <button 
       class="button insert"
