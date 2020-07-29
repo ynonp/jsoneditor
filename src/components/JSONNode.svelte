@@ -10,7 +10,8 @@
     STATE_PROPS,
     STATE_SEARCH_PROPERTY,
     STATE_SEARCH_VALUE,
-    INDENTATION_WIDTH
+    INDENTATION_WIDTH,
+    VALIDATION_ERROR
   } from '../constants.js'
   import {
     getPlainText,
@@ -21,7 +22,7 @@
     setPlainText
   } from '../utils/domUtils.js'
   import Icon from 'svelte-awesome'
-  import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
+  import { faCaretDown, faCaretRight, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
   import { findUniqueName } from '../utils/stringUtils.js'
   import { isUrl, stringConvert, valueType } from '../utils/typeUtils'
@@ -33,6 +34,7 @@
   export let path
   export let state
   export let searchResult
+  export let validationErrors
   export let onPatch
   export let onUpdateKey
   export let onExpand
@@ -43,6 +45,7 @@
   $: expanded = state && state[STATE_EXPANDED]
   $: limit = state && state[STATE_LIMIT]
   $: props = state && state[STATE_PROPS]
+  $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
   const escapeUnicode = false // TODO: pass via options
 
@@ -376,6 +379,15 @@
         <button class="tag" on:click={handleExpand}>{value.length} items</button>
         <div class="delimiter">]</div>
       {/if}
+      {#if validationError}
+        <!-- FIXME: implement proper tooltip -->
+        <div 
+          class='validation-error' 
+          title={validationError.isChildError ? 'Contains invalid items' : validationError.message}
+        >
+          <Icon data={faExclamationTriangle} />
+        </div>
+      {/if}
     </div>
     {#if expanded}
       <div class="items">
@@ -386,6 +398,7 @@
             path={path.concat(index)}
             state={state && state[index]}
             searchResult={searchResult ? searchResult[index] : undefined}
+            validationErrors={validationErrors ? validationErrors[index] : undefined}
             onPatch={onPatch}
             onUpdateKey={handleUpdateKey}
             onExpand={onExpand}
@@ -444,6 +457,15 @@
         <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
         <span class="delimiter">&rbrace;</span>
       {/if}
+      {#if validationError}
+        <!-- FIXME: implement proper tooltip -->
+        <div 
+          class='validation-error' 
+          title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
+        >
+          <Icon data={faExclamationTriangle} />
+        </div>
+      {/if}
     </div>
     {#if expanded}
       <div class="props">
@@ -454,6 +476,7 @@
             path={path.concat(prop.key)}
             state={state && state[prop.key]}
             searchResult={searchResult ? searchResult[prop.key] : undefined}
+            validationErrors={validationErrors ? validationErrors[prop.key] : undefined}
             onPatch={onPatch}
             onUpdateKey={handleUpdateKey}
             onExpand={onExpand}
@@ -501,6 +524,12 @@
         bind:this={domValue}
         title={valueIsUrl ? 'Ctrl+Click or Ctrl+Enter to open url in new window' : null}
       ></div>
+      {#if validationError}
+        <!-- FIXME: implement proper tooltip -->
+        <div class='validation-error' title={validationError.message}>
+          <Icon data={faExclamationTriangle} />
+        </div>
+      {/if}
     </div>
   {/if}
 </div>

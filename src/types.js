@@ -83,3 +83,7 @@
  * @property {string} [title=undefined]
  * @property {boolean} [default=false]
  */ 
+
+ /**
+  * @typedef {{path: Path, message: string, isChildError?: boolean}} ValidationError
+  */

@@ -32,12 +32,18 @@
   import jump from '../assets/jump.js/src/jump.js'
   import { expandPath, syncState, patchProps } from '../logic/documentState.js'
   import Menu from './Menu.svelte'
-import { isObjectOrArray } from '../utils/typeUtils.js'
+  import { isObjectOrArray } from '../utils/typeUtils.js'
+  import { mapValidationErrors } from '../logic/validation.js'
 
   let divContents
   let domHiddenInput
 
+  export let validate = () => []
   export let onChangeJson = () => {}
+
+  export function setValidator (newValidate) {
+    validate = newValidate
+  }
 
   export let doc = {}
   let state = undefined
@@ -46,6 +52,8 @@ import { isObjectOrArray } from '../utils/typeUtils.js'
   let clipboard = null
 
   $: state = syncState(doc, state, [], (path) => path.length < 1)
+  $: validationErrorsList = validate(doc)
+  $: validationErrors = mapValidationErrors(validationErrorsList)
 
   let showSearch = false
   let searchText = ''
@@ -469,6 +477,7 @@ import { isObjectOrArray } from '../utils/typeUtils.js'
       path={[]}
       state={state}
       searchResult={searchResult && searchResult.itemsWithActive}
+      validationErrors={validationErrors}
       onPatch={handlePatch}
       onUpdateKey={handleUpdateKey}
       onExpand={handleExpand}

@@ -236,3 +236,8 @@ div.empty {
     background-color: $highlight-active-color;
   }
 }
+
+.validation-error {
+  color: $warning-color;
+  padding-left: $input-padding;
+}
