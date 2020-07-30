@@ -38,11 +38,15 @@
   let divContents
   let domHiddenInput
 
-  export let validate = () => []
+  export let validate = null
   export let onChangeJson = () => {}
 
   export function setValidator (newValidate) {
     validate = newValidate
+  }
+
+  export function getValidator () {
+    return validate
   }
 
   export let doc = {}
@@ -52,7 +56,7 @@
   let clipboard = null
 
   $: state = syncState(doc, state, [], (path) => path.length < 1)
-  $: validationErrorsList = validate(doc)
+  $: validationErrorsList = validate ? validate(doc) : []
   $: validationErrors = mapValidationErrors(validationErrorsList)
 
   let showSearch = false
