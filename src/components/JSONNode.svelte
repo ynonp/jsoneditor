@@ -412,7 +412,7 @@
           data-type="append-node-selector"
           class="append-node-selector"
           class:selected={selectedAppend}
-          style={indentationStyle}
+          style={getIndentationStyle(path.length + 1)}
         >
           <div class="selector"></div>
         </div>
@@ -491,7 +491,7 @@
           data-type="append-node-selector"
           class="append-node-selector"
           class:selected={selectedAppend}
-          style={indentationStyle}
+          style={getIndentationStyle(path.length + 1)}
         >
           <div class="selector"></div>
         </div>
