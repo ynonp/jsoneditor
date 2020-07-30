@@ -378,15 +378,16 @@
         <div class="delimiter">[</div>
         <button class="tag" on:click={handleExpand}>{value.length} items</button>
         <div class="delimiter">]</div>
-      {/if}
-      {#if validationError}
-        <!-- FIXME: implement proper tooltip -->
-        <div 
-          class='validation-error' 
-          title={validationError.isChildError ? 'Contains invalid items' : validationError.message}
-        >
-          <Icon data={faExclamationTriangle} />
-        </div>
+        {#if validationError}
+          <!-- FIXME: implement proper tooltip -->
+          <button
+            class='validation-error' 
+            title={validationError.isChildError ? 'Contains invalid items' : validationError.message}
+            on:click={handleExpand}
+          >
+            <Icon data={faExclamationTriangle} />
+          </button>
+        {/if}
       {/if}
     </div>
     {#if expanded}
@@ -456,15 +457,16 @@
         <span class="delimiter"> &#123;</span>
         <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
         <span class="delimiter">&rbrace;</span>
-      {/if}
-      {#if validationError}
-        <!-- FIXME: implement proper tooltip -->
-        <div 
-          class='validation-error' 
-          title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
-        >
-          <Icon data={faExclamationTriangle} />
-        </div>
+        {#if validationError}
+          <!-- FIXME: implement proper tooltip -->
+          <button 
+            class='validation-error' 
+            title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
+            on:click={handleExpand}
+          >
+            <Icon data={faExclamationTriangle} />
+          </button>
+        {/if}
       {/if}
     </div>
     {#if expanded}
