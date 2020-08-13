@@ -15,9 +15,8 @@
   } from '../constants.js'
   import {
     getPlainText,
-    isAppendNodeSelector,
-    isBeforeNodeSelector,
-    isChildOfButton,
+    isChildOfAttribute,
+    isChildOfNodeName,
     isContentEditableDiv,
     setPlainText
   } from '../utils/domUtils.js'
@@ -51,6 +50,7 @@
 
   let domKey 
   let domValue
+  let hovered = false
 
   $: type = valueType (value)
 
@@ -224,11 +224,11 @@
     }
 
     // check if the mouse down is not happening in the key or value input fields or on a button
-    if (isContentEditableDiv(event.target) || isChildOfButton(event.target)) {
+    if (isContentEditableDiv(event.target) || isChildOfNodeName(event.target, 'BUTTON')) {
       return
     }
 
-    if (isBeforeNodeSelector(event.target)) {
+    if (isChildOfAttribute(event.target, 'data-type', 'before-node-selector')) {
       singleton.mousedown = true
       singleton.selectionAnchor = path
       singleton.selectionFocus = null
@@ -236,7 +236,7 @@
       onSelect({
         beforePath: path
       })
-    } else if (isAppendNodeSelector(event.target)) {
+    } else if (isChildOfAttribute(event.target, 'data-type', 'append-node-selector')) {
       singleton.mousedown = true
       singleton.selectionAnchor = path
       singleton.selectionFocus = null
@@ -248,12 +248,15 @@
       // initialize dragging a selection
       singleton.mousedown = true
       singleton.selectionAnchor = path
-      singleton.selectionFocus = path
-
-      onSelect({
-        anchorPath: singleton.selectionAnchor,
-        focusPath: singleton.selectionFocus
-      })
+      singleton.selectionFocus = null
+     
+      if (isChildOfAttribute(event.target, 'data-type', 'selectable-area')) {
+        // select current node
+        onSelect({
+          anchorPath: path,
+          focusPath: path
+        })
+      }
     }
 
     event.stopPropagation()
@@ -299,21 +302,20 @@
     document.removeEventListener('mouseup', handleMouseUp)
   }
 
-  function handleSelectBefore (event) {
+  function handleMouseOver (event) {
     event.stopPropagation()
 
-    onSelect({
-      beforePath: path
-    })
+    if (
+      isChildOfAttribute(event.target, 'data-type', 'selectable-area') && 
+      !isContentEditableDiv(event.target)
+    ) {
+      hovered = true
+    }
   }
 
-  function handleSelectAfter (event) {
-    event.preventDefault()
+  function handleMouseOut (event) {
     event.stopPropagation()
-
-    onSelect({
-      appendPath: path
-    })
+    hovered = false
   }
 
   // FIXME: this is not efficient. Create a nested object with the selection and pass that
@@ -336,8 +338,11 @@
   class='json-node'
   class:root={path.length === 0}
   class:selected={selected}
+  class:hovered={hovered}
   on:mousedown={handleMouseDown}
   on:mousemove={handleMouseMove}
+  on:mouseover={handleMouseOver}
+  on:mouseout={handleMouseOut}
 >
   <div
     data-type="before-node-selector"
@@ -348,7 +353,8 @@
     <div class="selector"></div>
   </div>
   {#if type === 'array'}
-    <div class='header' style={indentationStyle}>
+    <div 
+      data-type="selectable-area" class='header' style={indentationStyle} >
       <button
         class='expand'
         on:click={toggleExpand}
@@ -422,12 +428,12 @@
           </div>
         {/if}
       </div>
-      <div class="footer" style={indentationStyle}>
+      <div data-type="selectable-area" class="footer" style={indentationStyle} >
         <span class="delimiter">]</span>
       </div>
     {/if}
   {:else if type === 'object'}
-    <div class='header' style={indentationStyle}>
+    <div data-type="selectable-area" class="header" style={indentationStyle} >
       <button
         class='expand'
         on:click={toggleExpand}
@@ -496,12 +502,12 @@
           <div class="selector"></div>
         </div>
       </div>
-      <div class="footer" style={indentationStyle}>
+      <div data-type="selectable-area" class="footer" style={indentationStyle} >
         <span class="delimiter">&rbrace;</span>
       </div>
     {/if}
   {:else}
-    <div class="contents" style={indentationStyle}>
+    <div data-type="selectable-area" class="contents" style={indentationStyle} >
       {#if typeof key === 'string'}
         <div
           class={keyClass}

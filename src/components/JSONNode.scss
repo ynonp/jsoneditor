@@ -12,10 +12,20 @@
     box-sizing: border-box;
   }
 
-  &.selected .header,
-  &.selected .contents,
-  &.selected .footer {
-    background-color: $selection-background;
+  &.hovered {
+    .header,
+    .contents,
+    .footer {
+      background-color: $hovered-background;
+    }
+  }
+
+  &.selected {
+    .header,
+    .contents,
+    .footer {
+      background-color: $selection-background;
+    }
   }
 
   $selector-height: 8px; // must be about half a line height

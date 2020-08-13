@@ -179,26 +179,17 @@ export function traverseInnerText (element, buffer) {
   return ''
 }
 
-// test whether a DOM element is a child of a button
-export function isChildOfButton (element) {
-  return isChildOf(element, e => e.nodeName === 'BUTTON')
+export function isChildOfNodeName (element, nodeName) {
+  return isChildOf(element, e => e.nodeName.toUpperCase() === nodeName.toUpperCase())
+}
+
+export function isChildOfAttribute (element, name, value) {
+  return isChildOf(element, e => hasAttribute(e, name, value))
 }
 
 // test whether a DOM element is a content editable div
 export function isContentEditableDiv (element) {
   return (element.nodeName === 'DIV' && element.contentEditable === 'true')
-}
-
-export function isBeforeNodeSelector (element) {
-  return isChildOf(element, e => {
-    return hasAttribute(e, 'data-type', 'before-node-selector')
-  })
-}
-
-export function isAppendNodeSelector (element) {
-  return isChildOf(element, e => {
-    return hasAttribute(e, 'data-type', 'append-node-selector')
-  })
 }
 
 function hasAttribute(element, name, value) {
