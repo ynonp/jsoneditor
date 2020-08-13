@@ -465,13 +465,13 @@
         <span class="delimiter">&rbrace;</span>
         {#if validationError}
           <!-- FIXME: implement proper tooltip -->
-          <span 
+          <button 
             class='validation-error' 
             title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
             on:click={handleExpand}
           >
             <Icon data={faExclamationTriangle} />
-          </span>
+          </button>
         {/if}
       {/if}
     </div>
@@ -534,9 +534,9 @@
       ></div>
       {#if validationError}
         <!-- FIXME: implement proper tooltip -->
-        <div class='validation-error' title={validationError.message}>
+        <button class='validation-error' title={validationError.message}>
           <Icon data={faExclamationTriangle} />
-        </div>
+        </button>
       {/if}
     </div>
   {/if}
