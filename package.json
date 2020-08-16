@@ -22,7 +22,8 @@
     "ajv": "6.12.3",
     "classnames": "2.2.6",
     "lodash-es": "4.17.15",
-    "svelte-awesome": "2.3.0"
+    "svelte-awesome": "2.3.0",
+    "svelte-simple-modal": "0.6.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "14.0.0",

@@ -11,3 +11,15 @@ export const DEBOUNCE_DELAY = 300
 export const DEFAULT_LIMIT = 100
 
 export const INDENTATION_WIDTH = 18 // pixels IMPORTANT: keep in sync with sass constant $indentation-width
+
+export const SIMPLE_MODAL_OPTIONS = {
+  closeButton: false,
+  styleBg: {
+    top: 0,
+    left: 0,
+    background: 'rgba(0, 0, 0, 0.3)'
+  },
+  styleWindow: {
+    borderRadius: '2px'
+  }
+}

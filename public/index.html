@@ -93,24 +93,22 @@
 
 		const testEditor = jsoneditor({
 			target: document.getElementById('testEditorContainer'),
-			props: {
-				doc,
-				onChangeJson: doc => console.log('onChangeJson', doc),
-				validate: doc => {
-					if (
-						doc && typeof doc === 'object' && 
-					  doc.object && typeof doc.object === 'object' &&
-						doc.object.a === 'b') {
-						return [
-							{
-								path: ['object', 'a'],
-								message: '"a" should not be "b" ;)'
-							}
-						]						
-					}
+			doc,
+			onChangeJson: doc => console.log('onChangeJson', doc),
+			validate: doc => {
+				if (
+					doc && typeof doc === 'object' && 
+					doc.object && typeof doc.object === 'object' &&
+					doc.object.a === 'b') {
+					return [
+						{
+							path: ['object', 'a'],
+							message: '"a" should not be "b" ;)'
+						}
+					]						
+				}
 
-					return []
-				} 
+				return []
 			}
 		})
 		window.testEditor = testEditor // expose to window for debugging

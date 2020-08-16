@@ -7,6 +7,7 @@ import { draft06 } from '../generated/ajv/draft06.mjs'
  * Create a JSON Schema validator powered by Ajv.
  * @param {JSON} schema 
  * @param {Object} [schemaRefs=undefined]  An object containing JSON Schema references
+ * @return {function (doc: JSON) : Array<Object>} Returns a valiation function
  */
 export function createAjvValidator (schema, schemaRefs) {
   const ajv = Ajv({

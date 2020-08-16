@@ -127,11 +127,9 @@
   // create the editor
   const editor = jsoneditor({
     target: document.getElementById('jsoneditor'),
-    props: {
-      doc,
-      onChangeJson: doc => console.log('onChangeJson', doc),
-      validate: createAjvValidator(schema, schemaRefs)
-    }
+    doc,
+    onChangeJson: doc => console.log('onChangeJson', doc),
+    validate: createAjvValidator(schema, schemaRefs)
   })
 </script>
 </body>

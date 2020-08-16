@@ -1,4 +1,4 @@
-@import '../styles.scss';
+@import '../../styles.scss';
 
 .json-node {
   position: relative;
@@ -257,7 +257,6 @@ div.empty {
 .validation-error {
   color: $warning-color;
   padding: 0 $input-padding;
-  width: $line-height;
   height: $line-height;
   line-height: $line-height;
   font-size: $font-size;

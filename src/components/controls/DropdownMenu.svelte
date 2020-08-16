@@ -2,7 +2,7 @@
   import Icon from 'svelte-awesome'
   import { faCaretDown } from '@fortawesome/free-solid-svg-icons'
   import { onDestroy, onMount } from 'svelte'
-  import { keyComboFromEvent} from '../utils/keyBindings.js'
+  import { keyComboFromEvent} from '../../utils/keyBindings.js'
 
   /** @type {MenuDropdownItem[]} */
   export let items = []

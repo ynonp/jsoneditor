@@ -1,6 +1,6 @@
 <script>
   import { debounce, isEqual } from 'lodash-es'
-  import { rename } from '../logic/operations.js'
+  import { rename } from '../../logic/operations.js'
   import { singleton } from './singleton.js'
   import {
     DEBOUNCE_DELAY,
@@ -12,21 +12,21 @@
     STATE_SEARCH_VALUE,
     INDENTATION_WIDTH,
     VALIDATION_ERROR
-  } from '../constants.js'
+  } from '../../constants.js'
   import {
     getPlainText,
     isChildOfAttribute,
     isChildOfNodeName,
     isContentEditableDiv,
     setPlainText
-  } from '../utils/domUtils.js'
+  } from '../../utils/domUtils.js'
   import Icon from 'svelte-awesome'
   import { faCaretDown, faCaretRight, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
-  import { findUniqueName } from '../utils/stringUtils.js'
-  import { isUrl, stringConvert, valueType } from '../utils/typeUtils'
-  import { compileJSONPointer } from '../utils/jsonPointer'
-  import { getNextKeys } from '../logic/documentState.js'
+  import { findUniqueName } from '../../utils/stringUtils.js'
+  import { isUrl, stringConvert, valueType } from '../../utils/typeUtils'
+  import { compileJSONPointer } from '../../utils/jsonPointer'
+  import { getNextKeys } from '../../logic/documentState.js'
 
   export let key = undefined // only applicable for object properties
   export let value

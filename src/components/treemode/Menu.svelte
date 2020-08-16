@@ -1,8 +1,8 @@
 <script>
   import Icon from 'svelte-awesome'
-  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons'
+  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus, faTimes, faFilter, faSortAmountDownAlt } from '@fortawesome/free-solid-svg-icons'
   import SearchBox from './SearchBox.svelte'
-  import DropdownMenu from './DropdownMenu.svelte'
+  import DropdownMenu from '../controls/DropdownMenu.svelte'
 
   export let searchText
   export let searchResult
@@ -19,6 +19,8 @@
   export let onInsert
   export let onUndo
   export let onRedo
+  export let onSort
+  export let onTransform
 
   export let onSearchText
   export let onNextSearchResult
@@ -130,6 +132,23 @@
       <Icon data={faPlus} />
     </button>
   </DropdownMenu>
+
+  <div class="separator"></div>
+
+  <button
+    class="button sort"
+    on:click={onSort}
+    title="Sort"
+  >
+    <Icon data={faSortAmountDownAlt} />
+  </button>
+  <button
+    class="button transform"
+    on:click={onTransform}
+    title="Transform contents (filter, sort, project)"
+  >
+    <Icon data={faFilter} />
+  </button>
 
   <div class="separator"></div>
 
