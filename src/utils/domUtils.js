@@ -205,6 +205,7 @@ function hasAttribute(element, name, value) {
  * @returns {*}
  */
 export function isChildOf (element, predicate) {
+  // TODO: can we replace isChildOf with Element.closest?
   let e = element
 
   while (e && !predicate(e)) {

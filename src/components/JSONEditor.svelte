@@ -2,17 +2,16 @@
   import Modal from 'svelte-simple-modal'
   import TreeMode from './treemode/TreeMode.svelte'
 
-  export let config = {}
-  let mode
-  let restConfig
+  const DefaultMode = TreeMode
 
-  $: {
-    let { _mode, ..._restConfig } = config
-    mode = _mode
-    restConfig = _restConfig
+  export let config = {}
+
+  function getRestConfig (config) {
+    let { mode, ...restConfig } = config
+    return restConfig
   }
 </script>
 
 <Modal>
-  <svelte:component this={mode || TreeMode} {...restConfig} />
+  <svelte:component this={config.mode || DefaultMode} {...getRestConfig(config)} />
 </Modal>
