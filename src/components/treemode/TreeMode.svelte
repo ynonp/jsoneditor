@@ -10,7 +10,7 @@
     STATE_EXPANDED,
     STATE_LIMIT,
     SCROLL_DURATION,
-SIMPLE_MODAL_OPTIONS
+    SIMPLE_MODAL_OPTIONS
   } from '../../constants.js'
   import { createHistory } from '../../logic/history.js'
   import JSONNode from './JSONNode.svelte'
