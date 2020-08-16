@@ -1,3 +1,5 @@
+<svelte:options immutable={true} />
+
 <script>
   import { debounce } from 'lodash-es'
   import Icon from 'svelte-awesome'

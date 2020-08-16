@@ -1,1 +1,17 @@
 @import '../../styles.scss';
+@import './Modal.scss';
+
+.sort-modal {
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: none;
+
+    th, td {
+      text-align: left;
+      vertical-align: middle;
+      font-weight: normal;
+      padding-bottom: $padding;
+    }
+  }
+}

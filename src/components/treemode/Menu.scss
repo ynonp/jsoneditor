@@ -9,6 +9,7 @@
   align-items: center;
   position: relative;
 
+  // FIXME: should utilize the generic styling in styles.scss
   .button {
     width: $menu-button-size;
     height: $menu-button-size;

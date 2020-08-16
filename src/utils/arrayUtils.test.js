@@ -1,5 +1,5 @@
 import assert from "assert"
-import { compareArrays } from './arrayUtils.js'
+import { compareArrays, getNestedPaths } from './arrayUtils.js'
 
 describe('arrayUtils', () => {
   it('compareArrays', () => {
@@ -26,5 +26,65 @@ describe('arrayUtils', () => {
       ['b', 'a'],
       ['b', 'c']
     ])
+  })
+
+  describe('getNestedPaths', () => {
+    it('should extract all nested paths of an array containing objects', () => {
+      const json = [
+        { name: 'A', location: { latitude: 1, longitude: 2 } },
+        { name: 'B', location: { latitude: 1, longitude: 2 } },
+        { name: 'C', timestamp: 0 }
+      ]
+
+      assert.deepStrictEqual(getNestedPaths(json), [
+        ['location', 'latitude'],
+        ['location', 'longitude'],
+        ['name'],
+        ['timestamp']
+      ])
+    })
+
+    it('should extract a path containing an empty key', () => {
+      const json = [
+        { '': 'empty' }
+      ]
+
+      assert.deepStrictEqual(getNestedPaths(json), [
+        ['']
+      ])
+    })
+
+    it('should extract all nested paths of an array containing objects, including objects', () => {
+      const json = [
+        { name: 'A', location: { latitude: 1, longitude: 2 } },
+        { name: 'B', location: { latitude: 1, longitude: 2 } },
+        { name: 'C', timestamp: 0 }
+      ]
+
+      console.log('paths', getNestedPaths(json, true))
+
+      assert.deepStrictEqual(getNestedPaths(json, true), [
+        [],
+        ['location'],
+        ['location', 'latitude'],
+        ['location', 'longitude'],
+        ['name'],
+        ['timestamp']
+      ])
+    })
+
+    it('should extract all nested paths of an array containing values', () => {
+      const json = [1, 2, 3]
+
+      assert.deepStrictEqual(getNestedPaths(json), [
+        []
+      ])
+    })
+
+    it('should throw an error when not passing an array', () => {
+      assert.throws(() => getNestedPaths({ a: 2, b: { c: 3 } }), /TypeError: Array expected/)
+      assert.throws(() => getNestedPaths('foo'), /TypeError: Array expected/)
+      assert.throws(() => getNestedPaths(123), /TypeError: Array expected/)
+    })
   })
 })

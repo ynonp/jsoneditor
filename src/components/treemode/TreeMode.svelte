@@ -1,3 +1,5 @@
+<svelte:options immutable={true} />
+
 <script>
   import { getContext, tick } from 'svelte'
   import {
@@ -260,7 +262,20 @@
   }
 
   function handleSort () {
-    open(SortModal, {}, SIMPLE_MODAL_OPTIONS)
+    open(SortModal, {
+      json: doc,
+      path: [], // FIXME: based on selection
+      onSort: sortedDoc => {
+        console.log('onSort', sortedDoc)
+        doc = sortedDoc
+      }
+    }, {
+      ...SIMPLE_MODAL_OPTIONS, 
+      styleWindow: {
+        ...SIMPLE_MODAL_OPTIONS.styleWindow,
+        width: '400px'
+      }
+    })
   }
 
   function handleTransform () {

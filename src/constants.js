@@ -21,5 +21,9 @@ export const SIMPLE_MODAL_OPTIONS = {
   },
   styleWindow: {
     borderRadius: '2px'
+  },
+  styleContent: {
+    padding: '0px',
+    overflow: 'visible'
   }
 }

@@ -1,3 +1,5 @@
+<svelte:options immutable={true} />
+
 <script>
   import { debounce, isEqual } from 'lodash-es'
   import { rename } from '../../logic/operations.js'

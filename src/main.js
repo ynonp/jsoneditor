@@ -12,6 +12,8 @@ export default function jsoneditor (config) {
 	})
 }
 
+// modes
 export const TreeMode = _TreeMode
 
+// plugins
 export { createAjvValidator } from './plugins/createAjvValidator.mjs'

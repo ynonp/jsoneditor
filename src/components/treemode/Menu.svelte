@@ -1,3 +1,5 @@
+<svelte:options immutable={true} />
+
 <script>
   import Icon from 'svelte-awesome'
   import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus, faTimes, faFilter, faSortAmountDownAlt } from '@fortawesome/free-solid-svg-icons'
