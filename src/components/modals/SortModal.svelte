@@ -7,6 +7,7 @@
   import Header from './Header.svelte'
   import { getNestedPaths } from '../../utils/arrayUtils.js'
   import { getIn, setIn } from '../../utils/immutabilityHelpers.js'
+  import { isObject } from '../../utils/typeUtils.js'
 
   export let json
   export let path
@@ -39,18 +40,7 @@
     }
   }
 
-  function handleSort () {
-    if (!selectedProperty || !selectedDirection) {
-      return
-    }
-
-    // TODO: create a sortBy which returns a JSONPatch document
-
-    // TODO: sort object keys when root is an object
-   
-    const property = selectedProperty.value
-    const direction = selectedDirection.value
-
+  function sortArray (array, property, direction) {
     function comparator (a, b) {
       const valueA = getIn(a, property)
       const valueB = getIn(b, property)
@@ -75,10 +65,49 @@
     }
 
     // TODO: use lodash orderBy, split comparator and direction?
-    const sorted = root.slice()
-    sorted.sort(comparator)
+    const sortedArray = array.slice()
+    sortedArray.sort(comparator)
 
-    onSort(setIn(json, path, sorted))
+    return sortedArray
+  }
+
+  function sortObjectKeys (object, direction) {
+    const keys = Object.keys(object)
+    keys.sort((keyA, keyB) => {
+      return direction * naturalSort(keyA, keyB)
+    })
+    
+    const sortedObject = {}
+    keys.forEach(key => sortedObject[key] = object[key])
+
+    return sortedObject
+  }
+
+  function handleSort () {
+    // TODO: create a sortBy which returns a JSONPatch document containing move operations
+
+    if (Array.isArray(root)) {
+      if (!selectedProperty) {
+        return
+      }
+
+      const property = selectedProperty.value
+      const direction = selectedDirection.value
+      const sorted = sortArray(root, property, direction)
+
+      onSort(setIn(json, path, sorted))
+    } else if (isObject(root)) {
+      const direction = selectedDirection.value
+      const sorted = sortObjectKeys(root, direction)
+
+      // FIXME: the keys are now sorted, but the JSONEditor refuses to reorder when already rendered -> need to do a JSONPatch 
+      console.log('sorted object keys:', Object.keys(sorted))
+
+      onSort(setIn(json, path, sorted))
+    } else {
+      console.error('Cannot sort: no array or object')
+    }
+
     close()
   }
 </script>
