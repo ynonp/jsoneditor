@@ -1,13 +1,28 @@
 @import '../../styles.scss';
 
-.contents {
-  padding: 20px;
+.jsoneditor-modal {
+  // styling for the select box, 
+  // see docs: https://github.com/rob-balfre/svelte-select#styling
+  --height: 28px;
+  --clearSelectTop: 2px;
+  --clearSelectBottom: 2px;
+  --itemIsActiveBG: #3883fa; // theme-color
+  
+  .contents {
+    padding: 20px;
 
-  .actions {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+    .actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
 
-    padding-top: $padding;
+      padding-top: $padding;
+    }
   }
+}
+
+// custom styling for the modal. 
+// FIXME: not neat to override global styles!
+:global(.bg .window-wrap) {
+  margin-top: 10rem;
 }

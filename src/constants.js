@@ -17,13 +17,14 @@ export const SIMPLE_MODAL_OPTIONS = {
   styleBg: {
     top: 0,
     left: 0,
-    background: 'rgba(0, 0, 0, 0.3)'
+    background: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'normal'
   },
   styleWindow: {
     borderRadius: '2px'
   },
   styleContent: {
     padding: '0px',
-    overflow: 'visible'
+    overflow: 'visible', // needed for select box dropdowns which are larger than the modal
   }
 }

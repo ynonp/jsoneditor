@@ -7,7 +7,7 @@
   const {close} = getContext('simple-modal')
 </script>
 
-<div class="transform-modal">
+<div class="jsoneditor-modal transform">
   <Header title='Transform' />
   <div class="contents">
     TODO...

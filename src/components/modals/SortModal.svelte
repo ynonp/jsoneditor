@@ -21,11 +21,11 @@
 
   const asc = {
     value: 1,
-    label: 'asc'
+    label: 'ascending'
   }
   const desc = {
     value: -1,
-    label: 'desc'
+    label: 'descending'
   }
   const directions = [ asc, desc ]
 
@@ -83,7 +83,7 @@
   }
 </script>
 
-<div class="sort-modal">
+<div class="jsoneditor-modal sort">
   <Header title={isArray ? 'Sort array items' : 'Sort object keys'} />
 
   <div class="contents">
@@ -115,6 +115,7 @@
           <td>
             <Select 
               items={directions} 
+              containerClasses='test-class'
               bind:selectedValue={selectedDirection} 
               isClearable={false}
             />
