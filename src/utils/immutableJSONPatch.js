@@ -22,8 +22,8 @@ export function immutableJSONPatch (json, operations) {
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
-    const path = operation.path ? parseJSONPointer(operation.path) : null
-    const from = operation.from ? parseJSONPointer(operation.from) : null
+    const path = operation.path != undefined ? parseJSONPointer(operation.path) : null
+    const from = operation.from != undefined ? parseJSONPointer(operation.from) : null
 
     switch (operation.op) {
       case 'add': {

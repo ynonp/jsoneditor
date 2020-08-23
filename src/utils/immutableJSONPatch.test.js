@@ -145,6 +145,18 @@ describe('immutableJSONPatch', () => {
     assert.strictEqual(result.json.unchanged, json.unchanged)
   })
 
+  it('jsonpatch replace root document', () => {
+    const json = {
+      a: 2
+    }
+    const patch = [
+      {op: 'replace', path: '', value: {b: 3}}
+    ]
+    const result = immutableJSONPatch(json, patch)
+    
+    assert.deepStrictEqual(result.json, {b: 3})
+  })
+
   it('jsonpatch copy', () => {
     const json = {
       arr: [1,2,3],
