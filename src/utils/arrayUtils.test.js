@@ -61,8 +61,6 @@ describe('arrayUtils', () => {
         { name: 'C', timestamp: 0 }
       ]
 
-      console.log('paths', getNestedPaths(json, true))
-
       assert.deepStrictEqual(getNestedPaths(json, true), [
         [],
         ['location'],
