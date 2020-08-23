@@ -1,8 +1,8 @@
 import assert from 'assert'
-import { sortArray, sortObjectKeys } from './sort.js'
+import { sortArray, sortObjectKeys, sortMoveOperations } from './sort.js'
 
-describe('sort', () => {
-  
+describe.only('sort', () => {
+
   it('should sort array', () => {
     assert.deepStrictEqual(sortArray([ 2, 3, 1 ]), [1, 2, 3])
     assert.deepStrictEqual(sortArray([ 2, 3, 1 ], undefined, -1), [3, 2, 1])
@@ -31,4 +31,31 @@ describe('sort', () => {
     assert.deepStrictEqual(Object.keys(sortObjectKeys(object, -1)), ['c', 'b', 'a'])
   })
 
+  it('should give the move operations needed to sort given array', () => {
+    const comparator = (a, b) => a - b
+
+    assert.deepStrictEqual(sortMoveOperations([ 1, 2, 3 ], comparator), [])
+
+    assert.deepStrictEqual(sortMoveOperations([ 2, 3, 1 ], comparator), [
+      { fromIndex: 2, toIndex: 0 }
+    ])
+
+    assert.deepStrictEqual(sortMoveOperations([ 2, 1, 3 ], comparator), [
+      { fromIndex: 1, toIndex: 0 }
+    ])
+
+    assert.deepStrictEqual(sortMoveOperations([ 1, 3, 2 ], comparator), [
+      { fromIndex: 2, toIndex: 1 }
+    ])
+
+    assert.deepStrictEqual(sortMoveOperations([ 3, 2, 1 ], comparator), [
+      { fromIndex: 1, toIndex: 0 },
+      { fromIndex: 2, toIndex: 0 }
+    ])
+
+    assert.deepStrictEqual(sortMoveOperations([ 3, 1, 2 ], comparator), [
+      { fromIndex: 1, toIndex: 0 },
+      { fromIndex: 2, toIndex: 1 }
+    ])
+  })
 })
