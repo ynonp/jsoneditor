@@ -66,15 +66,15 @@ export function sortObjectKeys (object, direction = 1) {
  */
 export function sortMoveOperations (array, comparator) {
   const operations = []
+  const sorted = []
 
-  const sorted = array.slice()
-
-  for (let i = 1; i < sorted.length; i++) {
+  for (let i = 0; i < array.length; i++) {
     // TODO: implement a faster way to sort (binary tree sort?) 
     // TODO: can we simplify the following code?
-    if (comparator(sorted[i - 1], sorted[i]) > 0) {
+    const item = array[i]
+    if (i > 0 && comparator(sorted[i - 1], item) > 0) {
       let j = i - 1
-      while (comparator(sorted[j - 1], sorted[i]) > 0 && j > 0) {
+      while (j > 0 && comparator(sorted[j - 1], item) > 0) {
         j--
       }
 
@@ -83,8 +83,9 @@ export function sortMoveOperations (array, comparator) {
         toIndex: j
       })
 
-      const item = sorted.splice(i, 1)
       sorted.splice(j, 0, [item])
+    } else {
+      sorted.push(item)
     }
   }
 
