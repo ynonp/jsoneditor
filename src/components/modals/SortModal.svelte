@@ -2,13 +2,12 @@
 
 <script>
   import { getContext } from 'svelte'
-  import naturalSort from 'javascript-natural-sort'
   import Select from 'svelte-select'
   import Header from './Header.svelte'
   import { getNestedPaths } from '../../utils/arrayUtils.js'
-  import { getIn } from '../../utils/immutabilityHelpers.js'
   import { isObject } from '../../utils/typeUtils.js'
   import { stringifyPath } from '../../utils/pathUtils.js'
+  import { sortArray, sortObjectKeys } from '../../logic/sort.js'
 
   export let json
   export let path
@@ -46,49 +45,6 @@
         value: path, 
         label: stringifyPath(path) 
     }
-  }
-
-  function sortArray (array, property, direction) {
-    function comparator (a, b) {
-      const valueA = getIn(a, property)
-      const valueB = getIn(b, property)
-
-      if (valueA === undefined) {
-        return direction
-      }
-      if (valueB === undefined) {
-        return -direction
-      }
-
-      if (typeof valueA !== 'string' && typeof valueB !== 'string') {
-        // both values are a number, boolean, or null -> use simple, fast sorting
-        return valueA > valueB 
-          ? direction 
-          : valueA < valueB 
-            ? -direction 
-            : 0
-      }
-
-      return direction * naturalSort(valueA, valueB)
-    }
-
-    // TODO: use lodash orderBy, split comparator and direction?
-    const sortedArray = array.slice()
-    sortedArray.sort(comparator)
-
-    return sortedArray
-  }
-
-  function sortObjectKeys (object, direction) {
-    const keys = Object.keys(object)
-    keys.sort((keyA, keyB) => {
-      return direction * naturalSort(keyA, keyB)
-    })
-    
-    const sortedObject = {}
-    keys.forEach(key => sortedObject[key] = object[key])
-
-    return sortedObject
   }
 
   function handleSort () {
