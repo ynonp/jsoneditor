@@ -270,11 +270,22 @@
       : []
 
     open(SortModal, {
-      json: doc,
+      json: getIn(doc, path),
       path,
-      onSort: sortedDoc => {
-        console.log('onSort', sortedDoc)
-        doc = sortedDoc
+      onSort: async sortedJson => {
+        console.log('onSort', path, sortedJson)
+
+        // TODO: replace this with move events instead of a big replace (currently we lose state)
+        const operations = [{
+          op: 'replace',
+          path: compileJSONPointer(path),
+          value: sortedJson
+        }]
+        patch(operations, selection)
+
+        await tick()
+
+        handleExpand(path, true, false)
       }
     }, {
       ...SIMPLE_MODAL_OPTIONS, 

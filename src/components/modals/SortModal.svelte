@@ -6,7 +6,7 @@
   import Select from 'svelte-select'
   import Header from './Header.svelte'
   import { getNestedPaths } from '../../utils/arrayUtils.js'
-  import { getIn, setIn } from '../../utils/immutabilityHelpers.js'
+  import { getIn } from '../../utils/immutabilityHelpers.js'
   import { isObject } from '../../utils/typeUtils.js'
   import { stringifyPath } from '../../utils/pathUtils.js'
 
@@ -16,9 +16,9 @@
 
   const {close} = getContext('simple-modal')
 
-  $: root = getIn(json, path) 
-  $: isArray = Array.isArray(root)
-  $: paths = isArray ? getNestedPaths(root) : undefined
+  $: json
+  $: jsonIsArray = Array.isArray(json)
+  $: paths = jsonIsArray ? getNestedPaths(json) : undefined
   $: properties = paths?.map(pathToOption)
 
   const asc = {
@@ -94,24 +94,24 @@
   function handleSort () {
     // TODO: create a sortBy which returns a JSONPatch document containing move operations
 
-    if (Array.isArray(root)) {
+    if (jsonIsArray) {
       if (!selectedProperty) {
         return
       }
 
       const property = selectedProperty.value
       const direction = selectedDirection.value
-      const sorted = sortArray(root, property, direction)
+      const sortedJson = sortArray(json, property, direction)
 
-      onSort(setIn(json, path, sorted))
-    } else if (isObject(root)) {
+      onSort(sortedJson)
+    } else if (isObject(json)) {
       const direction = selectedDirection.value
-      const sorted = sortObjectKeys(root, direction)
+      const sortedJson = sortObjectKeys(json, direction)
 
       // FIXME: the keys are now sorted, but the JSONEditor refuses to reorder when already rendered -> need to do a JSONPatch 
-      console.log('sorted object keys:', Object.keys(sorted))
+      console.log('sorted object keys:', Object.keys(sortedJson))
 
-      onSort(setIn(json, path, sorted))
+      onSort(sortedJson)
     } else {
       console.error('Cannot sort: no array or object')
     }
@@ -121,7 +121,7 @@
 </script>
 
 <div class="jsoneditor-modal sort">
-  <Header title={isArray ? 'Sort array items' : 'Sort object keys'} />
+  <Header title={jsonIsArray ? 'Sort array items' : 'Sort object keys'} />
 
   <div class="contents">
     <table>
@@ -143,7 +143,7 @@
             </td>
           </tr>
         {/if}
-        {#if isArray && (properties.length > 1 || selectedProperty === undefined) }
+        {#if jsonIsArray && (properties.length > 1 || selectedProperty === undefined) }
           <tr>
             <th>Property</th>
             <td>
@@ -172,7 +172,7 @@
       <button 
         class="primary" 
         on:click={handleSort} 
-        disabled={isArray ? !selectedProperty : false}
+        disabled={jsonIsArray ? !selectedProperty : false}
       >
         Sort
       </button>
