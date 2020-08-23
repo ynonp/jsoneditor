@@ -12,6 +12,19 @@
       vertical-align: middle;
       font-weight: normal;
       padding-bottom: $padding;
+      
+      input.path {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 6px 16px; // TODO: define variables for those props
+        border: 1px solid $border-gray;
+        border-radius: $border-radius;
+        font-family: $font-family;
+        font-size: $font-size;
+        color: $black;
+        outline: none;
+      }
+
     }
   }
 }

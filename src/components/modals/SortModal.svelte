@@ -8,6 +8,7 @@
   import { getNestedPaths } from '../../utils/arrayUtils.js'
   import { getIn, setIn } from '../../utils/immutabilityHelpers.js'
   import { isObject } from '../../utils/typeUtils.js'
+  import { stringifyPath } from '../../utils/pathUtils.js'
 
   export let json
   export let path
@@ -33,10 +34,17 @@
   let selectedProperty = undefined
   let selectedDirection = asc
 
+  $: {
+    // if there is only one option, select it and do not render the select box
+    if (selectedProperty === undefined && properties && properties.length === 1) {
+      selectedProperty = properties[0]
+    }
+  }
+
   function pathToOption (path) {
     return { 
         value: path, 
-        label: path.join('.') 
+        label: stringifyPath(path) 
     }
   }
 
@@ -125,10 +133,17 @@
         {#if path.length > 0}
           <tr>
             <th>Path</th>
-            <td>{path.join('.')}</td>
+            <td>
+              <input 
+                class="path"
+                type="text" 
+                readonly 
+                value={stringifyPath(path)} 
+              />
+            </td>
           </tr>
         {/if}
-        {#if isArray}
+        {#if isArray && (properties.length > 1 || selectedProperty === undefined) }
           <tr>
             <th>Property</th>
             <td>

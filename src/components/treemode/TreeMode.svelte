@@ -31,12 +31,13 @@
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
   import { search, searchNext, searchPrevious } from '../../logic/search.js'
   import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
-  import { last, cloneDeep } from 'lodash-es'
+  import { first, last, initial, cloneDeep } from 'lodash-es'
   import jump from '../../assets/jump.js/src/jump.js'
   import { expandPath, syncState, patchProps } from '../../logic/documentState.js'
   import Menu from './Menu.svelte'
   import { isObjectOrArray } from '../../utils/typeUtils.js'
   import { mapValidationErrors } from '../../logic/validation.js'
+  import { stringifyPath } from '../../utils/pathUtils.js'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
 
@@ -262,9 +263,15 @@
   }
 
   function handleSort () {
+    const path = selection && selection.paths
+      ? selection.paths.length > 1 
+        ? initial(first(selection.paths)) // the parent path of the paths
+        : first(selection.paths) // the first and only path
+      : []
+
     open(SortModal, {
       json: doc,
-      path: [], // FIXME: based on selection
+      path,
       onSort: sortedDoc => {
         console.log('onSort', sortedDoc)
         doc = sortedDoc
