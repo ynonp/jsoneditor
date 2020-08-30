@@ -263,29 +263,23 @@
   }
 
   function handleSort () {
-    const path = selection && selection.paths
+    const rootPath = selection && selection.paths
       ? selection.paths.length > 1 
         ? initial(first(selection.paths)) // the parent path of the paths
         : first(selection.paths) // the first and only path
       : []
 
     open(SortModal, {
-      json: getIn(doc, path),
-      path,
-      onSort: async sortedJson => {
-        console.log('onSort', path, sortedJson)
+      json: getIn(doc, rootPath),
+      rootPath,
+      onSort: async (operations) => {
+        console.log('onSort', rootPath, operations)
 
-        // TODO: replace this with move events instead of a big replace (currently we lose state)
-        const operations = [{
-          op: 'replace',
-          path: compileJSONPointer(path),
-          value: sortedJson
-        }]
         patch(operations, selection)
 
         await tick()
 
-        handleExpand(path, true, false)
+        handleExpand(rootPath, true, false)
       }
     }, {
       ...SIMPLE_MODAL_OPTIONS, 

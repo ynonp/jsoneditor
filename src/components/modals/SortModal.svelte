@@ -10,7 +10,7 @@
   import { sortArray, sortObjectKeys } from '../../logic/sort.js'
 
   export let json
-  export let path
+  export let rootPath
   export let onSort
 
   const {close} = getContext('simple-modal')
@@ -57,17 +57,14 @@
 
       const property = selectedProperty.value
       const direction = selectedDirection.value
-      const sortedJson = sortArray(json, property, direction)
+      const operations = sortArray(json, rootPath, property, direction)
 
-      onSort(sortedJson)
+      onSort(operations)
     } else if (isObject(json)) {
       const direction = selectedDirection.value
-      const sortedJson = sortObjectKeys(json, direction)
-
-      // FIXME: the keys are now sorted, but the JSONEditor refuses to reorder when already rendered -> need to do a JSONPatch 
-      console.log('sorted object keys:', Object.keys(sortedJson))
-
-      onSort(sortedJson)
+      const operations = sortObjectKeys(json, rootPath, direction)
+      
+      onSort(operations)
     } else {
       console.error('Cannot sort: no array or object')
     }
@@ -86,7 +83,7 @@
         <col width="75%">
       </colgroup>
       <tbody>
-        {#if path.length > 0}
+        {#if rootPath.length > 0}
           <tr>
             <th>Path</th>
             <td>
@@ -94,7 +91,7 @@
                 class="path"
                 type="text" 
                 readonly 
-                value={stringifyPath(path)} 
+                value={stringifyPath(rootPath)} 
               />
             </td>
           </tr>

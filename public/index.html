@@ -120,12 +120,14 @@
 			console.time('create large json')
 			const largeJson = {}
 			largeJson.numbers = []
+			largeJson.randomNumbers = []
 			largeJson.array = []
 			for (let i = 0; i < count; i++) {
 				const longitude = 4 + i / count
 				const latitude = 51 + i / count
 
 				largeJson.numbers.push(i)
+				largeJson.randomNumbers.push(Math.round(Math.random() * 1000))
 				largeJson.array.push({
 					name: 'Item ' + i,
 					id: String(i),
