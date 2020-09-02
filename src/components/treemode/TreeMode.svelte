@@ -230,11 +230,6 @@ findRootPath
     }
   }
 
-  // TODO: cleanup
-  $: console.log('doc', doc)
-  $: console.log('state', state)
-  $: console.log('selection', selection)
-
   function handleUndo() {
     if (history.getState().canUndo) {
       const item = history.undo()
