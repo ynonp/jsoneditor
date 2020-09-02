@@ -1,7 +1,7 @@
 <svelte:options immutable={true} />
 
 <script>
-  import { getContext, setContext, onDestroy } from 'svelte'
+  import { getContext } from 'svelte'
   import Select from 'svelte-select'
   import Header from './Header.svelte'
   import { getNestedPaths } from '../../utils/arrayUtils.js'
@@ -9,7 +9,7 @@
   import { stringifyPath } from '../../utils/pathUtils.js'
   import { sortArray, sortObjectKeys } from '../../logic/sort.js'
   import { sortModalState } from './sortModalState.js'
-import { compileJSONPointer } from '../../utils/jsonPointer';
+  import { compileJSONPointer } from '../../utils/jsonPointer'
 
   export let id
   export let json
@@ -17,8 +17,8 @@ import { compileJSONPointer } from '../../utils/jsonPointer';
   export let onSort
 
   const {close} = getContext('simple-modal')
-  const stateId = `${id}:${compileJSONPointer(rootPath)}`
 
+  let stateId = `${id}:${compileJSONPointer(rootPath)}`
   $: json
   $: jsonIsArray = Array.isArray(json)
   $: paths = jsonIsArray ? getNestedPaths(json) : undefined

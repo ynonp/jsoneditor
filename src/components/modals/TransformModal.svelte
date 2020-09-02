@@ -2,17 +2,22 @@
 
 <script>
   import { getContext } from 'svelte'
-import { compileJSONPointer } from '../../utils/jsonPointer';
+  import { compileJSONPointer } from '../../utils/jsonPointer'
   import Header from './Header.svelte'
+  import { transformModalState } from './transformModalState.js'
 
   export let id
   export let json
   export let rootPath
   export let onTransform
 
+  const DEFAULT_QUERY = 'function query (data) {\n  return data\n}'
+
   const {close} = getContext('simple-modal')
 
-  let query = 'function query (data) {\n  return data\n}'
+  let stateId = `${id}:${compileJSONPointer(rootPath)}`
+
+  let query = transformModalState[stateId]?.query || DEFAULT_QUERY
   let previewHasError = false
   let preview = ''
 
@@ -49,7 +54,13 @@ import { compileJSONPointer } from '../../utils/jsonPointer';
           value: jsonTransformed
         }
       ])
-      
+
+      // remember the selected values for the next time we open the SortModal
+      // just in memory, not persisted
+      transformModalState[stateId] = {
+        query
+      }
+
       close()
     } catch (err) {
       // this should never occur since we can only press the Transform 
