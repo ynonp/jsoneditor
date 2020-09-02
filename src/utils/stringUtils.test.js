@@ -3,7 +3,8 @@ import {
   compareStrings,
   duplicateInText,
   findUniqueName,
-  toCapital
+  toCapital,
+  truncate
 } from './stringUtils.js'
 
 describe('stringUtils', () => {
@@ -37,5 +38,14 @@ describe('stringUtils', () => {
   it('duplicateInText', () => {
     assert.deepStrictEqual(duplicateInText('abcdef', 2, 4), 'abcdcdef')
     assert.deepStrictEqual(duplicateInText('abcdef', 4, 2), 'abcdcdef')
+  })
+
+  it('should truncate long text', () => {
+    const text = 'Hello world'
+
+    assert.deepStrictEqual(truncate(text, 100), text)
+    assert.deepStrictEqual(truncate(text, 11), text)
+    assert.deepStrictEqual(truncate(text, 10), 'Hello w...')
+    assert.deepStrictEqual(truncate(text, 8), 'Hello...')
   })
 })

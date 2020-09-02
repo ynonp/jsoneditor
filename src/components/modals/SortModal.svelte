@@ -9,7 +9,7 @@
   import { stringifyPath } from '../../utils/pathUtils.js'
   import { sortArray, sortObjectKeys } from '../../logic/sort.js'
   import { sortModalState } from './sortModalState.js'
-  import { compileJSONPointer } from '../../utils/jsonPointer'
+  import { compileJSONPointer } from '../../utils/jsonPointer.js'
 
   export let id
   export let json

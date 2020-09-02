@@ -2,9 +2,12 @@
 
 <script>
   import { getContext } from 'svelte'
-  import { compileJSONPointer } from '../../utils/jsonPointer'
+  import { debounce } from 'lodash-es'
+  import { compileJSONPointer } from '../../utils/jsonPointer.js'
   import Header from './Header.svelte'
   import { transformModalState } from './transformModalState.js'
+  import { DEBOUNCE_DELAY, MAX_PREVIEW_CHARACTERS } from '../../constants.js'
+  import { truncate } from '../../utils/stringUtils.js'
 
   export let id
   export let json
@@ -22,7 +25,8 @@
   let preview = ''
 
   function evalTransform(json, query) {
-    // TODO: replace unsafe eval with a JS based query language 
+    // FIXME: replace unsafe eval with a JS based query language 
+    //  As long as we don't persist or fetch queries, there is no security risk.
     const queryFn = eval(`(${query})`)
     return queryFn(json)
   }
@@ -31,7 +35,7 @@
     try {
       const jsonTransformed = evalTransform(json, query)
 
-      preview = JSON.stringify(jsonTransformed, null, 2) // TODO: limit preview length
+      preview = truncate(JSON.stringify(jsonTransformed, null, 2), MAX_PREVIEW_CHARACTERS)
       previewHasError = false
     } catch (err) {
       preview = err.toString()
@@ -39,8 +43,10 @@
     }
   }
 
+  const previewTransformDebounced = debounce(previewTransform, DEBOUNCE_DELAY)
+
   $: {
-    previewTransform(json, query)
+    previewTransformDebounced(json, query)
   }
 
   function handleTransform () {

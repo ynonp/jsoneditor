@@ -26,16 +26,15 @@ export function findUniqueName (name, existingProps) {
  * @param {string} text
  * @return {string}
  */
-export function toCapital(text) {
+export function toCapital (text) {
   return text && text.length > 0
-      ? text[0].toUpperCase() + text.substr(1).toLowerCase()
-      : text
+    ? text[0].toUpperCase() + text.substr(1).toLowerCase()
+    : text
 }
 
 export function compareStrings (a, b) {
   return (a < b) ? -1 : (a > b) ? 1 : 0
 }
-
 
 /**
  * Duplicate a piece of text
@@ -51,4 +50,19 @@ export function duplicateInText(text, anchorOffset, focusOffset) {
   return text.slice(0, endOffset) +
       text.slice(startOffset, endOffset) + // the duplicated piece of the text
       text.slice(endOffset)
+}
+
+/**
+ * Truncate a text to a maximum length.
+ * When truncated, the text will pe appended with ellipsis '...'
+ * @param {string} text Text to be truncated
+ * @param {number} maxLength Maximum allowed length for the text including ellipsis
+ */
+export function truncate (text, maxLength) {
+  const ellipsis = '...'
+  const maxTextLength = maxLength - ellipsis.length
+
+  return text.length > maxLength
+    ? (text.substr(0, maxTextLength) + ellipsis)
+    : text
 }

@@ -9,6 +9,7 @@ export const VALIDATION_ERROR = Symbol('validation:error')
 export const SCROLL_DURATION = 300 // ms
 export const DEBOUNCE_DELAY = 300
 export const DEFAULT_LIMIT = 100
+export const MAX_PREVIEW_CHARACTERS = 20e3 // characters
 
 export const INDENTATION_WIDTH = 18 // pixels IMPORTANT: keep in sync with sass constant $indentation-width
 
