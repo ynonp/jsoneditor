@@ -1,19 +1,23 @@
 <svelte:options immutable={true} />
 
 <script>
-  import { getContext } from 'svelte'
+  import { getContext, setContext, onDestroy } from 'svelte'
   import Select from 'svelte-select'
   import Header from './Header.svelte'
   import { getNestedPaths } from '../../utils/arrayUtils.js'
   import { isObject } from '../../utils/typeUtils.js'
   import { stringifyPath } from '../../utils/pathUtils.js'
   import { sortArray, sortObjectKeys } from '../../logic/sort.js'
+  import { sortModalState } from './sortModalState.js'
+import { compileJSONPointer } from '../../utils/jsonPointer';
 
+  export let id
   export let json
   export let rootPath
   export let onSort
 
   const {close} = getContext('simple-modal')
+  const stateId = `${id}:${compileJSONPointer(rootPath)}`
 
   $: json
   $: jsonIsArray = Array.isArray(json)
@@ -28,10 +32,10 @@
     value: -1,
     label: 'descending'
   }
-  const directions = [ asc, desc ]
+  const directions = [asc, desc]
 
-  let selectedProperty = undefined
-  let selectedDirection = asc
+  let selectedProperty = sortModalState[stateId]?.selectedProperty || undefined
+  let selectedDirection = sortModalState[stateId]?.selectedDirection || asc
 
   $: {
     // if there is only one option, select it and do not render the select box
@@ -48,7 +52,12 @@
   }
 
   function handleSort () {
-    // TODO: create a sortBy which returns a JSONPatch document containing move operations
+    // remember the selected values for the next time we open the SortModal
+    // just in memory, not persisted
+    sortModalState[stateId] = {
+      selectedProperty,
+      selectedDirection
+    }
 
     if (jsonIsArray) {
       if (!selectedProperty) {

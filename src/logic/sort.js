@@ -25,12 +25,7 @@ export function sortObjectKeys (object, rootPath = [], direction = 1) {
     return direction * caseInsensitiveNaturalCompare(keyA, keyB)
   })
 
-  // const sortedObject = {}
-  // keys.forEach(key => {
-  //   sortedObject[key] = object[key]
-  // })
-
-  // TODO: only move the properties that are needed to move
+  // TODO: can we make this more efficient? check if the first couple of keys are already in order and if so ignore them
   const operations = []
   for (let i = 0; i < sortedKeys.length; i++) {
     const key = sortedKeys[i]

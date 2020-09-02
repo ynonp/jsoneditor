@@ -31,7 +31,7 @@
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
   import { search, searchNext, searchPrevious } from '../../logic/search.js'
   import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
-  import { first, last, initial, cloneDeep } from 'lodash-es'
+  import { first, last, initial, cloneDeep, uniqueId } from 'lodash-es'
   import jump from '../../assets/jump.js/src/jump.js'
   import { expandPath, syncState, patchProps } from '../../logic/documentState.js'
   import Menu from './Menu.svelte'
@@ -42,6 +42,7 @@
   import TransformModal from '../modals/TransformModal.svelte'
 
   const { open } = getContext('simple-modal')
+  const sortModalId = uniqueId()
 
   let divContents
   let domHiddenInput
@@ -270,6 +271,7 @@
       : []
 
     open(SortModal, {
+      id: sortModalId,
       json: getIn(doc, rootPath),
       rootPath,
       onSort: async (operations) => {
