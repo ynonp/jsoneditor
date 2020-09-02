@@ -1,2 +1,37 @@
 @import '../../styles.scss';
 @import './Modal.scss';
+
+.jsoneditor-modal.transform {
+
+  .description {
+    padding-bottom: $padding;
+  }
+
+  label {
+    font-weight: bold;
+    padding: $padding/2 0;
+    display: block;
+  }
+
+  textarea.query,
+  textarea.preview {
+    border: 1px solid $border-gray;
+    border-radius: $border-radius;
+    outline: none;
+    width: 100%;
+    height: 100px;
+    resize: vertical; // prevent resizing horizontally
+    box-sizing: border-box;
+    padding: $padding / 2;
+    font-family: $font-family-mono;
+    font-size: $font-size-mono;
+  }
+
+  textarea.preview {
+    height: 200px;
+    
+    &.error {
+      color: $red;
+    }
+  }
+}

@@ -19,7 +19,8 @@
   import {
     createPathsMap,
     createSelectionFromOperations,
-    expandSelection
+    expandSelection,
+findRootPath
   } from '../../logic/selection.js'
   import { isContentEditableDiv } from '../../utils/domUtils.js'
   import {
@@ -43,6 +44,7 @@
 
   const { open } = getContext('simple-modal')
   const sortModalId = uniqueId()
+  const transformModalId = uniqueId()
 
   let divContents
   let domHiddenInput
@@ -264,11 +266,7 @@
   }
 
   function handleSort () {
-    const rootPath = selection && selection.paths
-      ? selection.paths.length > 1 
-        ? initial(first(selection.paths)) // the parent path of the paths
-        : first(selection.paths) // the first and only path
-      : []
+    const rootPath = findRootPath(selection)
 
     open(SortModal, {
       id: sortModalId,
@@ -288,7 +286,26 @@
   }
 
   function handleTransform () {
-    open(TransformModal, {}, SIMPLE_MODAL_OPTIONS)
+    const rootPath = findRootPath(selection)
+
+    open(TransformModal, {
+      id: transformModalId,
+      json: getIn(doc, rootPath),
+      rootPath,
+      onTransform: async (operations) => {
+        console.log('onTransform', rootPath, operations)
+        patch(operations, selection)
+
+        // FIXME: replaced node should keep it's expanded state (if expanded)
+        
+      }
+    }, {
+      ...SIMPLE_MODAL_OPTIONS, 
+      styleWindow: {
+        ...SIMPLE_MODAL_OPTIONS.styleWindow,
+        width: '600px'
+      }
+    })
   }
 
   async function handleSearchText (text) {

@@ -1,15 +1,15 @@
 import assert from 'assert'
-import { expandSelection, getParentPath } from './selection.js'
+import { expandSelection, getParentPath, findRootPath } from './selection.js'
 import { syncState } from './documentState.js'
 
-describe ('selection', () => {
+describe('selection', () => {
   const doc = {
-    "obj": {
-      "arr": [1,2, {"first":3,"last":4}]
+    obj: {
+      arr: [1, 2, { first: 3, last: 4 }]
     },
-    "str": "hello world",
-    "nill": null,
-    "bool": false
+    str: 'hello world',
+    nill: null,
+    bool: false
   }
   const state = syncState(doc, undefined, [], () => true)
 
@@ -67,12 +67,27 @@ describe ('selection', () => {
   })
 
   it('should get parent path from a selection', () => {
-      assert.deepStrictEqual(getParentPath({ beforePath: ['a', 'b']}), ['a'])
-      assert.deepStrictEqual(getParentPath({ appendPath: ['a', 'b']}), ['a', 'b'])
-      assert.deepStrictEqual(getParentPath({ paths:[
+    assert.deepStrictEqual(getParentPath({ beforePath: ['a', 'b'] }), ['a'])
+    assert.deepStrictEqual(getParentPath({ appendPath: ['a', 'b'] }), ['a', 'b'])
+    assert.deepStrictEqual(getParentPath({
+      paths: [
         ['a', 'b'],
         ['a', 'c'],
         ['a', 'd']
-      ]}), ['a'])
+      ]
+    }), ['a'])
+  })
+
+  it('should find the root path from a selection', () => {
+    assert.deepStrictEqual(findRootPath({
+      paths: [
+        ['a', 'b'],
+        ['a', 'c'],
+        ['a', 'd']
+      ]
+    }), ['a'])
+    assert.deepStrictEqual(findRootPath({ beforePath: ['a', 'b'] }), [])
+    assert.deepStrictEqual(findRootPath({ appendPath: ['a', 'b'] }), [])
+    assert.deepStrictEqual(findRootPath(), [])
   })
 })

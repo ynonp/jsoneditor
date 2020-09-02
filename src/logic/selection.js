@@ -17,14 +17,14 @@ import { isObject } from '../utils/typeUtils.js'
 export function expandSelection (doc, state, anchorPath, focusPath) {
   if (isEqual(anchorPath, focusPath)) {
     // just a single node
-    return [ anchorPath ]
+    return [anchorPath]
   } else {
     // multiple nodes
-    let sharedPath = findSharedPath(anchorPath, focusPath)
+    const sharedPath = findSharedPath(anchorPath, focusPath)
 
     if (anchorPath.length === sharedPath.length || focusPath.length === sharedPath.length) {
       // a parent and a child, like ['arr', 1] and ['arr']
-      return [ sharedPath ]
+      return [sharedPath]
     }
 
     const anchorKey = anchorPath[sharedPath.length]
@@ -66,8 +66,7 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
 }
 
 /**
- * 
- * @param {Selection} selection 
+ * @param {Selection} selection
  * @return {Path} Returns parent path
  */
 export function getParentPath (selection) {
@@ -94,7 +93,7 @@ export function createSelectionFromOperations (operations) {
     .filter(operation => operation.op === 'add' || operation.op === 'copy')
     .map(operation => parseJSONPointer(operation.path))
 
-  return  {
+  return {
     paths,
     pathsMap: createPathsMap(paths)
   }
@@ -123,10 +122,21 @@ export function createPathsMap (paths) {
  */
 // TODO: write unit tests for findSharedPath
 export function findSharedPath (path1, path2) {
-  let i = 0;
+  let i = 0
   while (i < path1.length && path1[i] === path2[i]) {
-    i++;
+    i++
   }
 
   return path1.slice(0, i)
+}
+
+/**
+ * @param {Selection} selection
+ */
+export function findRootPath (selection) {
+  return selection && selection.paths
+    ? selection.paths.length > 1
+      ? initial(first(selection.paths)) // the parent path of the paths
+      : first(selection.paths) // the first and only path
+    : []
 }
