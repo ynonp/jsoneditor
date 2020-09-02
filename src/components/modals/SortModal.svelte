@@ -92,19 +92,17 @@ import { compileJSONPointer } from '../../utils/jsonPointer';
         <col width="75%">
       </colgroup>
       <tbody>
-        {#if rootPath.length > 0}
-          <tr>
-            <th>Path</th>
-            <td>
-              <input 
-                class="path"
-                type="text" 
-                readonly 
-                value={stringifyPath(rootPath)} 
-              />
-            </td>
-          </tr>
-        {/if}
+        <tr>
+          <th>Path</th>
+          <td>
+            <input 
+              class="path"
+              type="text" 
+              readonly 
+              value={rootPath.length > 0 ? stringifyPath(rootPath) : '(whole document)'} 
+            />
+          </td>
+        </tr>
         {#if jsonIsArray && (properties.length > 1 || selectedProperty === undefined) }
           <tr>
             <th>Property</th>

@@ -276,12 +276,7 @@
       rootPath,
       onSort: async (operations) => {
         console.log('onSort', rootPath, operations)
-
         patch(operations, selection)
-
-        await tick()
-
-        handleExpand(rootPath, true, false)
       }
     }, {
       ...SIMPLE_MODAL_OPTIONS, 
