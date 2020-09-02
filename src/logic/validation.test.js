@@ -30,7 +30,7 @@ describe('validation', () => {
     expected[VALIDATION_ERROR] = { isChildError: true, path: [], message: message3 }
     expected.pupils[VALIDATION_ERROR] = { isChildError: true, path: ['pupils'], message: message3 }
     expected.pupils[2][VALIDATION_ERROR] = { isChildError: true, path: ['pupils', 2], message: message3 }
-    
+
     const actual = mapValidationErrors(validationErrorsList)
 
     assert.deepStrictEqual(actual, expected)
@@ -51,7 +51,7 @@ describe('validation', () => {
       },
       [VALIDATION_ERROR]: error2
     }
-    
+
     const actual = mapValidationErrors(validationErrorsList)
 
     assert.deepStrictEqual(actual, expected)

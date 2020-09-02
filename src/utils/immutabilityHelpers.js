@@ -1,4 +1,4 @@
-import { isObjectOrArray } from  './typeUtils.js'
+import { isObjectOrArray } from './typeUtils.js'
 
 /**
  * Immutability helpers
@@ -23,20 +23,22 @@ export function shallowClone (value) {
     const copy = value.slice()
 
     // copy all symbols
-    Object.getOwnPropertySymbols(value).forEach(symbol => copy[symbol] = value[symbol])
+    Object.getOwnPropertySymbols(value).forEach(symbol => {
+      copy[symbol] = value[symbol]
+    })
 
     return copy
-  }
-  else if (typeof value === 'object') {
+  } else if (typeof value === 'object') {
     // copy object properties
     const copy = { ...value }
 
     // copy all symbols
-    Object.getOwnPropertySymbols(value).forEach(symbol => copy[symbol] = value[symbol])
+    Object.getOwnPropertySymbols(value).forEach(symbol => {
+      copy[symbol] = value[symbol]
+    })
 
     return copy
-  }
-  else {
+  } else {
     return value
   }
 }
@@ -53,8 +55,7 @@ export function applyProp (object, key, value) {
   if (object[key] === value) {
     // return original object unchanged when the new value is identical to the old one
     return object
-  }
-  else {
+  } else {
     const updatedObject = shallowClone(object)
     updatedObject[key] = value
     return updatedObject
@@ -73,11 +74,10 @@ export function getIn (object, path) {
   let value = object
   let i = 0
 
-  while(i < path.length) {
+  while (i < path.length) {
     if (isObjectOrArray(value)) {
       value = value[path[i]]
-    }
-    else {
+    } else {
       value = undefined
     }
 
@@ -171,14 +171,12 @@ export function deleteIn (object, path) {
     if (!(key in object)) {
       // key doesn't exist. return object unchanged
       return object
-    }
-    else {
+    } else {
       const updatedObject = shallowClone(object)
 
       if (Array.isArray(updatedObject)) {
         updatedObject.splice(key, 1)
-      }
-      else {
+      } else {
         delete updatedObject[key]
       }
 
@@ -230,7 +228,7 @@ export function transform (json, callback, path = []) {
   const updated1 = callback(json, path)
 
   if (Array.isArray(json)) { // array
-    let updated2 = undefined
+    let updated2
 
     for (let i = 0; i < updated1.length; i++) {
       const before = updated1[i]
@@ -246,13 +244,12 @@ export function transform (json, callback, path = []) {
       }
     }
 
-    return updated2 ? updated2 : updated1
-  }
-  else if (json && typeof json === 'object') { // object
-    let updated2 = undefined
+    return updated2 || updated1
+  } else if (json && typeof json === 'object') { // object
+    let updated2
 
-    for (let key in updated1) {
-      if (updated1.hasOwnProperty(key)) {
+    for (const key in updated1) {
+      if (Object.hasOwnProperty.call(updated1, key)) {
         const before = updated1[key]
         const after = transform(before, callback, path.concat(key))
         if (after !== before) {
@@ -264,9 +261,8 @@ export function transform (json, callback, path = []) {
       }
     }
 
-    return updated2 ? updated2 : updated1
-  }
-  else { // number, string, boolean, null
+    return updated2 || updated1
+  } else { // number, string, boolean, null
     return updated1
   }
 }

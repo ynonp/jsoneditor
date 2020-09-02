@@ -5,7 +5,7 @@
  * @param {Element} element  An HTML DOM element like a DIV
  * @return {string}
  */
-export function getPlainText(element) {
+export function getPlainText (element) {
   return unescapeHTML(traverseInnerText(element))
 }
 
@@ -14,7 +14,7 @@ export function getPlainText(element) {
  * @param {Element} element  An HTML DOM element like a DIV
  * @param {string} text
  */
-export function setPlainText(element, text) {
+export function setPlainText (element, text) {
   element.innerHTML = escapeHTML(text)
 }
 /**
@@ -26,8 +26,7 @@ export function setPlainText(element, text) {
 export function escapeHTML (text, escapeUnicode = false) {
   if (typeof text !== 'string') {
     return String(text)
-  }
-  else {
+  } else {
     let htmlEscaped = String(text)
     if (escapeUnicode === true) {
       // FIXME: should not unescape the just created non-breaking spaces \u00A0 ?
@@ -36,8 +35,8 @@ export function escapeHTML (text, escapeUnicode = false) {
 
     htmlEscaped = htmlEscaped
       .replace(/ {2}/g, ' \u00A0') // replace double space with an nbsp and space
-      .replace(/^ /, '\u00A0')   // space at start
-      .replace(/ $/, '\u00A0')   // space at end
+      .replace(/^ /, '\u00A0') // space at start
+      .replace(/ $/, '\u00A0') // space at end
 
     const json = JSON.stringify(htmlEscaped)
     return json.substring(1, json.length - 1) // remove enclosing double quotes
@@ -54,8 +53,8 @@ export function escapeUnicodeChars (text) {
   // see https://www.wikiwand.com/en/UTF-16
   // note: we leave surrogate pairs as two individual chars,
   // as JSON doesn't interpret them as a single unicode char.
-  return text.replace(/[\u007F-\uFFFF]/g, function(c) {
-    return '\\u'+('0000' + c.charCodeAt(0).toString(16)).slice(-4)
+  return text.replace(/[\u007F-\uFFFF]/g, function (c) {
+    return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4)
   })
 }
 
@@ -68,7 +67,7 @@ export function unescapeHTML (escapedText) {
   const json = '"' + escapeJSON(escapedText) + '"'
   const htmlEscaped = JSON.parse(json) // TODO: replace with a JSON.parse which does do linting and give an informative error
 
-  return htmlEscaped.replace(/\u00A0/g, ' ')  // nbsp character
+  return htmlEscaped.replace(/\u00A0/g, ' ') // nbsp character
 }
 
 /**
@@ -88,21 +87,18 @@ export function escapeJSON (text) {
     let c = text.charAt(i)
     if (c === '\n') {
       escaped += '\\n'
-    }
-    else if (c === '\\') {
+    } else if (c === '\\') {
       escaped += c
       i++
 
       c = text.charAt(i)
       if (c === '' || '"\\/bfnrtu'.indexOf(c) === -1) {
-        escaped += '\\'  // no valid escape character
+        escaped += '\\' // no valid escape character
       }
       escaped += c
-    }
-    else if (c === '"') {
+    } else if (c === '"') {
       escaped += '\\"'
-    }
-    else {
+    } else {
       escaped += c
     }
     i++
@@ -192,7 +188,7 @@ export function isContentEditableDiv (element) {
   return (element.nodeName === 'DIV' && element.contentEditable === 'true')
 }
 
-function hasAttribute(element, name, value) {
+function hasAttribute (element, name, value) {
   return typeof element.getAttribute === 'function' && element.getAttribute(name) === value
 }
 

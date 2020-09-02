@@ -3,7 +3,6 @@ import { STATE_SEARCH_PROPERTY, STATE_SEARCH_VALUE } from '../constants.js'
 import { existsIn, setIn } from '../utils/immutabilityHelpers.js'
 import { valueType } from '../utils/typeUtils.js'
 
-
 /**
  * @typedef {{path: Path, what: Symbol}} SearchItem
  */
@@ -101,7 +100,7 @@ export function searchPrevious (searchResult) {
 }
 
 function searchRecursive (key, doc, searchText) {
-  let results = undefined
+  let results
 
   if (typeof key === 'string' && containsCaseInsensitive(key, searchText)) {
     results = createOrAdd(results, STATE_SEARCH_PROPERTY, 'search')
@@ -110,14 +109,14 @@ function searchRecursive (key, doc, searchText) {
   const type = valueType(doc)
   if (type === 'array') {
     doc.forEach((item, index) => {
-      let childResults = searchRecursive(index, item, searchText)
+      const childResults = searchRecursive(index, item, searchText)
       if (childResults) {
         results = createOrAdd(results, index, childResults)
       }
     })
   } else if (type === 'object') {
     Object.keys(doc).forEach(prop => {
-      let childResults = searchRecursive(prop, doc[prop], searchText)
+      const childResults = searchRecursive(prop, doc[prop], searchText)
       if (childResults) {
         results = createOrAdd(results, prop, childResults)
       }
@@ -167,7 +166,7 @@ function flattenSearch (searchResult) {
   return resultArray
 }
 
-function createOrAdd(object, key, value) {
+function createOrAdd (object, key, value) {
   if (object) {
     object[key] = value
     return object

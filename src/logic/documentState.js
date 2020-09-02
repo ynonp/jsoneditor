@@ -198,7 +198,7 @@ export function patchProps (state, operations) {
   return updatedState
 }
 
-export function getNextKeys(props, key, includeKey = false) {
+export function getNextKeys (props, key, includeKey = false) {
   if (props) {
     const index = props.findIndex(prop => prop.key === key)
     if (index !== -1) {

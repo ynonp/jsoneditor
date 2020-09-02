@@ -22,7 +22,7 @@ import { isObjectOrArray } from '../utils/typeUtils.js'
  *                              key will maintain it's position above these keys
  * @return {JSONPatchDocument}
  */
-export function insertBefore (json, path, values, nextKeys) {  // TODO: find a better name and define datastructure for values
+export function insertBefore (json, path, values, nextKeys) { // TODO: find a better name and define datastructure for values
   const parentPath = initial(path)
   const parent = getIn(json, parentPath)
 
@@ -33,8 +33,7 @@ export function insertBefore (json, path, values, nextKeys) {  // TODO: find a b
       path: compileJSONPointer(parentPath.concat(offset + index)),
       value: entry.value
     }))
-  }
-  else { // 'object'
+  } else { // 'object'
     return [
       // insert new values
       ...values.map(entry => {
@@ -65,7 +64,7 @@ export function insertBefore (json, path, values, nextKeys) {  // TODO: find a b
  * @param {Array.<{key?: string, value: JSON}>} values
  * @return {JSONPatchDocument}
  */
-export function append (json, path, values) {  // TODO: find a better name and define datastructure for values
+export function append (json, path, values) { // TODO: find a better name and define datastructure for values
   const parent = getIn(json, path)
 
   if (Array.isArray(parent)) {
@@ -75,8 +74,7 @@ export function append (json, path, values) {  // TODO: find a better name and d
       path: compileJSONPointer(path.concat(offset + index)),
       value: entry.value
     }))
-  }
-  else { // 'object'
+  } else { // 'object'
     return values.map(entry => {
       const newProp = findUniqueName(entry.key, parent)
       return {
@@ -100,7 +98,7 @@ export function append (json, path, values) {  // TODO: find a better name and d
  *                              key will maintain it's position above these keys
  * @returns {JSONPatchDocument}
  */
-export function rename(parentPath, oldKey, newKey, nextKeys) {
+export function rename (parentPath, oldKey, newKey, nextKeys) {
   return [
     // rename a key
     {
@@ -129,7 +127,7 @@ export function rename(parentPath, oldKey, newKey, nextKeys) {
  *                              key will maintain it's position above these keys
  * @return {JSONPatchDocument}
  */
-export function replace (json, paths, values, nextKeys) {  // TODO: find a better name and define datastructure for values
+export function replace (json, paths, values, nextKeys) { // TODO: find a better name and define datastructure for values
   const firstPath = first(paths)
   const parentPath = initial(firstPath)
   const parent = getIn(json, parentPath)
@@ -149,8 +147,7 @@ export function replace (json, paths, values, nextKeys) {  // TODO: find a bette
         value: entry.value
       }))
     ]
-  }
-  else { // parent is Object
+  } else { // parent is Object
     // if we're going to replace an existing object with key "a" with a new
     // key "a", we must not create a new unique name "a (copy)".
     const removeKeys = new Set(paths.map(path => last(path)))
@@ -191,13 +188,13 @@ export function replace (json, paths, values, nextKeys) {  // TODO: find a bette
  */
 export function duplicate (doc, state, paths) {
   // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
-  const lastPath = last(paths) 
+  const lastPath = last(paths)
   const parentPath = initial(lastPath)
   const beforeKey = last(lastPath)
   const props = getIn(state, parentPath.concat(STATE_PROPS))
   const nextKeys = getNextKeys(props, beforeKey, false)
   const parent = getIn(doc, parentPath)
-  
+
   if (Array.isArray(parent)) {
     const lastPath = last(paths)
     const offset = lastPath ? (parseInt(last(lastPath), 10) + 1) : 0
@@ -243,7 +240,7 @@ export function insert (doc, state, selection, values) {
     const nextKeys = getNextKeys(props, beforeKey, true)
     const operations = insertBefore(doc, selection.beforePath, values, nextKeys)
     // TODO: move calculation of nextKeys inside insertBefore?
-    
+
     return operations
   } else if (selection.appendPath) {
     const operations = append(doc, selection.appendPath, values)
@@ -257,23 +254,23 @@ export function insert (doc, state, selection, values) {
     const nextKeys = getNextKeys(props, beforeKey, true)
     const operations = replace(doc, selection.paths, values, nextKeys)
     // TODO: move calculation of nextKeys inside replace?
-    
+
     return operations
   }
 }
 
 export function createNewValue (doc, selection, type) {
   switch (type) {
-    case 'value': 
+    case 'value':
       return ''
-    
-    case 'object': 
+
+    case 'object':
       return {}
-    
-    case 'array': 
+
+    case 'array':
       return []
 
-    case 'structure': 
+    case 'structure':
       const parentPath = getParentPath(selection)
       const parent = getIn(doc, parentPath)
 
@@ -281,8 +278,8 @@ export function createNewValue (doc, selection, type) {
         const jsonExample = first(parent)
         const structure = cloneDeepWith(jsonExample, (value) => {
           return isObjectOrArray(value)
-              ? undefined // leave as is
-              : ''
+            ? undefined // leave as is
+            : ''
         })
 
         console.log('structure', jsonExample, structure)
@@ -316,16 +313,16 @@ export function remove (path) {
  */
 export function removeAll (paths) {
   return paths
-      .map(path => ({
-        op: 'remove',
-        path: compileJSONPointer(path)
-      }))
-      .reverse() // reverse is needed for arrays: delete the last index first
+    .map(path => ({
+      op: 'remove',
+      path: compileJSONPointer(path)
+    }))
+    .reverse() // reverse is needed for arrays: delete the last index first
 }
 
 // helper function to move a key down in an object,
 // so another key can get positioned before the moved down keys
-function moveDown(parentPath, key) {
+function moveDown (parentPath, key) {
   return {
     op: 'move',
     from: compileJSONPointer(parentPath.concat(key)),

@@ -26,6 +26,6 @@ export const SIMPLE_MODAL_OPTIONS = {
   },
   styleContent: {
     padding: '0px',
-    overflow: 'visible', // needed for select box dropdowns which are larger than the modal
+    overflow: 'visible' // needed for select box dropdowns which are larger than the modal
   }
 }

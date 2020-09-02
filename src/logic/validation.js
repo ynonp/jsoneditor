@@ -3,14 +3,14 @@ import { VALIDATION_ERROR } from '../constants.js'
 import { existsIn, setIn } from '../utils/immutabilityHelpers.js'
 
 /**
- * Create a nested map with validation errors, 
+ * Create a nested map with validation errors,
  * and also create error messages for the parent nodes of the nodes having an error.
- * 
+ *
  * @param {ValidationError[]} validationErrors
- * @return {Object.<string, string> | undefined} Returns a nested object containing  
+ * @return {Object.<string, string> | undefined} Returns a nested object containing
  */
 export function mapValidationErrors (validationErrors) {
-  let object = undefined
+  let object
 
   validationErrors.forEach(validationError => {
     const errorPath = validationError.path.concat([VALIDATION_ERROR])

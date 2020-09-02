@@ -22,8 +22,8 @@ export function immutableJSONPatch (json, operations) {
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
-    const path = operation.path != undefined ? parseJSONPointer(operation.path) : null
-    const from = operation.from != undefined ? parseJSONPointer(operation.from) : null
+    const path = operation.path !== undefined ? parseJSONPointer(operation.path) : null
+    const from = operation.from !== undefined ? parseJSONPointer(operation.from) : null
 
     switch (operation.op) {
       case 'add': {
@@ -85,7 +85,7 @@ export function immutableJSONPatch (json, operations) {
         // when a test fails, cancel the whole patch and return the error
         const error = test(updatedJson, path, operation.value)
         if (error) {
-          return { json, revert: [], error}
+          return { json, revert: [], error }
         }
 
         break
@@ -160,12 +160,12 @@ export function add (json, path, value) {
   const parent = getIn(json, initial(path))
   const parentIsArray = Array.isArray(parent)
   const oldValue = parentIsArray
-      ? undefined
-      : getIn(json, resolvedPath)
+    ? undefined
+    : getIn(json, resolvedPath)
 
   const updatedJson = parentIsArray
-      ? insertAt(json, resolvedPath, value)
-      : setIn(json, resolvedPath, value)
+    ? insertAt(json, resolvedPath, value)
+    : setIn(json, resolvedPath, value)
 
   if (!parentIsArray && existsIn(json, resolvedPath)) {
     return {
@@ -176,8 +176,7 @@ export function add (json, path, value) {
         value: oldValue
       }]
     }
-  }
-  else {
+  } else {
     return {
       json: updatedJson,
       revert: [{
@@ -219,8 +218,8 @@ export function move (json, path, from) {
 
   const removedJson = remove(json, from).json
   const updatedJson = parentIsArray
-      ? insertAt(removedJson, resolvedPath, value)
-      : setIn(removedJson, resolvedPath, value)
+    ? insertAt(removedJson, resolvedPath, value)
+    : setIn(removedJson, resolvedPath, value)
 
   if (oldValue !== undefined && !parentIsArray) {
     // replaces an existing value in an object
@@ -239,8 +238,7 @@ export function move (json, path, from) {
         }
       ]
     }
-  }
-  else {
+  } else {
     return {
       json: updatedJson,
       revert: [
@@ -287,6 +285,6 @@ export function resolvePathIndex (json, path) {
   const parent = getIn(json, initial(path))
 
   return (path[path.length - 1] === '-')
-      ? path.slice(0, path.length - 1).concat(parent.length)
-      : path
+    ? path.slice(0, path.length - 1).concat(parent.length)
+    : path
 }

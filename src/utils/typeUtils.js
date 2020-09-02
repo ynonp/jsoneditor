@@ -41,7 +41,7 @@ export function isObjectOrArray (value) {
  * @param {*} value
  * @return {String} type
  */
-export function valueType(value) {
+export function valueType (value) {
   if (value === null) {
     return 'null'
   }
@@ -85,25 +85,20 @@ export function isUrl (text) {
  * @private
  */
 export function stringConvert (str) {
-  const num = Number(str)           // will nicely fail with '123ab'
-  const numFloat = parseFloat(str)  // will nicely fail with '  '
+  const num = Number(str) // will nicely fail with '123ab'
+  const numFloat = parseFloat(str) // will nicely fail with '  '
 
   if (str === '') {
     return ''
-  }
-  else if (str === 'null') {
+  } else if (str === 'null') {
     return null
-  }
-  else if (str === 'true') {
+  } else if (str === 'true') {
     return true
-  }
-  else if (str === 'false') {
+  } else if (str === 'false') {
     return false
-  }
-  else if (!isNaN(num) && !isNaN(numFloat)) {
+  } else if (!isNaN(num) && !isNaN(numFloat)) {
     return num
-  }
-  else {
+  } else {
     return str
   }
 }

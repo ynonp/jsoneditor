@@ -1,4 +1,4 @@
-import assert from "assert"
+import assert from 'assert'
 import { compareArrays, getNestedPaths } from './arrayUtils.js'
 
 describe('arrayUtils', () => {

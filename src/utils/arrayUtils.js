@@ -1,5 +1,5 @@
 import { isObject } from './typeUtils.js'
-import { compileJSONPointer, parseJSONPointer } from './jsonPointer.js' 
+import { compileJSONPointer, parseJSONPointer } from './jsonPointer.js'
 
 const MAX_ITEM_PATHS_COLLECTION = 10000
 const EMPTY_ARRAY = []
@@ -51,7 +51,7 @@ export function strictShallowEqual (a, b) {
   return true
 }
 
-export function compareArrays(a, b) {
+export function compareArrays (a, b) {
   const minLength = Math.min(a.length, b.length)
 
   for (let i = 0; i < minLength; i++) {
@@ -75,7 +75,7 @@ export function compareArrays(a, b) {
  */
 export function getNestedPaths (array, includeObjects = false) {
   const pathsMap = {}
-  
+
   if (!Array.isArray(array)) {
     throw new TypeError('Array expected')
   }

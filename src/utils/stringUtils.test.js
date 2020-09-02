@@ -9,13 +9,13 @@ import {
 
 describe('stringUtils', () => {
   it('findUniqueName', () => {
-    assert.deepStrictEqual(findUniqueName('other', {'a': true, 'b': true, 'c': true}), 'other')
-    assert.deepStrictEqual(findUniqueName('b', {'a': true, 'b': true, 'c': true}), 'b (copy)')
-    assert.deepStrictEqual(findUniqueName('b', {'a': true, 'b': true, 'c': true, 'b (copy)': true}), 'b (copy 2)')
-    assert.deepStrictEqual(findUniqueName('b (copy)', {'a': true, 'b': true, 'c': true, 'b (copy)': true}), 'b (copy 2)')
-    assert.deepStrictEqual(findUniqueName('b', {'a': true, 'b': true, 'c': true, 'b (copy)': true, 'b (copy 2)': true}), 'b (copy 3)')
-    assert.deepStrictEqual(findUniqueName('b (copy)', {'a': true, 'b': true, 'c': true, 'b (copy)': true, 'b (copy 2)': true}), 'b (copy 3)')
-    assert.deepStrictEqual(findUniqueName('b (copy 2)', {'a': true, 'b': true, 'c': true, 'b (copy)': true, 'b (copy 2)': true}), 'b (copy 3)')
+    assert.deepStrictEqual(findUniqueName('other', { a: true, b: true, c: true }), 'other')
+    assert.deepStrictEqual(findUniqueName('b', { a: true, b: true, c: true }), 'b (copy)')
+    assert.deepStrictEqual(findUniqueName('b', { a: true, b: true, c: true, 'b (copy)': true }), 'b (copy 2)')
+    assert.deepStrictEqual(findUniqueName('b (copy)', { a: true, b: true, c: true, 'b (copy)': true }), 'b (copy 2)')
+    assert.deepStrictEqual(findUniqueName('b', { a: true, b: true, c: true, 'b (copy)': true, 'b (copy 2)': true }), 'b (copy 3)')
+    assert.deepStrictEqual(findUniqueName('b (copy)', { a: true, b: true, c: true, 'b (copy)': true, 'b (copy 2)': true }), 'b (copy 3)')
+    assert.deepStrictEqual(findUniqueName('b (copy 2)', { a: true, b: true, c: true, 'b (copy)': true, 'b (copy 2)': true }), 'b (copy 3)')
   })
 
   it('toCapital', () => {
