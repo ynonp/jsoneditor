@@ -8,6 +8,8 @@
   import { transformModalState } from './transformModalState.js'
   import { DEBOUNCE_DELAY, MAX_PREVIEW_CHARACTERS } from '../../constants.js'
   import { truncate } from '../../utils/stringUtils.js'
+  import * as _ from 'lodash-es'
+  import { getIn } from '../../utils/immutabilityHelpers.js'
 
   export let id
   export let json
@@ -20,14 +22,15 @@
 
   let stateId = `${id}:${compileJSONPointer(rootPath)}`
 
-  let query = transformModalState[stateId]?.query || DEFAULT_QUERY
+  let query = (transformModalState[stateId] && transformModalState[stateId].query) || DEFAULT_QUERY
   let previewHasError = false
   let preview = ''
 
   function evalTransform(json, query) {
-    // FIXME: replace unsafe eval with a JS based query language 
+    // FIXME: replace unsafe new Function with a JS based query language 
     //  As long as we don't persist or fetch queries, there is no security risk.
-    const queryFn = eval(`(${query})`)
+    // TODO: only import the most relevant subset of lodash instead of the full library?
+    const queryFn = new Function('_', `'use strict'; return (${query})`)(_)
     return queryFn(json)
   }
 
@@ -85,6 +88,12 @@
   <div class="contents">
     <div class='description'>
       Enter a JavaScript function to filter, sort, or transform the data.
+    </div>
+    <div class='description'>
+      You can use <a href='https://lodash.com' target='_blank' rel='noopener noreferrer'>Lodash</a> 
+      functions like <code>_.map</code>, <code>_.filter</code>,
+      <code>_.orderBy</code>, <code>_.sortBy</code>, <code>_.groupBy</code>,
+      <code>_.pick</code>, <code>_.uniq</code>, <code>_.get</code>, etcetera.
     </div>
 
     <label>Query</label>

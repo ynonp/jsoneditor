@@ -5,6 +5,12 @@
 
   .description {
     padding-bottom: $padding;
+
+    code {
+      background: $background-gray;
+      font-family: $font-family-mono;
+      font-size: $font-size-mono;
+    }
   }
 
   label {

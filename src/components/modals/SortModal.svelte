@@ -10,6 +10,8 @@
   import { sortArray, sortObjectKeys } from '../../logic/sort.js'
   import { sortModalState } from './sortModalState.js'
   import { compileJSONPointer } from '../../utils/jsonPointer.js'
+  import { get } from 'lodash-es'
+  import { getIn } from '../../utils/immutabilityHelpers.js'
 
   export let id
   export let json
@@ -22,7 +24,7 @@
   $: json
   $: jsonIsArray = Array.isArray(json)
   $: paths = jsonIsArray ? getNestedPaths(json) : undefined
-  $: properties = paths?.map(pathToOption)
+  $: properties = paths ? paths.map(pathToOption) : undefined
 
   const asc = {
     value: 1,
@@ -34,8 +36,8 @@
   }
   const directions = [asc, desc]
 
-  let selectedProperty = sortModalState[stateId]?.selectedProperty || undefined
-  let selectedDirection = sortModalState[stateId]?.selectedDirection || asc
+  let selectedProperty = (sortModalState[stateId] && sortModalState[stateId].selectedProperty) || undefined
+  let selectedDirection = (sortModalState[stateId] && sortModalState[stateId].selectedDirection) || asc
 
   $: {
     // if there is only one option, select it and do not render the select box
