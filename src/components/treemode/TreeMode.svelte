@@ -294,10 +294,14 @@ findRootPath
       rootPath,
       onTransform: async (operations) => {
         console.log('onTransform', rootPath, operations)
+
+        const expanded = getIn(state, rootPath.concat(STATE_EXPANDED))
+
         patch(operations, selection)
 
-        // FIXME: replaced node should keep it's expanded state (if expanded)
-        
+        // keep the root nodes expanded state
+        await tick()
+        state = setIn(state, rootPath.concat(STATE_EXPANDED), expanded)
       }
     }, {
       ...SIMPLE_MODAL_OPTIONS, 
