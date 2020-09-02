@@ -8,6 +8,7 @@
   import { transformModalState } from './transformModalState.js'
   import { DEBOUNCE_DELAY, MAX_PREVIEW_CHARACTERS } from '../../constants.js'
   import { truncate } from '../../utils/stringUtils.js'
+  import TransformWizard from './TransformWizard.svelte'
   import * as _ from 'lodash-es'
   import { getIn } from '../../utils/immutabilityHelpers.js'
 
@@ -32,6 +33,11 @@
     // TODO: only import the most relevant subset of lodash instead of the full library?
     const queryFn = new Function('_', `'use strict'; return (${query})`)(_)
     return queryFn(json)
+  }
+
+  function updateQuery (newQuery) {
+    console.log('updated query by wizard', newQuery)
+    query = newQuery
   }
 
   function previewTransform(json, query) {
@@ -96,6 +102,13 @@
       <code>_.pick</code>, <code>_.uniq</code>, <code>_.get</code>, etcetera.
     </div>
 
+    <label>Wizard</label>
+    {#if Array.isArray(json)}
+      <TransformWizard json={json} onQuery={updateQuery} />
+    {:else}
+      (Only available for arrays, not for objects)
+    {/if}
+    
     <label>Query</label>
     <textarea class="query" bind:value={query} />
 

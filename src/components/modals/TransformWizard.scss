@@ -1,0 +1,36 @@
+@import '../../styles.scss';
+
+table.transform-wizard {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+
+  tr {
+    th {
+      font-weight: normal;
+      text-align: left;
+    }
+  
+    td {
+      .horizontal {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+  
+        .selectContainer.filter-field {
+          flex: 4;
+          margin-right: $padding;
+        }
+        
+        .selectContainer.filter-relation {
+          flex: 1;
+          margin-right: $padding;
+        }
+        
+        .filter-value {
+          flex: 4;
+        }
+      }
+    }
+  }
+}

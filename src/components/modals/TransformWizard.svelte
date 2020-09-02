@@ -1,0 +1,133 @@
+<svelte:options immutable={true} />
+
+<script>
+  import Select from 'svelte-select'
+  import { getNestedPaths } from '../../utils/arrayUtils.js'
+  import { stringifyPath } from '../../utils/pathUtils.js'
+  import { createQuery } from '../../logic/jsCreateQuery.js'
+  import { isEqual } from 'lodash-es'
+
+  export let json
+  export let onQuery
+
+  // fields
+  let filterField = undefined
+  let filterRelation = undefined
+  let filterValue = undefined
+  let sortField = undefined
+  let sortDirection = undefined
+  let pickFields = undefined
+
+  // options
+  $: jsonIsArray = Array.isArray(json)
+  $: paths = jsonIsArray ? getNestedPaths(json) : undefined
+  $: fieldOptions = paths ? paths.map(pathToOption) : undefined
+
+  const filterRelationOptions = ['==', '!=', '<', '<=', '>', '>='].map(relation => ({ 
+    value: relation, 
+    label: relation
+  }))
+
+  const sortDirectionOptions = [
+    { value: 'asc', label: 'ascending' },
+    { value: 'desc', label: 'descending' },
+  ]
+
+  function pathToOption (path) {
+    return { 
+        value: path, 
+        label: stringifyPath(path) 
+    }
+  }
+
+  let queryOptions = {}
+  $: {
+    const newQueryOptions = {}
+
+    if (filterField && filterRelation && filterValue) {
+      newQueryOptions.filter = {
+        field: filterField.value,
+        relation: filterRelation.value,
+        value: filterValue
+      }
+    }
+
+    if (sortField && sortDirection) {
+      newQueryOptions.sort = {
+        field: sortField.value,
+        direction: sortDirection.value
+      }
+    }
+
+    if (pickFields) {
+      newQueryOptions.projection = {
+        fields: pickFields.map(item => item.value)
+      }
+    }
+
+    if (!isEqual(newQueryOptions, queryOptions)) {
+      queryOptions = newQueryOptions
+      const query = createQuery(json, queryOptions)
+      
+      console.log('query updated', query, queryOptions)
+
+      onQuery(query)
+    }
+  }
+</script>
+
+<table class="transform-wizard">
+  <tr>
+    <th>Filter</th>
+    <td>
+      <div class='horizontal'>
+        <Select
+          containerClasses='filter-field'
+          items={fieldOptions} 
+          bind:selectedValue={filterField} 
+        />
+        <Select
+          containerClasses='filter-relation'
+          items={filterRelationOptions} 
+          bind:selectedValue={filterRelation} 
+        />
+        <input
+          class='filter-value'
+          bind:value={filterValue} 
+        />
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <th>Sort</th>
+    <td>
+      <div class='horizontal'>
+        <Select
+          containerClasses='sort-field'
+          items={fieldOptions} 
+          bind:selectedValue={sortField} 
+        />
+        <Select
+          containerClasses='sort-direction'
+          items={sortDirectionOptions} 
+          bind:selectedValue={sortDirection} 
+        />
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <th>Pick</th>
+    <td>
+      <div class='horizontal'>
+        <Select
+          containerClasses='pick-fields'
+          items={fieldOptions}
+          isMulti
+          bind:selectedValue={pickFields} 
+        />
+      </div>
+    </td>
+  </tr>
+</table>
+
+<style src="./TransformWizard.scss"></style>
