@@ -4,6 +4,10 @@
   // styling for the select box, 
   // see docs: https://github.com/rob-balfre/svelte-select#styling
   --height: 36px;
+  --multiItemHeight: 28px;
+  --multiItemMargin: 2px;
+  --multiItemPadding: 2px 8px;
+  --multiClearTop: 6px;
   --clearSelectTop: 2px;
   --clearSelectBottom: 2px;
   --itemIsActiveBG: #3883fa; // theme-color
