@@ -11,12 +11,12 @@
   export let onQuery
 
   // fields
-  let filterField = undefined
-  let filterRelation = undefined
-  let filterValue = undefined
-  let sortField = undefined
-  let sortDirection = undefined
-  let pickFields = undefined
+  export let filterField = undefined
+  export let filterRelation = undefined
+  export let filterValue = undefined
+  export let sortField = undefined
+  export let sortDirection = undefined
+  export let pickFields = undefined
 
   // options
   $: jsonIsArray = Array.isArray(json)

@@ -25,12 +25,21 @@
 
   let stateId = `${id}:${compileJSONPointer(rootPath)}`
 
-  let query = (transformModalState[stateId] && transformModalState[stateId].query) || DEFAULT_QUERY
+  const state = transformModalState[stateId] || {}
+
+  let query = state.query || DEFAULT_QUERY
   let previewHasError = false
   let preview = ''
 
-  let showWizard = true
-  let showQuery = true
+  // showWizard is not stored inside a stateId
+  let showWizard = transformModalState.showWizard !== false
+  
+  let filterField = state.filterField
+  let filterRelation = state.filterRelation
+  let filterValue = state.filterValue
+  let sortField = state.sortField
+  let sortDirection = state.sortDirection
+  let pickFields = state.pickFields
 
   function evalTransform(json, query) {
     // FIXME: replace unsafe new Function with a JS based query language 
@@ -78,7 +87,13 @@
       // remember the selected values for the next time we open the SortModal
       // just in memory, not persisted
       transformModalState[stateId] = {
-        query
+        query,
+        filterField,
+        filterRelation,
+        filterValue,
+        sortField,
+        sortDirection,
+        pickFields
       }
 
       close()
@@ -93,6 +108,9 @@
 
   function toggleShowWizard () {
     showWizard = !showWizard
+
+    // not stored inside a stateId
+    transformModalState.showWizard = showWizard
   }
 </script>
 
@@ -117,7 +135,16 @@
     </div>
     {#if showWizard}
       {#if Array.isArray(json)}
-        <TransformWizard json={json} onQuery={updateQuery} />
+        <TransformWizard 
+          bind:filterField
+          bind:filterRelation
+          bind:filterValue
+          bind:sortField
+          bind:sortDirection
+          bind:pickFields
+          json={json} 
+          onQuery={updateQuery}
+        />
       {:else}
         (Only available for arrays, not for objects)
       {/if}
