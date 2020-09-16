@@ -69,7 +69,7 @@
       queryOptions = newQueryOptions
       const query = createQuery(json, queryOptions)
       
-      console.log('query updated', query, queryOptions)
+      // console.log('query updated', query, queryOptions)
 
       onQuery(query)
     }

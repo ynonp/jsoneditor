@@ -1,13 +1,14 @@
 @import '../../styles.scss';
 
 .jsoneditor-modal {
-  // styling for the select box, 
+  // styling for the select box, svelte-select
   // see docs: https://github.com/rob-balfre/svelte-select#styling
   --height: 36px;
   --multiItemHeight: 28px;
   --multiItemMargin: 2px;
   --multiItemPadding: 2px 8px;
-  --multiClearTop: 6px;
+  --multiClearTop: 5px;
+  --multiItemBorderRadius: 6px;
   --clearSelectTop: 2px;
   --clearSelectBottom: 2px;
   --itemIsActiveBG: #3883fa; // theme-color
@@ -18,6 +19,7 @@
   
   .contents {
     padding: 20px;
+    overflow: hidden;
 
     .actions {
       display: flex;
@@ -31,6 +33,19 @@
 
 // custom styling for the modal. 
 // FIXME: not neat to override global styles!
+:global(.bg) {
+  width: 100%;
+  height: 100%;
+}
 :global(.bg .window-wrap) {
-  margin-top: 8rem;
+  margin: 0;
+}
+:global(.bg .window) {
+  max-width: 80%;
+  margin: 4rem auto 2rem auto;
+  overflow: auto;
+}
+
+:global(.bg .content) {
+  max-height: calc(100vh - 6rem);
 }
