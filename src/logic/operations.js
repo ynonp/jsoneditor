@@ -284,8 +284,6 @@ export function createNewValue (doc, selection, type) {
               : ''
         })
 
-        console.log('structure', jsonExample, structure)
-
         return structure
       } else {
         // no example structure

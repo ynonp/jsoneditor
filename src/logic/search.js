@@ -130,6 +130,85 @@ function searchRecursive (key, doc, searchText) {
   return results
 }
 
+async function tick () {
+  return new Promise(setTimeout)
+}
+
+// TODO: comment
+export function searchAsync (searchText, doc, { onPartlyResults, onDone }) {
+  const yieldAfterItemCount = 10000 // TODO: what is a good value?
+  const search = searchGenerator(searchText, doc, yieldAfterItemCount)
+
+  // TODO: implement pause after having found x results (like 999)
+
+  let cancelled = false
+  const results = []
+
+  async function executeSearch () {
+    let next
+    do {
+      next = search.next()
+      if (next.value) {
+        results.push(next.value) // TODO: make this immutable?
+        onPartlyResults(results)
+      }
+      await tick() // TODO: be able to wait longer than just one tick? So the UI stays fully responsive?
+    } while (!cancelled && !next.done)
+
+    if (next.done) {
+      onDone(results)
+    } // else: cancelled
+  }
+
+  // start searching on the next tick
+  setTimeout(executeSearch)
+
+  return {
+    cancel: () => {
+      cancelled = true
+    }
+  }
+}
+
+// TODO: comment
+export function * searchGenerator (searchText, doc, yieldAfterItemCount = undefined) {
+  let count = 0
+
+  function * incrementCounter () {
+    count++
+    if (typeof yieldAfterItemCount === 'number' && count % yieldAfterItemCount === 0) {
+      // pause every x items
+      yield null
+    }
+  }
+
+  function * searchRecursiveAsync (searchText, doc, path) {
+    const type = valueType(doc)
+
+    if (type === 'array') {
+      for (let i = 0; i < doc.length; i++) {
+        yield * searchRecursiveAsync(searchText, doc[i], path.concat([i]))
+      }
+    } else if (type === 'object') {
+      for (const prop of Object.keys(doc)) {
+        if (typeof prop === 'string' && containsCaseInsensitive(prop, searchText)) {
+          yield path.concat([prop, STATE_SEARCH_PROPERTY])
+        }
+        yield * incrementCounter()
+
+        yield * searchRecursiveAsync(searchText, doc[prop], path.concat([prop]))
+      }
+    } else { // type is a value
+      if (containsCaseInsensitive(doc, searchText)) {
+        yield path.concat([STATE_SEARCH_VALUE])
+      }
+      yield * incrementCounter()
+    }
+  }
+
+  return yield * searchRecursiveAsync(searchText, doc, [])
+}
+
 function flattenSearch (searchResult) {
   const resultArray = []
 
