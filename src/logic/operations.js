@@ -5,7 +5,7 @@ import { getParentPath } from '../logic/selection.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { findUniqueName } from '../utils/stringUtils.js'
-import { isObjectOrArray } from '../utils/typeUtils.js'
+import { isObject } from '../utils/typeUtils.js'
 
 /**
  * Create a JSONPatch for an insert operation.
@@ -270,16 +270,18 @@ export function createNewValue (doc, selection, type) {
     case 'array':
       return []
 
-    case 'structure':
+    case 'structure': {
       const parentPath = getParentPath(selection)
       const parent = getIn(doc, parentPath)
 
       if (Array.isArray(parent) && !isEmpty(parent)) {
         const jsonExample = first(parent)
         const structure = cloneDeepWith(jsonExample, (value) => {
-          return isObjectOrArray(value)
-            ? undefined // leave as is
-            : ''
+          return Array.isArray(value)
+            ? []
+            : isObject(value)
+              ? undefined // leave object as is, will recurse into it
+              : ''
         })
 
         console.log('structure', jsonExample, structure)
@@ -289,8 +291,10 @@ export function createNewValue (doc, selection, type) {
         // no example structure
         return ''
       }
+    }
 
-    default: ''
+    default:
+      return ''
   }
 }
 
