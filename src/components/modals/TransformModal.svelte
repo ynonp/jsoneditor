@@ -2,6 +2,7 @@
 
 <script>
   import { getContext } from 'svelte'
+  import Icon from 'svelte-awesome'
   import { debounce } from 'lodash-es'
   import { compileJSONPointer } from '../../utils/jsonPointer.js'
   import Header from './Header.svelte'
@@ -11,6 +12,7 @@
   import TransformWizard from './TransformWizard.svelte'
   import * as _ from 'lodash-es'
   import { getIn } from '../../utils/immutabilityHelpers.js'
+  import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
 
   export let id
   export let json
@@ -26,6 +28,9 @@
   let query = (transformModalState[stateId] && transformModalState[stateId].query) || DEFAULT_QUERY
   let previewHasError = false
   let preview = ''
+
+  let showWizard = true
+  let showQuery = true
 
   function evalTransform(json, query) {
     // FIXME: replace unsafe new Function with a JS based query language 
@@ -84,9 +89,11 @@
       preview = err.toString()
       previewHasError = true
     }
-
   }
 
+  function toggleShowWizard () {
+    showWizard = !showWizard
+  }
 </script>
 
 <div class="jsoneditor-modal transform">
@@ -102,17 +109,26 @@
       <code>_.pick</code>, <code>_.uniq</code>, <code>_.get</code>, etcetera.
     </div>
 
-    <label>Wizard</label>
-    {#if Array.isArray(json)}
-      <TransformWizard json={json} onQuery={updateQuery} />
-    {:else}
-      (Only available for arrays, not for objects)
+    <div class="label">
+      <button on:click={toggleShowWizard}>
+        <Icon data={showWizard ? faCaretDown : faCaretRight} />
+        Wizard
+      </button>
+    </div>
+    {#if showWizard}
+      {#if Array.isArray(json)}
+        <TransformWizard json={json} onQuery={updateQuery} />
+      {:else}
+        (Only available for arrays, not for objects)
+      {/if}
     {/if}
-    
-    <label>Query</label>
+
+    <div class="label">
+      Query
+    </div>
     <textarea class="query" bind:value={query} />
 
-    <label>Preview</label>
+    <div class="label">Preview</div>
     <textarea
       class="preview" 
       class:error={previewHasError}
