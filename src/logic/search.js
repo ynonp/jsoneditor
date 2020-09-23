@@ -153,6 +153,7 @@ export function searchAsync (searchText, doc, { onProgress, onDone }) {
         onProgress(results)
       }
       await tick() // TODO: be able to wait longer than just one tick? So the UI stays fully responsive?
+      // eslint-disable-next-line no-unmodified-loop-condition
     } while (!cancelled && !next.done)
 
     if (next.done) {
