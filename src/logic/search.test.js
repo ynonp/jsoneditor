@@ -42,7 +42,7 @@ describe('search', () => {
 
     const callbacks = []
 
-    function onPartlyResults (results) {
+    function onProgress (results) {
       callbacks.push(results.slice(0))
     }
 
@@ -62,7 +62,7 @@ describe('search', () => {
       done()
     }
 
-    searchAsync('4', doc, { onPartlyResults, onDone })
+    searchAsync('4', doc, { onProgress, onDone })
 
     // should not have results right after creation, but only on the first next tick
     assert.deepStrictEqual(callbacks, [])
@@ -73,7 +73,7 @@ describe('search', () => {
 
     const callbacks = []
 
-    function onPartlyResults (results) {
+    function onProgress (results) {
       callbacks.push(results.slice(0))
     }
 
@@ -81,7 +81,7 @@ describe('search', () => {
       throw new Error('onDone should not be invoked')
     }
 
-    const { cancel } = searchAsync('4', doc, { onPartlyResults, onDone })
+    const { cancel } = searchAsync('4', doc, { onProgress, onDone })
 
     // should not have results right after creation, but only on the first next tick
     assert.deepStrictEqual(callbacks, [])

@@ -135,7 +135,7 @@ async function tick () {
 }
 
 // TODO: comment
-export function searchAsync (searchText, doc, { onPartlyResults, onDone }) {
+export function searchAsync (searchText, doc, { onProgress, onDone }) {
   const yieldAfterItemCount = 10000 // TODO: what is a good value?
   const search = searchGenerator(searchText, doc, yieldAfterItemCount)
 
@@ -150,7 +150,7 @@ export function searchAsync (searchText, doc, { onPartlyResults, onDone }) {
       next = search.next()
       if (next.value) {
         results.push(next.value) // TODO: make this immutable?
-        onPartlyResults(results)
+        onProgress(results)
       }
       await tick() // TODO: be able to wait longer than just one tick? So the UI stays fully responsive?
     } while (!cancelled && !next.done)
