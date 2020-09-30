@@ -12,8 +12,7 @@
     STATE_EXPANDED,
     STATE_LIMIT,
     SCROLL_DURATION,
-    SIMPLE_MODAL_OPTIONS,
-    SEARCH_PROGRESS_THROTTLE
+    SIMPLE_MODAL_OPTIONS
   } from '../../constants.js'
   import { createHistory } from '../../logic/history.js'
   import JSONNode from './JSONNode.svelte'
@@ -33,7 +32,7 @@ findRootPath
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
   import { searchAsync, searchNext, searchPrevious, updateSearchResult } from '../../logic/search.js'
   import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
-  import { last, initial, cloneDeep, uniqueId, throttle } from 'lodash-es'
+  import { last, initial, cloneDeep, uniqueId } from 'lodash-es'
   import jump from '../../assets/jump.js/src/jump.js'
   import { expandPath, syncState, patchProps } from '../../logic/documentState.js'
   import Menu from './Menu.svelte'
@@ -80,8 +79,6 @@ findRootPath
     searchResult = updateSearchResult(doc, results, searchResult)
   }
 
-  const handleSearchProgressDebounced = throttle(handleSearchProgress, SEARCH_PROGRESS_THROTTLE)
-  
   function handleSearchDone (results) {
     searchResult = updateSearchResult(doc, results, searchResult)
     searching = false
@@ -123,7 +120,7 @@ findRootPath
     searching = true
 
     searchHandler = searchAsync(searchText, doc, {
-      onProgress: handleSearchProgressDebounced,
+      onProgress: handleSearchProgress,
       onDone: handleSearchDone
     })
   }

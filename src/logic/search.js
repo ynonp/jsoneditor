@@ -117,6 +117,7 @@ export function searchAsync (searchText, doc, { onProgress, onDone }, yieldAfter
 
   let cancelled = false
   const results = []
+  let newResults = false
 
   async function executeSearch () {
     if (!searchText || searchText === '') {
@@ -129,9 +130,14 @@ export function searchAsync (searchText, doc, { onProgress, onDone }, yieldAfter
       next = search.next()
       if (next.value) {
         results.push(next.value) // TODO: make this immutable?
-        onProgress(results)
+        newResults = true
       } else {
-      // FIXME: don't tick on every search result, only after a pause of x milliseconds?
+        // time for a small break, give the browser space to do stuff
+        if (newResults) {
+          newResults = false
+          onProgress(results)
+        }
+
         await tick()
       }
 

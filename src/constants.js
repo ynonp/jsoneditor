@@ -8,7 +8,6 @@ export const VALIDATION_ERROR = Symbol('validation:error')
 
 export const SCROLL_DURATION = 300 // ms
 export const DEBOUNCE_DELAY = 300
-export const SEARCH_PROGRESS_THROTTLE = 300 // ms
 export const DEFAULT_LIMIT = 100
 export const MAX_PREVIEW_CHARACTERS = 20e3 // characters
 
