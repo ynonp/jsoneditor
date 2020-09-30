@@ -1,6 +1,7 @@
 @import '../../styles.scss';
 
 $search-size: 24px;
+$button-width: 20px;
 
 .search-box {
   border: 2px solid $theme-color;
@@ -26,7 +27,7 @@ $search-size: 24px;
     }
 
     button {
-      width: 20px;
+      width: $button-width;
       cursor: pointer;
 
       &:hover,
@@ -48,6 +49,11 @@ $search-size: 24px;
       flex: 1;
       width: 100px;
       outline: none;
+    }
+
+    .searching {
+      width: $button-width;
+      color: $light-gray;
     }
 
     .search-count {

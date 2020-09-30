@@ -8,6 +8,7 @@
 
   export let searchText
   export let searchResult
+  export let searching
   export let showSearch = false
   export let selection
   export let clipboard
@@ -189,6 +190,7 @@
         text={searchText}
         resultCount={searchResult ? searchResult.count : 0}
         activeIndex={searchResult ? searchResult.activeIndex : 0}
+        searching={searching}
         onChange={onSearchText}
         onNext={onNextSearchResult}
         onPrevious={onPreviousSearchResult}

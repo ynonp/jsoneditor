@@ -12,7 +12,8 @@
     STATE_EXPANDED,
     STATE_LIMIT,
     SCROLL_DURATION,
-    SIMPLE_MODAL_OPTIONS
+    SIMPLE_MODAL_OPTIONS,
+    SEARCH_PROGRESS_THROTTLE
   } from '../../constants.js'
   import { createHistory } from '../../logic/history.js'
   import JSONNode from './JSONNode.svelte'
@@ -30,15 +31,14 @@ findRootPath
   } from '../../utils/immutabilityHelpers.js'
   import { compileJSONPointer, parseJSONPointer } from '../../utils/jsonPointer.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
-  import { search, searchNext, searchPrevious } from '../../logic/search.js'
+  import { searchAsync, searchNext, searchPrevious, updateSearchResult } from '../../logic/search.js'
   import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
-  import { first, last, initial, cloneDeep, uniqueId } from 'lodash-es'
+  import { last, initial, cloneDeep, uniqueId, throttle } from 'lodash-es'
   import jump from '../../assets/jump.js/src/jump.js'
   import { expandPath, syncState, patchProps } from '../../logic/documentState.js'
   import Menu from './Menu.svelte'
   import { isObjectOrArray } from '../../utils/typeUtils.js'
   import { mapValidationErrors } from '../../logic/validation.js'
-  import { stringifyPath } from '../../utils/pathUtils.js'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
 
@@ -71,8 +71,62 @@ findRootPath
   $: validationErrors = mapValidationErrors(validationErrorsList)
 
   let showSearch = false
+  let searching = false
   let searchText = ''
-  $: searchResult = search(doc, searchText, searchResult)
+  let searchResult = undefined
+  let searchHandler = undefined
+
+  function handleSearchProgress (results) {
+    searchResult = updateSearchResult(doc, results, searchResult)
+  }
+
+  const handleSearchProgressDebounced = throttle(handleSearchProgress, SEARCH_PROGRESS_THROTTLE)
+  
+  function handleSearchDone (results) {
+    searchResult = updateSearchResult(doc, results, searchResult)
+    searching = false
+    console.log('finished search')
+  }
+
+  async function handleSearchText (text) {
+    searchText = text
+    await tick() // await for the search results to be updated
+    focusActiveSearchResult(searchResult && searchResult.activeItem)
+  }
+
+  async function handleNextSearchResult () {
+    searchResult = searchNext(searchResult)
+    focusActiveSearchResult(searchResult && searchResult.activeItem)
+  }
+
+  function handlePreviousSearchResult () {
+    searchResult = searchPrevious(searchResult)
+    focusActiveSearchResult(searchResult && searchResult.activeItem)
+  }
+
+  async function focusActiveSearchResult (activeItem) {
+    if (activeItem) {
+      state = expandPath(state, initial(activeItem))
+      await tick()
+      scrollTo(activeItem)
+    }
+  }
+
+  $: {
+    // cancel previous search when still running
+    if (searchHandler && searchHandler.cancel) {
+      console.log('cancel previous search')
+      searchHandler.cancel()
+    }
+
+    console.log('start search', searchText)
+    searching = true
+
+    searchHandler = searchAsync(searchText, doc, {
+      onProgress: handleSearchProgressDebounced,
+      onDone: handleSearchDone
+    })
+  }
 
   const history = createHistory({
     onChange: (state) => {
@@ -307,30 +361,6 @@ findRootPath
     })
   }
 
-  async function handleSearchText (text) {
-    searchText = text
-    await tick() // await for the search results to be updated
-    focusActiveSearchResult(searchResult && searchResult.activeItem)
-  }
-
-  async function handleNextSearchResult () {
-    searchResult = searchNext(searchResult)
-    focusActiveSearchResult(searchResult && searchResult.activeItem)
-  }
-
-  function handlePreviousSearchResult () {
-    searchResult = searchPrevious(searchResult)
-    focusActiveSearchResult(searchResult && searchResult.activeItem)
-  }
-
-  async function focusActiveSearchResult (activeItem) {
-    if (activeItem) {
-      state = expandPath(state, activeItem.path)
-      await tick()
-      scrollTo(activeItem.path.concat(activeItem.what))
-    }
-  }
-
   /**
    * Scroll the window vertically to the node with given path
    * @param {Path} path
@@ -502,6 +532,7 @@ findRootPath
   <Menu 
     historyState={historyState}
     searchText={searchText}
+    searching={searching}
     searchResult={searchResult}
     bind:showSearch
 

@@ -3,11 +3,12 @@
 <script>
   import { debounce } from 'lodash-es'
   import Icon from 'svelte-awesome'
-  import { faSearch, faChevronDown, faChevronUp, faTimes } from '@fortawesome/free-solid-svg-icons'
+  import { faCircleNotch, faSearch, faChevronDown, faChevronUp, faTimes } from '@fortawesome/free-solid-svg-icons'
   import { DEBOUNCE_DELAY } from '../../constants.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
 
   export let text = ''
+  export let searching
   let inputText = ''
   export let resultCount = 0
   export let activeIndex = 0
@@ -60,7 +61,11 @@
 <div class="search-box">
   <form class="search-form" on:submit={handleSubmit} on:keydown={handleKeyDown}>
     <button class="search-icon">
-      <Icon data={faSearch} />
+      {#if searching}
+        <Icon data={faCircleNotch} spin />
+      {:else}
+        <Icon data={faSearch} />
+      {/if}
     </button>
     <label about="search input">
       <input
@@ -72,7 +77,7 @@
       />
     </label>
     <div class="search-count" class:visible={text !== ''}>
-      {activeIndex + 1}/{resultCount}
+      {activeIndex !== -1 ? `${activeIndex + 1}/` : ''}{resultCount}
     </div>
     <button class="search-next" on:click={onNext} type="button">
       <Icon data={faChevronDown} />

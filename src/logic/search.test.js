@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { times } from 'lodash-es'
-import { searchAsync, searchGenerator } from './search.js'
+import { searchAsync, searchGenerator, createRecursiveSearchResults } from './search.js'
 import { STATE_SEARCH_PROPERTY, STATE_SEARCH_VALUE } from '../constants.js'
 
 describe('search', () => {
@@ -81,21 +81,59 @@ describe('search', () => {
       throw new Error('onDone should not be invoked')
     }
 
-    const { cancel } = searchAsync('4', doc, { onProgress, onDone })
-
-    // should not have results right after creation, but only on the first next tick
-    assert.deepStrictEqual(callbacks, [])
+    const yieldAfterItemCount = 1 // very low so we can see whether actually cancelled
+    const { cancel } = searchAsync('4', doc, { onProgress, onDone }, yieldAfterItemCount)
 
     setTimeout(() => {
       cancel()
 
-      assert.deepStrictEqual(callbacks, [
-        [
-          [4, STATE_SEARCH_VALUE]
-        ]
-      ])
+      setTimeout(() => {
+        assert.deepStrictEqual(callbacks, [])
 
-      done()
+        done()
+      }, 100) // FIXME: this is tricky, relying on a delay to test whether actually cancelled
     })
   })
+
+  it('should generate recursive search results from flat results', () => {
+    // Based on document:
+    const doc = {
+      b: { c: 'a' },
+      a: [
+        { a: 'b', c: 'a' },
+        'e',
+        'a'
+      ]
+    }
+
+    // search results for 'a':
+    const flatResults = [
+      ['b', 'c', STATE_SEARCH_VALUE],
+      ['a', STATE_SEARCH_PROPERTY], // This is a tricky one: we can't guarantee creating a as Array without having the reference document
+      ['a', 0, 'a', STATE_SEARCH_PROPERTY],
+      ['a', 0, 'c', STATE_SEARCH_VALUE],
+      ['a', 2, STATE_SEARCH_VALUE]
+    ]
+
+    const actual = createRecursiveSearchResults(doc, flatResults)
+    const expected = {}
+
+    expected.b = {}
+    expected.b.c = {}
+    expected.b.c[STATE_SEARCH_VALUE] = 'search'
+    expected.a = []
+    expected.a[STATE_SEARCH_PROPERTY] = 'search'
+    expected.a[0] = {}
+    expected.a[0].a = {}
+    expected.a[0].a[STATE_SEARCH_PROPERTY] = 'search'
+    expected.a[0].c = {}
+    expected.a[0].c[STATE_SEARCH_VALUE] = 'search'
+    expected.a[2] = {}
+    expected.a[2][STATE_SEARCH_VALUE] = 'search'
+
+    assert.deepStrictEqual(actual, expected)
+  })
+
+  // TODO: test searchNext
+  // TODO: test searchPrevious
 })
