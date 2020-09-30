@@ -23,7 +23,7 @@
     expandSelection,
 findRootPath
   } from '../../logic/selection.js'
-  import { isContentEditableDiv } from '../../utils/domUtils.js'
+  import { isContentEditableDiv, isTextInput } from '../../utils/domUtils.js'
   import {
     getIn,
     setIn,
@@ -458,7 +458,7 @@ findRootPath
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
 
-    if (!isContentEditableDiv(event.target)) {
+    if (!isContentEditableDiv(event.target) && !isTextInput(event.target)) {
       if (combo === 'Ctrl+X' || combo === 'Command+X') {
         event.preventDefault()
         handleCut()

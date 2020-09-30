@@ -188,6 +188,12 @@ export function isContentEditableDiv (element) {
   return (element.nodeName === 'DIV' && element.contentEditable === 'true')
 }
 
+// test whether a DOM element is an "input" with type "text"
+export function isTextInput (element) {
+  console.log('element', element)
+  return (element.nodeName === 'INPUT' && element.type && element.type.toLowerCase() === 'text')
+}
+
 function hasAttribute (element, name, value) {
   return typeof element.getAttribute === 'function' && element.getAttribute(name) === value
 }
