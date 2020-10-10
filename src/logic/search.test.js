@@ -63,7 +63,7 @@ describe('search', () => {
     }
 
     const yieldAfterItemCount = 1
-    searchAsync('4', doc, { onProgress, onDone }, yieldAfterItemCount)
+    searchAsync('4', doc, { onProgress, onDone, yieldAfterItemCount })
 
     // should not have results right after creation, but only on the first next tick
     assert.deepStrictEqual(callbacks, [])
@@ -83,7 +83,7 @@ describe('search', () => {
     }
 
     const yieldAfterItemCount = 1 // very low so we can see whether actually cancelled
-    const { cancel } = searchAsync('4', doc, { onProgress, onDone }, yieldAfterItemCount)
+    const { cancel } = searchAsync('4', doc, { onProgress, onDone, yieldAfterItemCount })
 
     setTimeout(() => {
       cancel()
@@ -105,7 +105,7 @@ describe('search', () => {
     }
 
     const maxResults = 10
-    searchAsync('item', doc, { onDone }, 1000, maxResults)
+    searchAsync('item', doc, { onDone, maxResults })
   })
 
   it('should generate recursive search results from flat results', () => {

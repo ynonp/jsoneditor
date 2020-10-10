@@ -109,7 +109,7 @@ async function tick () {
 }
 
 // TODO: comment
-export function searchAsync (searchText, doc, { onProgress, onDone }, yieldAfterItemCount = 10_000, maxResults = Infinity) {
+export function searchAsync (searchText, doc, { onProgress, onDone, maxResults = Infinity, yieldAfterItemCount = 10_000 }) {
   // TODO: what is a good value for yieldAfterItemCount? (larger means faster results but also less responsive during search)
   const search = searchGenerator(searchText, doc, yieldAfterItemCount)
 

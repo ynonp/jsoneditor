@@ -125,8 +125,9 @@ findRootPath
 
     searchHandler = searchAsync(searchText, doc, {
       onProgress: handleSearchProgressDebounced,
-      onDone: handleSearchDone
-    }, 10000, MAX_SEARCH_RESULTS)
+      onDone: handleSearchDone,
+      maxResults: MAX_SEARCH_RESULTS
+    })
   }
 
   const history = createHistory({
