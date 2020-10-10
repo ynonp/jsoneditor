@@ -13,7 +13,8 @@
     STATE_LIMIT,
     SCROLL_DURATION,
     SIMPLE_MODAL_OPTIONS,
-    SEARCH_PROGRESS_THROTTLE
+    SEARCH_PROGRESS_THROTTLE,
+    MAX_SEARCH_RESULTS
   } from '../../constants.js'
   import { createHistory } from '../../logic/history.js'
   import JSONNode from './JSONNode.svelte'
@@ -125,7 +126,7 @@ findRootPath
     searchHandler = searchAsync(searchText, doc, {
       onProgress: handleSearchProgressDebounced,
       onDone: handleSearchDone
-    })
+    }, 10000, MAX_SEARCH_RESULTS)
   }
 
   const history = createHistory({

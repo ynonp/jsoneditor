@@ -4,7 +4,7 @@
   import { debounce } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import { faCircleNotch, faSearch, faChevronDown, faChevronUp, faTimes } from '@fortawesome/free-solid-svg-icons'
-  import { DEBOUNCE_DELAY } from '../../constants.js'
+  import { DEBOUNCE_DELAY, MAX_SEARCH_RESULTS } from '../../constants.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
 
   export let text = ''
@@ -16,6 +16,10 @@
   export let onPrevious = () => {}
   export let onNext = () => {}
   export let onClose = () => {}
+
+  $: formattedResultCount = resultCount >= MAX_SEARCH_RESULTS 
+    ? `${MAX_SEARCH_RESULTS - 1}+`
+    : String(resultCount)
 
   $: onChangeDebounced = debounce(onChange, DEBOUNCE_DELAY)
 
@@ -77,7 +81,7 @@
       />
     </label>
     <div class="search-count" class:visible={text !== ''}>
-      {activeIndex !== -1 ? `${activeIndex + 1}/` : ''}{resultCount}
+      {activeIndex !== -1 ? `${activeIndex + 1}/` : ''}{formattedResultCount}
     </div>
     <button class="search-next" on:click={onNext} type="button">
       <Icon data={faChevronDown} />

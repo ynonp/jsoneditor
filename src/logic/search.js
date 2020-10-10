@@ -109,7 +109,7 @@ async function tick () {
 }
 
 // TODO: comment
-export function searchAsync (searchText, doc, { onProgress, onDone }, yieldAfterItemCount = 10_000) {
+export function searchAsync (searchText, doc, { onProgress, onDone }, yieldAfterItemCount = 10_000, maxResults = Infinity) {
   // TODO: what is a good value for yieldAfterItemCount? (larger means faster results but also less responsive during search)
   const search = searchGenerator(searchText, doc, yieldAfterItemCount)
 
@@ -129,8 +129,14 @@ export function searchAsync (searchText, doc, { onProgress, onDone }, yieldAfter
     do {
       next = search.next()
       if (next.value) {
-        results.push(next.value) // TODO: make this immutable?
-        newResults = true
+        if (results.length < maxResults) {
+          results.push(next.value) // TODO: make this immutable?
+          newResults = true
+        } else {
+          // max results limit reached
+          cancelled = true
+          onDone(results)
+        }
       } else {
         // time for a small break, give the browser space to do stuff
         if (newResults) {
