@@ -67,7 +67,13 @@ findRootPath
   let selection = null
   let clipboard = null
 
-  $: state = syncState(doc, state, [], (path) => path.length < 1)
+  $: state = syncState(doc, state, [], (path) => {
+    return path.length < 1 
+      ? true
+      : (path.length === 1 && path[0] === 0) // first item of an array?
+        ? true 
+        : false  
+  })
   $: validationErrorsList = validate ? validate(doc) : []
   $: validationErrors = mapValidationErrors(validationErrorsList)
 
