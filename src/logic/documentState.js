@@ -1,13 +1,14 @@
-import { initial, isEqual, isNumber, last, uniqueId } from 'lodash-es'
+import { initial, isEqual, isNumber, last, merge, uniqueId } from 'lodash-es'
 import {
-  DEFAULT_LIMIT,
+  DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
-  STATE_LIMIT,
-  STATE_PROPS
+  STATE_PROPS,
+  STATE_VISIBLE_SECTIONS
 } from '../constants.js'
-import { deleteIn, getIn, insertAt, setIn } from '../utils/immutabilityHelpers.js'
+import { deleteIn, getIn, insertAt, setIn, updateIn } from '../utils/immutabilityHelpers.js'
 import { parseJSONPointer } from '../utils/jsonPointer.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
+import { mergeSections, inVisibleSection, previousRoundNumber, nextRoundNumber } from './expandItemsSections.js'
 
 /**
  * Sync a state object with the doc it belongs to: update props, limit, and expanded state
@@ -52,19 +53,21 @@ export function syncState (doc, state = undefined, path, expand, forceRefresh = 
       ? state[STATE_EXPANDED]
       : expand(path)
 
-    // note that we reset the limit when the state is not expanded
-    updatedState[STATE_LIMIT] = (state && updatedState[STATE_EXPANDED])
-      ? state[STATE_LIMIT]
-      : DEFAULT_LIMIT
+    // note that we reset the visible items when the state is not expanded
+    updatedState[STATE_VISIBLE_SECTIONS] = (state && updatedState[STATE_EXPANDED])
+      ? state[STATE_VISIBLE_SECTIONS]
+      : DEFAULT_VISIBLE_SECTIONS
 
     if (updatedState[STATE_EXPANDED]) {
-      for (let i = 0; i < Math.min(doc.length, updatedState[STATE_LIMIT]); i++) {
-        const childDocument = doc[i]
-        if (isObjectOrArray(childDocument)) {
-          const childState = state && state[i]
-          updatedState[i] = syncState(childDocument, childState, path.concat(i), expand, forceRefresh)
+      updatedState[STATE_VISIBLE_SECTIONS].forEach(({ start, end }) => {
+        for (let i = start; i < Math.min(doc.length, end); i++) {
+          const childDocument = doc[i]
+          if (isObjectOrArray(childDocument)) {
+            const childState = state && state[i]
+            updatedState[i] = syncState(childDocument, childState, path.concat(i), expand, forceRefresh)
+          }
         }
-      }
+      })
     }
 
     return updatedState
@@ -89,18 +92,36 @@ export function expandPath (state, path) {
     // FIXME: setIn has to create object first
     updatedState = setIn(updatedState, partialPath.concat(STATE_EXPANDED), true, true)
 
-    // if needed, enlarge the limit such that the search result becomes visible
+    // if needed, enlarge the expanded sections such that the search result becomes visible in the array
     const key = path[i]
     if (isNumber(key)) {
-      const limit = getIn(updatedState, partialPath.concat(STATE_LIMIT)) || DEFAULT_LIMIT
-      if (key > limit) {
-        const newLimit = Math.ceil(key / DEFAULT_LIMIT) * DEFAULT_LIMIT
-        updatedState = setIn(updatedState, partialPath.concat(STATE_LIMIT), newLimit, true)
+      const sectionsPath = partialPath.concat(STATE_VISIBLE_SECTIONS)
+      const sections = getIn(updatedState, sectionsPath) || DEFAULT_VISIBLE_SECTIONS
+      if (!inVisibleSection(sections, key)) {
+        const start = previousRoundNumber(key)
+        const end = nextRoundNumber(start)
+        const newSection = { start, end }
+        const updatedSections = mergeSections(sections.concat(newSection))
+        updatedState = setIn(updatedState, sectionsPath, updatedSections)
       }
     }
   }
 
   return updatedState
+}
+
+/**
+ * Expand a section of items in an array
+ * @param {JSON} state
+ * @param {Path} path
+ * @param {Section} section
+ * @return {JSON} returns the updated state
+ */
+// TODO: write unit test
+export function expandSection (state, path, section) {
+  return updateIn(state, path.concat(STATE_VISIBLE_SECTIONS), (sections = DEFAULT_VISIBLE_SECTIONS) => {
+    return mergeSections(sections.concat(section))
+  })
 }
 
 export function updateProps (value, prevProps) {

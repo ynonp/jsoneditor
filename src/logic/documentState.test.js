@@ -1,9 +1,9 @@
 import assert from 'assert'
 import {
-  DEFAULT_LIMIT,
+  DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
-  STATE_LIMIT,
-  STATE_PROPS
+  STATE_PROPS,
+  STATE_VISIBLE_SECTIONS
 } from '../constants.js'
 import { syncState, updateProps } from './documentState.js'
 
@@ -30,7 +30,7 @@ describe('documentState', () => {
     ]
     expectedState.array = []
     expectedState.array[STATE_EXPANDED] = true
-    expectedState.array[STATE_LIMIT] = DEFAULT_LIMIT
+    expectedState.array[STATE_VISIBLE_SECTIONS] = DEFAULT_VISIBLE_SECTIONS
     expectedState.array[2] = {}
     expectedState.array[2][STATE_EXPANDED] = false
     expectedState.array[2][STATE_PROPS] = [

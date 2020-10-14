@@ -36,7 +36,7 @@ findRootPath
   import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
   import { last, initial, cloneDeep, uniqueId, throttle } from 'lodash-es'
   import jump from '../../assets/jump.js/src/jump.js'
-  import { expandPath, syncState, patchProps } from '../../logic/documentState.js'
+  import { expandPath, expandSection, syncState, patchProps } from '../../logic/documentState.js'
   import Menu from './Menu.svelte'
   import { isObjectOrArray } from '../../utils/typeUtils.js'
   import { mapValidationErrors } from '../../logic/validation.js'
@@ -426,15 +426,6 @@ findRootPath
   }
 
   /**
-   * Change limit
-   * @param {Path} path
-   * @param {boolean} limit
-   */
-  function handleLimit (path, limit) {
-    state = setIn(state, path.concat(STATE_LIMIT), limit, true)
-  }
-
-  /**
    * @param {SelectionSchema} selectionSchema
    */
   function handleSelect (selectionSchema) {
@@ -461,6 +452,12 @@ findRootPath
     } else {
       selection = null
     }
+  }
+
+  function handleExpandSection (path, section) {
+    console.log('handleExpandSection', path, section)
+
+    state = expandSection(state, path, section)
   }
 
   function handleKeyDown (event) {
@@ -579,8 +576,8 @@ findRootPath
       onPatch={handlePatch}
       onUpdateKey={handleUpdateKey}
       onExpand={handleExpand}
-      onLimit={handleLimit}
       onSelect={handleSelect}
+      onExpandSection={handleExpandSection}
       selection={selection}
     />
   </div>

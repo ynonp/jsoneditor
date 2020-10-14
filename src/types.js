@@ -87,3 +87,7 @@
  /**
   * @typedef {{path: Path, message: string, isChildError?: boolean}} ValidationError
   */
+  
+/**
+ * @typedef {{start: number, end: number}} Section
+ */

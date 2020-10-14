@@ -1,6 +1,7 @@
 
 export const STATE_EXPANDED = Symbol('expanded')
 export const STATE_LIMIT = Symbol('limit')
+export const STATE_VISIBLE_SECTIONS = Symbol('visible sections')
 export const STATE_PROPS = Symbol('props')
 export const STATE_SEARCH_PROPERTY = Symbol('search:property')
 export const STATE_SEARCH_VALUE = Symbol('search:value')
@@ -10,7 +11,8 @@ export const SCROLL_DURATION = 300 // ms
 export const DEBOUNCE_DELAY = 300
 export const SEARCH_PROGRESS_THROTTLE = 300 // ms
 export const MAX_SEARCH_RESULTS = 1000
-export const DEFAULT_LIMIT = 100
+export const ARRAY_SECTION_SIZE = 100
+export const DEFAULT_VISIBLE_SECTIONS = [{ start: 0, end: ARRAY_SECTION_SIZE }]
 export const MAX_PREVIEW_CHARACTERS = 20e3 // characters
 
 export const INDENTATION_WIDTH = 18 // pixels IMPORTANT: keep in sync with sass constant $indentation-width

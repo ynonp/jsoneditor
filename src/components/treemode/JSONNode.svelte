@@ -6,12 +6,11 @@
   import { singleton } from './singleton.js'
   import {
     DEBOUNCE_DELAY,
-    DEFAULT_LIMIT,
     STATE_EXPANDED,
-    STATE_LIMIT,
     STATE_PROPS,
     STATE_SEARCH_PROPERTY,
     STATE_SEARCH_VALUE,
+    STATE_VISIBLE_SECTIONS,
     INDENTATION_WIDTH,
     VALIDATION_ERROR
   } from '../../constants.js'
@@ -29,6 +28,7 @@
   import { isUrl, stringConvert, valueType } from '../../utils/typeUtils'
   import { compileJSONPointer } from '../../utils/jsonPointer'
   import { getNextKeys } from '../../logic/documentState.js'
+  import CollapsedItems from './CollapsedItems.svelte'
 
   export let key = undefined // only applicable for object properties
   export let value
@@ -39,12 +39,15 @@
   export let onPatch
   export let onUpdateKey
   export let onExpand
-  export let onLimit
   export let onSelect
+  
+  /** @type {function (path: Path, section: Section)} */
+  export let onExpandSection
+
   export let selection
   
   $: expanded = state && state[STATE_EXPANDED]
-  $: limit = state && state[STATE_LIMIT]
+  $: visibleSections = state && state[STATE_VISIBLE_SECTIONS]
   $: props = state && state[STATE_PROPS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
@@ -56,6 +59,7 @@
 
   $: type = valueType (value)
 
+  $: limit = visibleSections && visibleSections[0].end // FIXME: make dynamic
   $: limited = type === 'array' && value.length > limit
 
   $: items = type === 'array'
@@ -209,14 +213,6 @@
 
       window.open(value, '_blank')
     }
-  }
-
-  function handleShowAll () {
-    onLimit(path, Infinity)
-  }
-
-  function handleShowMore () {
-    onLimit(path, (Math.round(limit / DEFAULT_LIMIT) + 1) * DEFAULT_LIMIT)
   }
 
   function handleMouseDown (event) {
@@ -400,21 +396,32 @@
     </div>
     {#if expanded}
       <div class="items">
-        {#each items as item, index (index)}
-          <svelte:self
-            key={index}
-            value={item}
-            path={path.concat(index)}
-            state={state && state[index]}
-            searchResult={searchResult ? searchResult[index] : undefined}
-            validationErrors={validationErrors ? validationErrors[index] : undefined}
-            onPatch={onPatch}
-            onUpdateKey={handleUpdateKey}
-            onExpand={onExpand}
-            onLimit={onLimit}
-            onSelect={onSelect}
-            selection={selection}
-          />
+        {#each visibleSections as visibleSection, sectionIndex (sectionIndex)}
+          {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (itemIndex)}
+            <svelte:self
+              key={visibleSection.start + itemIndex}
+              value={item}
+              path={path.concat(visibleSection.start + itemIndex)}
+              state={state && state[visibleSection.start + itemIndex]}
+              searchResult={searchResult ? searchResult[visibleSection.start + itemIndex] : undefined}
+              validationErrors={validationErrors ? validationErrors[visibleSection.start + itemIndex] : undefined}
+              onPatch={onPatch}
+              onUpdateKey={handleUpdateKey}
+              onExpand={onExpand}
+              onSelect={onSelect}
+              onExpandSection={onExpandSection}
+              selection={selection}
+            />
+          {/each}
+          {#if visibleSection.end < value.length}
+            <CollapsedItems 
+              visibleSections={visibleSections}
+              sectionIndex={sectionIndex}
+              total={value.length}
+              path={path}
+              onExpandSection={onExpandSection}
+            />
+          {/if}
         {/each}
         <div
           data-type="append-node-selector"
@@ -424,11 +431,11 @@
         >
           <div class="selector"></div>
         </div>
-        {#if limited}
+        <!-- {#if limited}
           <div class="limit" style={getIndentationStyle(path.length + 2)}>
             (showing {limit} of {value.length} items <button on:click={handleShowMore}>show more</button> <button on:click={handleShowAll}>show all</button>)
           </div>
-        {/if}
+        {/if} -->
       </div>
       <div data-type="selectable-area" class="footer" style={indentationStyle} >
         <span class="delimiter">]</span>
@@ -490,8 +497,8 @@
             onPatch={onPatch}
             onUpdateKey={handleUpdateKey}
             onExpand={onExpand}
-            onLimit={onLimit}
             onSelect={onSelect}
+            onExpandSection={onExpandSection}
             selection={selection}
           />
         {/each}
