@@ -42,7 +42,11 @@ findRootPath
   import { mapValidationErrors } from '../../logic/validation.js'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
+  import createDebug from 'debug'
 
+  // TODO: document how to enable debugging in the readme: localStorage.debug="jsoneditor:*", then reload
+  const debug = createDebug('jsoneditor:TreeMode')
+  
   const { open } = getContext('simple-modal')
   const sortModalId = uniqueId()
   const transformModalId = uniqueId()
@@ -92,7 +96,7 @@ findRootPath
   function handleSearchDone (results) {
     searchResult = updateSearchResult(doc, results, searchResult)
     searching = false
-    console.log('finished search')
+    debug('finished search')
   }
 
   async function handleSearchText (text) {
@@ -122,11 +126,11 @@ findRootPath
   $: {
     // cancel previous search when still running
     if (searchHandler && searchHandler.cancel) {
-      console.log('cancel previous search')
+      debug('cancel previous search')
       searchHandler.cancel()
     }
 
-    console.log('start search', searchText)
+    debug('start search', searchText)
     searching = true
 
     searchHandler = searchAsync(searchText, doc, {
@@ -170,7 +174,7 @@ findRootPath
     const prevState = state
     const prevSelection = selection
 
-    console.log('operations', operations)
+    debug('operations', operations)
 
     const documentPatchResult = immutableJSONPatch(doc, operations)
     const statePatchResult = immutableJSONPatch(state, operations)
@@ -214,7 +218,7 @@ findRootPath
 
   function handleCut() {
     if (selection && selection.paths) {
-      console.log('cut', { selection, clipboard })
+      debug('cut', { selection, clipboard })
 
       clipboard = selectionToClipboard(selection)
       
@@ -227,13 +231,13 @@ findRootPath
   function handleCopy() {
     if (selection && selection.paths) {
       clipboard = selectionToClipboard(selection)
-      console.log('copy', { clipboard })
+      debug('copy', { clipboard })
     }
   }
 
   function handlePaste() {
     if (selection && clipboard) {
-      console.log('paste', { clipboard, selection })
+      debug('paste', { clipboard, selection })
 
       const operations = insert(doc, state, selection, clipboard)
       const newSelection = createSelectionFromOperations(operations)
@@ -244,7 +248,7 @@ findRootPath
 
   function handleRemove() {
     if (selection && selection.paths) {
-      console.log('remove', { selection })
+      debug('remove', { selection })
 
       const operations = removeAll(selection.paths)
       handlePatch(operations)
@@ -255,7 +259,7 @@ findRootPath
 
   function handleDuplicate() {
     if (selection && selection.paths) {
-      console.log('duplicate', { selection })
+      debug('duplicate', { selection })
 
       const operations = duplicate(doc, state, selection.paths)
       const newSelection = createSelectionFromOperations(operations)
@@ -269,7 +273,7 @@ findRootPath
    */ 
   function handleInsert(type) {
     if (selection != null) {
-      console.log('insert', { type, selection })
+      debug('insert', { type, selection })
 
       const value = createNewValue(doc, selection, type)
       const values = [
@@ -300,7 +304,7 @@ findRootPath
         state = item.prevState
         selection = item.prevSelection
 
-        console.log('undo', { item,  doc, state, selection })
+        debug('undo', { item,  doc, state, selection })
 
         emitOnChange()
       }
@@ -315,7 +319,7 @@ findRootPath
         state = item.state
         selection = item.selection
 
-        console.log('redo', { item,  doc, state, selection })
+        debug('redo', { item,  doc, state, selection })
 
         emitOnChange()
       }
@@ -330,7 +334,7 @@ findRootPath
       json: getIn(doc, rootPath),
       rootPath,
       onSort: async (operations) => {
-        console.log('onSort', rootPath, operations)
+        debug('onSort', rootPath, operations)
         patch(operations, selection)
       }
     }, {
@@ -350,7 +354,7 @@ findRootPath
       json: getIn(doc, rootPath),
       rootPath,
       onTransform: async (operations) => {
-        console.log('onTransform', rootPath, operations)
+        debug('onTransform', rootPath, operations)
 
         const expanded = getIn(state, rootPath.concat(STATE_EXPANDED))
 
@@ -396,7 +400,7 @@ findRootPath
    * @param {Selection} [newSelection]
    */
   function handlePatch(operations, newSelection) {
-    // console.log('handlePatch', operations)
+    // debug('handlePatch', operations)
 
     const patchResult = patch(operations, newSelection)
 
@@ -455,7 +459,7 @@ findRootPath
   }
 
   function handleExpandSection (path, section) {
-    console.log('handleExpandSection', path, section)
+    debug('handleExpandSection', path, section)
 
     state = expandSection(state, path, section)
   }
