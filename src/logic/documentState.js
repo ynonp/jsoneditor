@@ -55,7 +55,7 @@ export function syncState (doc, state = undefined, path, expand, forceRefresh = 
 
     // note that we reset the visible items when the state is not expanded
     updatedState[STATE_VISIBLE_SECTIONS] = (state && updatedState[STATE_EXPANDED])
-      ? state[STATE_VISIBLE_SECTIONS]
+      ? (state[STATE_VISIBLE_SECTIONS] || DEFAULT_VISIBLE_SECTIONS)
       : DEFAULT_VISIBLE_SECTIONS
 
     if (updatedState[STATE_EXPANDED]) {
