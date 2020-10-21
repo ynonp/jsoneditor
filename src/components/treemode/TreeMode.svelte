@@ -75,8 +75,6 @@ findRootPath
     return path.length < 1 
       ? true
       : (path.length === 1 && path[0] === 0) // first item of an array?
-        ? true 
-        : false  
   })
   $: validationErrorsList = validate ? validate(doc) : []
   $: validationErrors = mapValidationErrors(validationErrorsList)
@@ -102,17 +100,17 @@ findRootPath
   async function handleSearchText (text) {
     searchText = text
     await tick() // await for the search results to be updated
-    focusActiveSearchResult(searchResult && searchResult.activeItem)
+    await focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
   async function handleNextSearchResult () {
     searchResult = searchNext(searchResult)
-    focusActiveSearchResult(searchResult && searchResult.activeItem)
+    await focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
-  function handlePreviousSearchResult () {
+  async function handlePreviousSearchResult () {
     searchResult = searchPrevious(searchResult)
-    focusActiveSearchResult(searchResult && searchResult.activeItem)
+    await focusActiveSearchResult(searchResult && searchResult.activeItem)
   }
 
   async function focusActiveSearchResult (activeItem) {
