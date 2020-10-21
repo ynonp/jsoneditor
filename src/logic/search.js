@@ -1,5 +1,10 @@
-import { isEqual, initial } from 'lodash-es'
-import { STATE_SEARCH_PROPERTY, STATE_SEARCH_VALUE } from '../constants.js'
+import { initial, isEqual } from 'lodash-es'
+import {
+  ACTIVE_SEARCH_RESULT,
+  SEARCH_RESULT,
+  STATE_SEARCH_PROPERTY,
+  STATE_SEARCH_VALUE
+} from '../constants.js'
 import { existsIn, getIn, setIn } from '../utils/immutabilityHelpers.js'
 import { valueType } from '../utils/typeUtils.js'
 
@@ -27,7 +32,7 @@ export function updateSearchResult (doc, flatResults, previousResult) {
   const activeIndex = flatItems.findIndex(item => isEqual(item, activeItem))
 
   const itemsWithActive = (items && activeItem && activeIndex !== -1)
-    ? setIn(items, activeItem, 'search active')
+    ? setIn(items, activeItem, ACTIVE_SEARCH_RESULT)
     : items
 
   return {
@@ -52,7 +57,7 @@ export function createRecursiveSearchResults (referenceDoc, flatResults) {
       result = setIn(result, parentPath, Array.isArray(item) ? [] : {}, true)
     }
 
-    result = setIn(result, path, 'search')
+    result = setIn(result, path, SEARCH_RESULT)
   })
 
   return result
@@ -70,7 +75,7 @@ export function searchNext (searchResult) {
   const nextActiveItem = searchResult.flatItems[nextActiveIndex]
 
   const itemsWithActive = nextActiveItem
-    ? setIn(searchResult.items, nextActiveItem, 'search active', true)
+    ? setIn(searchResult.items, nextActiveItem, ACTIVE_SEARCH_RESULT, true)
     : searchResult.items
 
   return {
@@ -93,7 +98,7 @@ export function searchPrevious (searchResult) {
   const previousActiveItem = searchResult.flatItems[previousActiveIndex]
 
   const itemsWithActive = previousActiveItem
-    ? setIn(searchResult.items, previousActiveItem, 'search active', true)
+    ? setIn(searchResult.items, previousActiveItem, ACTIVE_SEARCH_RESULT, true)
     : searchResult.items
 
   return {

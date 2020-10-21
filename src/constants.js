@@ -5,6 +5,8 @@ export const STATE_VISIBLE_SECTIONS = Symbol('visible sections')
 export const STATE_PROPS = Symbol('props')
 export const STATE_SEARCH_PROPERTY = Symbol('search:property')
 export const STATE_SEARCH_VALUE = Symbol('search:value')
+export const SEARCH_RESULT = Symbol('search:result')
+export const ACTIVE_SEARCH_RESULT = Symbol('search:active-result')
 export const VALIDATION_ERROR = Symbol('validation:error')
 
 export const SCROLL_DURATION = 300 // ms

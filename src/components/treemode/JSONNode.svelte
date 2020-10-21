@@ -1,19 +1,27 @@
 <svelte:options immutable={true} />
 
 <script>
-  import { debounce, isEqual } from 'lodash-es'
-  import { rename } from '../../logic/operations.js'
-  import { singleton } from './singleton.js'
   import {
+    faCaretDown,
+    faCaretRight,
+    faExclamationTriangle
+  } from '@fortawesome/free-solid-svg-icons'
+  import classnames from 'classnames'
+  import { debounce, isEqual } from 'lodash-es'
+  import Icon from 'svelte-awesome'
+  import {
+    ACTIVE_SEARCH_RESULT,
     DEBOUNCE_DELAY,
+    INDENTATION_WIDTH,
     STATE_EXPANDED,
     STATE_PROPS,
     STATE_SEARCH_PROPERTY,
     STATE_SEARCH_VALUE,
     STATE_VISIBLE_SECTIONS,
-    INDENTATION_WIDTH,
     VALIDATION_ERROR
   } from '../../constants.js'
+  import { getNextKeys } from '../../logic/documentState.js'
+  import { rename } from '../../logic/operations.js'
   import {
     getPlainText,
     isChildOfAttribute,
@@ -21,14 +29,11 @@
     isContentEditableDiv,
     setPlainText
   } from '../../utils/domUtils.js'
-  import Icon from 'svelte-awesome'
-  import { faCaretDown, faCaretRight, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
-  import classnames from 'classnames'
+  import { compileJSONPointer } from '../../utils/jsonPointer'
   import { findUniqueName } from '../../utils/stringUtils.js'
   import { isUrl, stringConvert, valueType } from '../../utils/typeUtils'
-  import { compileJSONPointer } from '../../utils/jsonPointer'
-  import { getNextKeys } from '../../logic/documentState.js'
   import CollapsedItems from './CollapsedItems.svelte'
+  import { singleton } from './singleton.js'
 
   export let key = undefined // only applicable for object properties
   export let value
@@ -91,14 +96,18 @@
   function getValueClass (value, searchResult) {
     const type = valueType (value)
 
-    return classnames('value', type, searchResult && searchResult[STATE_SEARCH_VALUE], {
+    return classnames('value', type, {
+      search: searchResult && searchResult[STATE_SEARCH_VALUE],
+      active: searchResult && searchResult[STATE_SEARCH_VALUE] === ACTIVE_SEARCH_RESULT,
       url: isUrl(value),
-      empty: typeof value === 'string' && value.length === 0,
+      empty: typeof value === 'string' && value.length === 0
     })
   }
 
   function getKeyClass(key, searchResult) {
-    return classnames('key', searchResult && searchResult[STATE_SEARCH_PROPERTY], {
+    return classnames('key', {
+      search: searchResult && searchResult[STATE_SEARCH_PROPERTY],
+      active: searchResult && searchResult[STATE_SEARCH_PROPERTY] === ACTIVE_SEARCH_RESULT,
       empty: key === ''
     })
   }

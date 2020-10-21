@@ -1,7 +1,11 @@
 import assert from 'assert'
 import { times } from 'lodash-es'
 import { searchAsync, searchGenerator, createRecursiveSearchResults } from './search.js'
-import { STATE_SEARCH_PROPERTY, STATE_SEARCH_VALUE } from '../constants.js'
+import {
+  SEARCH_RESULT,
+  STATE_SEARCH_PROPERTY,
+  STATE_SEARCH_VALUE
+} from '../constants.js'
 
 describe('search', () => {
   it('should search with generator', () => {
@@ -133,16 +137,16 @@ describe('search', () => {
 
     expected.b = {}
     expected.b.c = {}
-    expected.b.c[STATE_SEARCH_VALUE] = 'search'
+    expected.b.c[STATE_SEARCH_VALUE] = SEARCH_RESULT
     expected.a = []
-    expected.a[STATE_SEARCH_PROPERTY] = 'search'
+    expected.a[STATE_SEARCH_PROPERTY] = SEARCH_RESULT
     expected.a[0] = {}
     expected.a[0].a = {}
-    expected.a[0].a[STATE_SEARCH_PROPERTY] = 'search'
+    expected.a[0].a[STATE_SEARCH_PROPERTY] = SEARCH_RESULT
     expected.a[0].c = {}
-    expected.a[0].c[STATE_SEARCH_VALUE] = 'search'
+    expected.a[0].c[STATE_SEARCH_VALUE] = SEARCH_RESULT
     expected.a[2] = {}
-    expected.a[2][STATE_SEARCH_VALUE] = 'search'
+    expected.a[2][STATE_SEARCH_VALUE] = SEARCH_RESULT
 
     assert.deepStrictEqual(actual, expected)
   })
