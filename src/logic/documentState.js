@@ -87,10 +87,10 @@ export function syncState (doc, state = undefined, path, expand, forceRefresh = 
 export function expandPath (state, path) {
   let updatedState = state
 
-  for (let i = 1; i < path.length; i++) {
+  for (let i = 0; i < path.length; i++) {
     const partialPath = path.slice(0, i)
-    // FIXME: setIn has to create object first
-    updatedState = setIn(updatedState, partialPath.concat(STATE_EXPANDED), true, true)
+    const expandedPath = partialPath.concat(STATE_EXPANDED)
+    updatedState = setIn(updatedState, expandedPath, true, true)
 
     // if needed, enlarge the expanded sections such that the search result becomes visible in the array
     const key = path[i]
