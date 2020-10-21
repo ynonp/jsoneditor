@@ -25,9 +25,19 @@
   function getIndentationStyle(level) {
     return `margin-left: ${level * INDENTATION_WIDTH}px`
   }
+
+  function handleMouseMove (event) {
+    // prevent the whole array from being selected whilst dragging over
+    // a section with collapsed items
+    event.stopPropagation()
+  }
 </script>
 
-<div class="collapsed-items" style={getIndentationStyle(path.length + 2)}>
+<div 
+  class="collapsed-items" 
+  on:mousemove={handleMouseMove}
+  style={getIndentationStyle(path.length + 2)}
+>
   <div>
     <div class="text">Items {startIndex}-{endIndex}</div
     >{#each expandItemsSections as expandItemsSection
