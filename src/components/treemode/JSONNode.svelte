@@ -58,14 +58,6 @@
   let hovered = false
 
   $: type = valueType (value)
-
-  $: limit = visibleSections && visibleSections[0].end // FIXME: make dynamic
-  $: limited = type === 'array' && value.length > limit
-
-  $: items = type === 'array'
-    ? limited ? value.slice(0, limit) : value
-    : undefined
-
   $: valueIsUrl = isUrl(value)
 
   let keyClass
@@ -431,11 +423,6 @@
         >
           <div class="selector"></div>
         </div>
-        <!-- {#if limited}
-          <div class="limit" style={getIndentationStyle(path.length + 2)}>
-            (showing {limit} of {value.length} items <button on:click={handleShowMore}>show more</button> <button on:click={handleShowAll}>show all</button>)
-          </div>
-        {/if} -->
       </div>
       <div data-type="selectable-area" class="footer" style={indentationStyle} >
         <span class="delimiter">]</span>
