@@ -43,6 +43,9 @@
   }
 
   function handleKeyDown (event) {
+    // key events must not be handled by the generic keydown handler of the
+    // whole JSONEditor.
+    event.stopPropagation()
     const combo = keyComboFromEvent(event)
 
     if (combo === 'Ctrl+Enter' || combo === 'Command+Enter') {
