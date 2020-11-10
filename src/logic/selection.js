@@ -1,8 +1,9 @@
-import { first, initial, isEqual } from 'lodash-es'
+import { first, initial, isEqual, last } from 'lodash-es'
 import { STATE_PROPS } from '../constants.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
 import { isObject } from '../utils/typeUtils.js'
+import { getNextVisiblePath, getPreviousVisiblePath } from './documentState.js'
 
 /**
  * Expand a selection start and end into an array containing all paths
@@ -78,10 +79,154 @@ export function getParentPath (selection) {
     return selection.appendPath
   }
 
+  if (selection.keyPath) {
+    return initial(selection.keyPath)
+  }
+
+  if (selection.valuePath) {
+    return initial(selection.valuePath)
+  }
+
   if (selection.paths) {
     const firstPath = first(selection.paths)
     return initial(firstPath)
   }
+}
+
+/**
+ * @param {Selection} selection
+ * @returns {Path}
+ */
+function getFirstPath (selection) {
+  return (selection.beforePath ||
+    selection.appendPath ||
+    selection.keyPath ||
+    selection.valuePath ||
+    first(selection.paths))
+}
+
+/**
+ * @param {Selection} selection
+ * @returns {Path}
+ */
+function getLastPath (selection) {
+  return (selection.beforePath ||
+    selection.appendPath ||
+    selection.keyPath ||
+    selection.valuePath ||
+    last(selection.paths))
+}
+
+/**
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Selection} selection
+ * @returns {Selection | null}
+ */
+export function getSelectionUp (doc, state, selection) {
+  const path = getFirstPath(selection)
+  const previousPath = getPreviousVisiblePath(doc, state, path)
+
+  // TODO: deduplicate
+  if (previousPath !== null) {
+    if (selection.keyPath) {
+      const parentPath = initial(previousPath)
+      const parent = getIn(doc, parentPath)
+      if (Array.isArray(parent)) {
+        // switch to valuePath: array has no keys
+        return { valuePath: previousPath }
+      } else {
+        return { keyPath: previousPath }
+      }
+    } else if (selection.valuePath) {
+      return { valuePath: previousPath }
+    } else {
+      const paths = [ previousPath ]
+      return {
+        paths,
+        pathsMap: createPathsMap(paths)
+      }
+    }
+  }
+
+  return null
+}
+
+/**
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Selection} selection
+ * @returns {Selection | null}
+ */
+export function getSelectionDown (doc, state, selection) {
+  const path = getLastPath(selection)
+  const nextPath = getNextVisiblePath(doc, state, path)
+
+  // TODO: deduplicate
+  if (nextPath !== null) {
+    if (selection.keyPath) {
+      const parentPath = initial(nextPath)
+      const parent = getIn(doc, parentPath)
+      if (Array.isArray(parent)) {
+        // switch to valuePath: array has no keys
+        return { valuePath: nextPath }
+      } else {
+        return { keyPath: nextPath }
+      }
+    } else if (selection.valuePath) {
+      return {
+        valuePath: nextPath
+      }
+    } else {
+      const paths = [ nextPath ]
+      return {
+        paths,
+        pathsMap: createPathsMap(paths)
+      }
+    }
+  }
+
+  return null
+}
+
+/**
+ * @param {Selection} selection
+ * @returns {Selection | null}
+ */
+export function getSelectionLeft (selection) {
+  if (selection.valuePath) {
+    return {
+      keyPath: selection.valuePath
+    }
+  }
+
+  if (selection.paths && selection.paths.length === 1) {
+    return {
+      keyPath: first(selection.paths)
+    }
+  }
+
+  return null
+}
+
+/**
+ * @param {Selection} selection
+ * @returns {Selection | null}
+ */
+export function getSelectionRight (selection) {
+  if (selection.keyPath) {
+    return {
+      valuePath: selection.keyPath
+    }
+  }
+
+  if (selection.paths && selection.paths.length === 1) {
+    return {
+      valuePath: first(selection.paths)
+    }
+  }
+
+  return null
 }
 
 /**

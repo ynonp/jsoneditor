@@ -1,5 +1,10 @@
 import assert from 'assert'
-import { expandSelection, getParentPath, findRootPath } from './selection.js'
+import {
+  expandSelection,
+  getParentPath,
+  findRootPath,
+  getSelectionLeft, getSelectionRight
+} from './selection.js'
 import { syncState } from './documentState.js'
 
 describe('selection', () => {
@@ -89,5 +94,34 @@ describe('selection', () => {
     assert.deepStrictEqual(findRootPath({ beforePath: ['a', 'b'] }), [])
     assert.deepStrictEqual(findRootPath({ appendPath: ['a', 'b'] }), [])
     assert.deepStrictEqual(findRootPath(), [])
+  })
+
+  describe('navigate', () => {
+    it ('should move selection left', () => {
+      assert.deepStrictEqual({ keyPath: ['path'] }, getSelectionLeft({ valuePath: ['path'] }))
+
+      assert.deepStrictEqual(null, getSelectionLeft({ keyPath: ['path'] }))
+      assert.deepStrictEqual(null, getSelectionLeft({ beforePath: ['path'] }))
+      assert.deepStrictEqual(null, getSelectionLeft({ appendPath: ['path'] }))
+
+      assert.deepStrictEqual({ keyPath: ['path'] },
+        getSelectionLeft({ paths: [['path']], pathsMap: { '/path': true } }))
+
+      assert.deepStrictEqual(null,
+        getSelectionLeft({ paths: [['path1'], ['path2']], pathsMap: { '/path1': true, '/path2': true } }))
+    })
+
+    it ('should move selection right', () => {
+      assert.deepStrictEqual({ valuePath: ['path'] }, getSelectionRight({ keyPath: ['path'] }))
+
+      assert.deepStrictEqual(null, getSelectionRight({ valuePath: ['path'] }))
+      assert.deepStrictEqual(null, getSelectionRight({ beforePath: ['path'] }))
+      assert.deepStrictEqual(null, getSelectionRight({ appendPath: ['path'] }))
+
+      assert.deepStrictEqual({ valuePath: ['path'] },
+        getSelectionRight({ paths: [['path']], pathsMap: { '/path': true } }))
+      assert.deepStrictEqual(null,
+        getSelectionRight({ paths: [['path1'], ['path2']], pathsMap: { '/path1': true, '/path2': true } }))
+    })
   })
 })

@@ -5,7 +5,8 @@ import {
   STATE_PROPS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
-import { syncState, updateProps } from './documentState.js'
+import { compileJSONPointer } from '../utils/jsonPointer.js'
+import { getVisiblePaths, syncState, updateProps } from './documentState.js'
 
 describe('documentState', () => {
   it('syncState', () => {
@@ -59,6 +60,54 @@ describe('documentState', () => {
     const props1 = updateProps({ a: 1, b: 2 })
     const props2 = updateProps({ a: 1, b: 2 }, props1)
     assert.deepStrictEqual(props2, props1)
+  })
+
+  it ('get all expanded paths', () => {
+    const doc = {
+      array: [1, 2, { c: 6 }],
+      object: { a: 4, b: 5 },
+      value: 'hello'
+    }
+
+    const state = syncState(doc, undefined, [], path => false)
+    assert.deepStrictEqual(getVisiblePaths(doc, state).map(compileJSONPointer), [
+      ''
+    ])
+
+    const state0 = syncState(doc, undefined, [], path => path.length <= 0)
+    assert.deepStrictEqual(getVisiblePaths(doc, state0).map(compileJSONPointer), [
+      '',
+      '/array',
+      '/object',
+      '/value'
+    ])
+
+    const state1 = syncState(doc, undefined, [], path => path.length <= 1)
+    assert.deepStrictEqual(getVisiblePaths(doc, state1).map(compileJSONPointer), [
+      '',
+      '/array',
+      '/array/0',
+      '/array/1',
+      '/array/2',
+      '/object',
+      '/object/a',
+      '/object/b',
+      '/value'
+    ])
+
+    const state2 = syncState(doc, undefined, [], path => path.length <= 2)
+    assert.deepStrictEqual(getVisiblePaths(doc, state2).map(compileJSONPointer), [
+      '',
+      '/array',
+      '/array/0',
+      '/array/1',
+      '/array/2',
+      '/array/2/c',
+      '/object',
+      '/object/a',
+      '/object/b',
+      '/value'
+    ])
   })
 
   // TODO: write more unit tests

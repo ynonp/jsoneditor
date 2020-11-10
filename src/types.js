@@ -25,7 +25,7 @@
  */
 
 /**
- * @typedef {Array<string | number>} Path
+ * @typedef {Array<string | number | Symbol>} Path
  */
 
 /**
@@ -65,7 +65,15 @@
  */
 
 /**
- * @typedef {MultiSelection | BeforeSelection | AppendSelection} Selection
+ * @typedef {{keyPath: Path}} KeySelection
+ */
+
+/**
+ * @typedef {{valuePath: Path}} ValueSelection
+ */
+
+/**
+ * @typedef {MultiSelection | BeforeSelection | AppendSelection | KeySelection | ValueSelection} Selection
  */
 
 /**

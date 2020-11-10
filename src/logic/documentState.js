@@ -1,14 +1,25 @@
-import { initial, isEqual, isNumber, last, merge, uniqueId } from 'lodash-es'
+import { initial, isEqual, isNumber, last, uniqueId } from 'lodash-es'
 import {
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
   STATE_PROPS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
-import { deleteIn, getIn, insertAt, setIn, updateIn } from '../utils/immutabilityHelpers.js'
-import { parseJSONPointer } from '../utils/jsonPointer.js'
+import {
+  deleteIn,
+  getIn,
+  insertAt,
+  setIn,
+  updateIn
+} from '../utils/immutabilityHelpers.js'
+import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
-import { mergeSections, inVisibleSection, previousRoundNumber, nextRoundNumber } from './expandItemsSections.js'
+import {
+  inVisibleSection,
+  mergeSections,
+  nextRoundNumber,
+  previousRoundNumber
+} from './expandItemsSections.js'
 
 /**
  * Sync a state object with the doc it belongs to: update props, limit, and expanded state
@@ -228,4 +239,83 @@ export function getNextKeys (props, key, includeKey = false) {
   }
 
   return []
+}
+
+/**
+ * Get all paths which are visible and rendered
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @returns {Path[]}
+ */
+// TODO: create memoized version of getVisiblePaths which remembers just the previous result if doc and state are the same
+export function getVisiblePaths (doc, state) {
+  let paths = [
+    [] // root itself is always visible
+  ]
+
+  function _recurse (doc, state, path) {
+    if (doc && state && state[STATE_EXPANDED] === true) {
+      if (Array.isArray(doc)) {
+        // FIXME: reckon with Array visible sections
+        doc.forEach((item, index) => {
+          paths.push(path.concat(index))
+          _recurse(item, state[index], path.concat(index))
+        })
+      } else { // Object
+        const props = state[STATE_PROPS]
+        props.forEach(prop => {
+          paths.push(path.concat(prop.key))
+          _recurse(doc[prop.key], state[prop.key], path.concat(prop.key))
+        })
+      }
+    }
+  }
+
+  _recurse(doc, state, [])
+
+  return paths
+}
+
+/**
+ * Find the previous visible path.
+ * This can be the last child of the previous object or array, or the parent of a first entry.
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Path} path
+ * @return {Path | null}
+ */
+// TODO: write tests for getPreviousVisiblePath
+export function getPreviousVisiblePath (doc, state, path) {
+  const visiblePaths = getVisiblePaths(doc, state)
+  const visiblePathPointers = visiblePaths.map(compileJSONPointer)
+  const pathPointer = compileJSONPointer(path)
+  const index = visiblePathPointers.indexOf(pathPointer)
+
+  if (index !== -1 && index > 0) {
+    return visiblePaths[index - 1]
+  }
+
+  return null
+}
+
+/**
+ * Find the next visible path.
+ * This can be the next parent entry.
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Path} path
+ * @param {boolean} [after=false]
+ * @return {Path | null} path
+ */
+// TODO: write tests for getNextVisiblePath
+export function getNextVisiblePath (doc, state, path, after = false) {
+  const visiblePaths = getVisiblePaths(doc, state)
+  const visiblePathPointers = visiblePaths.map(compileJSONPointer)
+  const index = visiblePathPointers.indexOf(compileJSONPointer(path))
+
+  if (index !== -1 && index < visiblePaths.length - 1) {
+    return visiblePaths[index + 1]
+  }
+
+  return null
 }

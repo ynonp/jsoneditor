@@ -50,7 +50,29 @@
   export let onExpandSection
 
   export let selection
-  
+
+  // FIXME: this is not efficient. Create a nested object with the selection and pass that
+  $: selected = (selection && selection.pathsMap)
+    ? selection.pathsMap[compileJSONPointer(path)] === true
+    : false
+
+  $: selectedBefore = (selection && selection.beforePath)
+    ? isEqual(selection.beforePath, path)
+    : false
+
+  $: selectedAppend = (selection && selection.appendPath)
+    ? isEqual(selection.appendPath, path)
+    : false
+
+  $: selectedKey = (selection && selection.keyPath)
+    ? isEqual(selection.keyPath, path)
+    : false
+
+  $: selectedValue = (selection && selection.valuePath)
+    ? isEqual(selection.valuePath, path)
+    : false
+
+  $: expanded = state && state[STATE_EXPANDED]
   $: expanded = state && state[STATE_EXPANDED]
   $: visibleSections = state && state[STATE_VISIBLE_SECTIONS]
   $: props = state && state[STATE_PROPS]
@@ -61,6 +83,8 @@
   let domKey 
   let domValue
   let hovered = false
+  let editKey = undefined
+  let editValue = undefined
 
   $: type = valueType (value)
   $: valueIsUrl = isUrl(value)
@@ -191,11 +215,21 @@
   }
 
   function handleValueBlur () {
+    editValue = undefined
+
     // handle any pending changes still waiting in the debounce function
     debouncedUpdateValue.flush()
 
     // make sure differences in escaped text like with new lines is updated
     setPlainText(domValue, value)
+  }
+
+  function handleValueDoubleClick (event) {
+    editValue = true
+    setTimeout(() => {
+      // FIXME: should put focus at the end, not start
+      domValue.focus()
+    })
   }
 
   function handleValueClick (event) {
@@ -208,11 +242,21 @@
   }
 
   function handleValueKeyDown (event) {
+    // TODO: cleanup?
+    // FIXME: think through a new quick key for opening a URL
     if (event.ctrlKey && event.key === 'Enter') {
       event.preventDefault()
       event.stopPropagation()
 
       window.open(value, '_blank')
+    }
+
+    if (
+      (!event.ctrlKey && event.key === 'Enter') ||
+      (event.key === 'Escape')
+    ) {
+      event.stopPropagation()
+      editValue = undefined
     }
   }
 
@@ -227,7 +271,23 @@
       return
     }
 
-    if (isChildOfAttribute(event.target, 'data-type', 'before-node-selector')) {
+    if (event.target === domKey) {
+      singleton.mousedown = true
+      singleton.selectionAnchor = path
+      singleton.selectionFocus = null
+
+      onSelect({
+        keyPath: path
+      })
+    } else if (event.target === domValue) {
+      singleton.mousedown = true
+      singleton.selectionAnchor = path
+      singleton.selectionFocus = null
+
+      onSelect({
+        valuePath: path
+      })
+    } else if (isChildOfAttribute(event.target, 'data-type', 'before-node-selector')) {
       singleton.mousedown = true
       singleton.selectionAnchor = path
       singleton.selectionFocus = null
@@ -317,19 +377,6 @@
     hovered = false
   }
 
-  // FIXME: this is not efficient. Create a nested object with the selection and pass that
-  $: selected = (selection && selection.pathsMap)
-    ? selection.pathsMap[compileJSONPointer(path)] === true
-    : false
-
-  $: selectedBefore = (selection && selection.beforePath)
-    ? isEqual(selection.beforePath, path)
-    : false
-
-  $: selectedAppend = (selection && selection.appendPath)
-    ? isEqual(selection.appendPath, path)
-    : false
-
   $: indentationStyle = getIndentationStyle(path.length)
 </script>
 
@@ -337,6 +384,8 @@
   class='json-node'
   class:root={path.length === 0}
   class:selected={selected}
+  class:selected-key={selectedKey}
+  class:selected-value={selectedValue}
   class:hovered={hovered}
   on:mousedown={handleMouseDown}
   on:mousemove={handleMouseMove}
@@ -352,8 +401,7 @@
     <div class="selector"></div>
   </div>
   {#if type === 'array'}
-    <div 
-      data-type="selectable-area" class='header' style={indentationStyle} >
+    <div data-type="selectable-area" class='header' style={indentationStyle} >
       <button
         class='expand'
         on:click={toggleExpand}
@@ -369,7 +417,7 @@
         <div
           class={keyClass}
           data-path={compileJSONPointer(path.concat(STATE_SEARCH_PROPERTY))}
-          contenteditable="true"
+          contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
           on:blur={handleKeyBlur}
@@ -377,23 +425,27 @@
         ></div>
         <div class="separator">:</div>
       {/if}
-      {#if expanded}
-        <div class="delimiter">[</div>
-      {:else}
-        <div class="delimiter">[</div>
-        <button class="tag" on:click={handleExpand}>{value.length} items</button>
-        <div class="delimiter">]</div>
-        {#if validationError}
-          <!-- FIXME: implement proper tooltip -->
-          <button
-            class='validation-error' 
-            title={validationError.isChildError ? 'Contains invalid items' : validationError.message}
-            on:click={handleExpand}
-          >
-            <Icon data={faExclamationTriangle} />
-          </button>
-        {/if}
-      {/if}
+      <div class="meta">
+        <div class="meta-inner">
+          {#if expanded}
+            <div class="delimiter">[</div>
+          {:else}
+            <div class="delimiter">[</div>
+            <button class="tag" on:click={handleExpand}>{value.length} items</button>
+            <div class="delimiter">]</div>
+            {#if validationError}
+              <!-- FIXME: implement proper tooltip -->
+              <button
+                class='validation-error'
+                title={validationError.isChildError ? 'Contains invalid items' : validationError.message}
+                on:click={handleExpand}
+              >
+                <Icon data={faExclamationTriangle} />
+              </button>
+            {/if}
+          {/if}
+        </div>
+      </div>
     </div>
     {#if expanded}
       <div class="items">
@@ -454,7 +506,7 @@
         <div
           class={keyClass}
           data-path={compileJSONPointer(path.concat(STATE_SEARCH_PROPERTY))}
-          contenteditable="true"
+          contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
           on:blur={handleKeyBlur}
@@ -462,23 +514,27 @@
         ></div>
         <span class="separator">:</span>
       {/if}
-      {#if expanded}
-        <span class="delimiter">&#123;</span>
-      {:else}
-        <span class="delimiter"> &#123;</span>
-        <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
-        <span class="delimiter">&rbrace;</span>
-        {#if validationError}
-          <!-- FIXME: implement proper tooltip -->
-          <button 
-            class='validation-error' 
-            title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
-            on:click={handleExpand}
-          >
-            <Icon data={faExclamationTriangle} />
-          </button>
-        {/if}
-      {/if}
+      <div class="meta">
+        <div class="meta-inner">
+          {#if expanded}
+            <span class="delimiter">&#123;</span>
+          {:else}
+            <span class="delimiter"> &#123;</span>
+            <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
+            <span class="delimiter">&rbrace;</span>
+            {#if validationError}
+              <!-- FIXME: implement proper tooltip -->
+              <button
+                class='validation-error'
+                title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
+                on:click={handleExpand}
+              >
+                <Icon data={faExclamationTriangle} />
+              </button>
+            {/if}
+          {/if}
+        </div>
+      </div>
     </div>
     {#if expanded}
       <div class="props">
@@ -517,7 +573,7 @@
         <div
           class={keyClass}
           data-path={compileJSONPointer(path.concat(STATE_SEARCH_PROPERTY))}
-          contenteditable="true"
+          contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
           on:blur={handleKeyBlur}
@@ -528,11 +584,12 @@
       <div
         class={valueClass}
         data-path={compileJSONPointer(path.concat(STATE_SEARCH_VALUE))}
-        contenteditable="true"
+        contenteditable={editValue}
         spellcheck="false"
         on:input={handleValueInput}
         on:blur={handleValueBlur}
         on:click={handleValueClick}
+        on:dblclick={handleValueDoubleClick}
         on:keydown={handleValueKeyDown}
         bind:this={domValue}
         title={valueIsUrl ? 'Ctrl+Click or Ctrl+Enter to open url in new window' : null}

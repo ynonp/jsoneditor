@@ -12,25 +12,11 @@
     box-sizing: border-box;
   }
 
-  .header,
-  .contents,
-  .footer {
-    transition: background-color 0.1s ease-in-out;
-  }
-
   &.hovered {
     .header,
     .contents,
     .footer {
       background-color: $hovered-background;
-    }
-  }
-
-  &.selected {
-    .header,
-    .contents,
-    .footer {
-      background-color: $selection-background;
     }
   }
 
@@ -94,6 +80,13 @@
 
   .header {
     position: relative;
+
+    .meta {
+      > .meta-inner {
+        display: flex;
+        justify-content: center;
+      }
+    }
   }
 
   .header,
@@ -143,13 +136,9 @@
   outline: none;
   border-radius: 1px;
   vertical-align: top;
-
-  &:focus {
-    box-shadow: 0 0 3px 1px #008fd5;
-    z-index: 1;
-  }
 }
 
+.meta,
 .separator,
 .delimiter {
   vertical-align: top;
@@ -164,8 +153,8 @@
   color: white;
   background: $light-gray;
   border-radius: 2px;
-  padding: 1px 4px;
-  margin: 0 5px;
+  padding: 0 4px 1px;
+  margin: 2px 5px;
   cursor: pointer;
   position: relative;
 
@@ -234,6 +223,71 @@ div.empty {
 
   &.active {
     background-color: $highlight-active-color;
+  }
+}
+
+// TODO: simplify the CSS needed to correctly highlight the selection
+.json-node {
+  // entry selected
+  &.selected {
+    .header,
+    .contents,
+    .meta,
+    .delimiter,
+    .separator,
+    .expand,
+    .footer {
+      background-color: $selection-background;
+      color: $selection-color;
+    }
+
+    .value {
+      color: $selection-color;
+    }
+
+    .tag {
+      background: $theme-color-light;
+    }
+  }
+
+  // key selected
+  &.selected-key {
+    > .contents > .key,
+    > .header > .key {
+      background-color: $selection-background;
+      color: $selection-color;
+    }
+  }
+
+  // value selected
+  &.selected-value {
+    > .header > .meta,
+    > .footer,
+    > .contents > .value,
+    > .contents .contents,
+    .props .contents,
+    .props .header,
+    .props .footer,
+    .props .expand,
+    .items .contents,
+    .items .header,
+    .items .footer,
+    .items .expand {
+      background-color: $selection-background;
+      color: $selection-color;
+
+      .value {
+        color: $selection-color;
+      }
+
+      .delimiter {
+        color: $selection-color;
+      }
+
+      .tag {
+        background: $theme-color-light;
+      }
+    }
   }
 }
 

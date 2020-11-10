@@ -1,48 +1,57 @@
 <svelte:options immutable={true} />
 
 <script>
+  import createDebug from 'debug'
+  import { cloneDeep, initial, last, throttle, uniqueId } from 'lodash-es'
   import { getContext, tick } from 'svelte'
+  import jump from '../../assets/jump.js/src/jump.js'
   import {
+    MAX_SEARCH_RESULTS,
+    SCROLL_DURATION,
+    SEARCH_PROGRESS_THROTTLE,
+    SIMPLE_MODAL_OPTIONS,
+    STATE_EXPANDED
+  } from '../../constants.js'
+  import {
+    expandPath,
+    expandSection,
+    patchProps,
+    syncState
+  } from '../../logic/documentState.js'
+  import { createHistory } from '../../logic/history.js'
+  import {
+    createNewValue,
     duplicate,
     insert,
-    createNewValue,
     removeAll
   } from '../../logic/operations.js'
   import {
-    STATE_EXPANDED,
-    STATE_LIMIT,
-    SCROLL_DURATION,
-    SIMPLE_MODAL_OPTIONS,
-    SEARCH_PROGRESS_THROTTLE,
-    MAX_SEARCH_RESULTS
-  } from '../../constants.js'
-  import { createHistory } from '../../logic/history.js'
-  import JSONNode from './JSONNode.svelte'
+    searchAsync,
+    searchNext,
+    searchPrevious,
+    updateSearchResult
+  } from '../../logic/search.js'
   import {
     createPathsMap,
     createSelectionFromOperations,
     expandSelection,
-findRootPath
+    findRootPath, getSelectionDown,
+    getSelectionLeft,
+    getSelectionRight, getSelectionUp
   } from '../../logic/selection.js'
-  import { isContentEditableDiv } from '../../utils/domUtils.js'
-  import {
-    getIn,
-    setIn,
-    updateIn
-  } from '../../utils/immutabilityHelpers.js'
-  import { compileJSONPointer, parseJSONPointer } from '../../utils/jsonPointer.js'
-  import { keyComboFromEvent } from '../../utils/keyBindings.js'
-  import { searchAsync, searchNext, searchPrevious, updateSearchResult } from '../../logic/search.js'
-  import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
-  import { last, initial, cloneDeep, uniqueId, throttle } from 'lodash-es'
-  import jump from '../../assets/jump.js/src/jump.js'
-  import { expandPath, expandSection, syncState, patchProps } from '../../logic/documentState.js'
-  import Menu from './Menu.svelte'
-  import { isObjectOrArray } from '../../utils/typeUtils.js'
   import { mapValidationErrors } from '../../logic/validation.js'
+  import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
+  import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
+  import {
+    compileJSONPointer,
+    parseJSONPointer
+  } from '../../utils/jsonPointer.js'
+  import { keyComboFromEvent } from '../../utils/keyBindings.js'
+  import { isObjectOrArray } from '../../utils/typeUtils.js'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
-  import createDebug from 'debug'
+  import JSONNode from './JSONNode.svelte'
+  import Menu from './Menu.svelte'
 
   // TODO: document how to enable debugging in the readme: localStorage.debug="jsoneditor:*", then reload
   const debug = createDebug('jsoneditor:TreeMode')
@@ -425,6 +434,8 @@ findRootPath
     } else {
       state = setIn(state, path.concat(STATE_EXPANDED), expanded, true)
     }
+
+    setTimeout(() => domHiddenInput.focus())
   }
 
   /**
@@ -432,9 +443,13 @@ findRootPath
    */
   function handleSelect (selectionSchema) {
     if (selectionSchema) {
-      const { anchorPath, focusPath, beforePath, appendPath } = selectionSchema
+      const { anchorPath, focusPath, beforePath, appendPath, keyPath, valuePath } = selectionSchema
 
-      if (beforePath) {
+      if (keyPath) {
+        selection = { keyPath }
+      } else if (valuePath) {
+        selection = { valuePath }
+      } else if (beforePath) {
         selection = { beforePath }
       } else if (appendPath) {
         selection = { appendPath }
@@ -448,6 +463,8 @@ findRootPath
       } else {
         console.error('Unknown type of selection', selectionSchema)
       }
+
+      debug('select', selection) // TODO: cleanup
 
       // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
       setTimeout(() => domHiddenInput.focus())
@@ -464,8 +481,9 @@ findRootPath
 
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
+    debug('keydown', combo, selection) // TODO: cleanup
 
-    if (!isContentEditableDiv(event.target)) {
+    if (selection) {
       if (combo === 'Ctrl+X' || combo === 'Command+X') {
         event.preventDefault()
         handleCut()
@@ -490,6 +508,26 @@ findRootPath
         event.preventDefault()
         handleInsert('structure')
       }
+
+      if (combo === 'Up') {
+        event.preventDefault()
+        selection = getSelectionUp(doc, state, selection) || selection
+      }
+      if (combo === 'Down') {
+        event.preventDefault()
+        selection = getSelectionDown(doc, state, selection) || selection
+      }
+      if (combo === 'Left') {
+        event.preventDefault()
+        selection = getSelectionLeft(selection) || selection
+      }
+      if (combo === 'Right') {
+        event.preventDefault()
+        selection = getSelectionRight(selection) || selection
+      }
+
+      // TODO: implement Shift+Arrows to select multiple entries
+
       if (combo === 'Escape') {
         event.preventDefault()
         selection = null
