@@ -31,7 +31,8 @@
 
   $: hasSelection = selection != null
   $: hasSelectionContents = selection != null && selection.paths != null
-  $: hasSelectionWithoutContents = selection != null && selection.paths == null
+  $: hasSelectionWithoutContents = (selection != null &&
+    (selection.beforePath != null || selection.appendPath != null))
   $: hasClipboardContents = clipboard != null && selection != null
 
   function handleToggleSearch() {

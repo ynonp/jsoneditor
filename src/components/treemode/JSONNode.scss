@@ -55,6 +55,7 @@
   }
 
   // selector must not be visible whilst dragging (mouse down)
+  // FIXME: should not be visible when mouse is down during dragging
   &:active {
     .before-node-selector,
     .append-node-selector {

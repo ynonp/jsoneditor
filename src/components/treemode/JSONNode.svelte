@@ -326,9 +326,7 @@
     }
 
     event.stopPropagation()
-    // event.preventDefault()
-    // IMPORTANT: do not use event.preventDefault() here,
-    //  else the :active style doesn't work!
+    event.preventDefault()
 
     // we attache the mouse up event listener to the global document,
     // so we will not miss if the mouse up is happening outside of the editor
