@@ -530,13 +530,28 @@
 
       // TODO: implement Shift+Arrows to select multiple entries
 
-      if (combo === 'Enter' && (selection.keyPath || selection.valuePath)) {
-        // go to edit mode
+      if (combo === 'Enter' && selection.keyPath) {
+        // go to key edit mode
         event.preventDefault()
-
         selection = {
           ...selection,
           edit: true
+        }
+      }
+
+      if (combo === 'Enter' && selection.valuePath) {
+        event.preventDefault()
+
+        const value = getIn(doc, selection.valuePath)
+        if (isObjectOrArray(value)) {
+          // expand object/array
+          handleExpand(selection.valuePath, true)
+        } else {
+          // go to value edit mode
+          selection = {
+            ...selection,
+            edit: true
+          }
         }
       }
 
