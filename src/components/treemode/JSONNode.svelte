@@ -7,11 +7,11 @@
     faExclamationTriangle
   } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
-  import { debounce, isEqual } from 'lodash-es'
+  import { isEqual } from 'lodash-es'
+  import { tick } from 'svelte'
   import Icon from 'svelte-awesome'
   import {
     ACTIVE_SEARCH_RESULT,
-    DEBOUNCE_DELAY,
     INDENTATION_WIDTH,
     STATE_EXPANDED,
     STATE_PROPS,
@@ -27,6 +27,7 @@
     isChildOfAttribute,
     isChildOfNodeName,
     isContentEditableDiv,
+    setCursorToEnd,
     setPlainText
   } from '../../utils/domUtils.js'
   import { compileJSONPointer } from '../../utils/jsonPointer'
@@ -72,19 +73,59 @@
     ? isEqual(selection.valuePath, path)
     : false
 
+  $: editKey = selectedKey && selection && selection.edit === true
+  $: editValue = selectedValue && selection && selection.edit === true
+
   $: expanded = state && state[STATE_EXPANDED]
   $: expanded = state && state[STATE_EXPANDED]
   $: visibleSections = state && state[STATE_VISIBLE_SECTIONS]
   $: props = state && state[STATE_PROPS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
+  function focusKey () {
+    // TODO: this timeout is ugly
+    setTimeout(() => {
+      domKey.focus()
+      setCursorToEnd(domKey)
+    })
+  }
+
+  function focusValue () {
+    // TODO: this timeout is ugly
+    setTimeout(() => {
+      domValue.focus()
+      setCursorToEnd(domValue)
+    })
+  }
+
+  $: {
+    if (domKey) {
+      if (editKey === true) {
+        // edit changed to true -> set focus to end of input
+        focusKey()
+      } else {
+        // edit changed to false -> apply actual key (cancel changes on Escape)
+        setPlainText(domKey, key)
+      }
+    }
+  }
+
+  $: {
+    if (domValue) {
+      if (editValue === true) {
+        focusValue()
+      } else {
+        // edit changed to false -> apply actual value (cancel changes on Escape)
+        setPlainText(domValue, value)
+      }
+    }
+  }
+
   const escapeUnicode = false // TODO: pass via options
 
   let domKey 
   let domValue
   let hovered = false
-  let editKey = undefined
-  let editValue = undefined
 
   $: type = valueType (value)
   $: valueIsUrl = isUrl(value)
@@ -155,7 +196,6 @@
     // must be handled by the parent which has knowledge about the other keys
     onUpdateKey(key, newKey)
   }
-  const updateKeyDebounced = debounce(updateKey, DEBOUNCE_DELAY)
 
   function handleUpdateKey (oldKey, newKey) {
     const newKeyUnique = findUniqueName(newKey, value)
@@ -166,22 +206,33 @@
 
   function handleKeyInput (event) {
     const newKey = getPlainText(event.target)
-    keyClass = getKeyClass(newKey, searchResult)
     if (newKey === '') {
       // immediately update to cleanup any left over <br/>
       setPlainText(domKey, '')
     }
-
-    // fire a change event only after a delay
-    updateKeyDebounced()
   }
 
-  function handleKeyBlur (event) {
-    // handle any pending changes still waiting in the debounce function
-    updateKeyDebounced.flush()
+  async function handleKeyKeyDown (event) {
+    event.stopPropagation()
 
-    // make sure differences in escaped text like with new lines is updated
-    setPlainText(domKey, key)
+    if (event.key === 'Escape') {
+      // cancel changes
+      onSelect({ keyPath: path })
+    }
+
+    if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      updateKey()
+
+      // TODO: move selection to next value (if any) on Enter
+      // we apply selection on next tick, since the actual path will change
+      await tick()
+      onSelect({ keyPath: path })
+    }
+  }
+
+  function handleKeyDoubleClick (event) {
+    event.preventDefault()
+    onSelect({ keyPath: path, edit: true })
   }
 
   // get the value from the DOM
@@ -199,37 +250,18 @@
       value: newValue
     }])
   }
-  const debouncedUpdateValue = debounce(updateValue, DEBOUNCE_DELAY)
 
   function handleValueInput () {
-    // do not await the debounced update to apply styles
     const newValue = getValue()
-    valueClass = getValueClass(newValue, searchResult)
     if (newValue === '') {
       // immediately update to cleanup any left over <br/>
       setPlainText(domValue, '')
     }
-
-    // fire a change event only after a delay
-    debouncedUpdateValue()
-  }
-
-  function handleValueBlur () {
-    editValue = undefined
-
-    // handle any pending changes still waiting in the debounce function
-    debouncedUpdateValue.flush()
-
-    // make sure differences in escaped text like with new lines is updated
-    setPlainText(domValue, value)
   }
 
   function handleValueDoubleClick (event) {
-    editValue = true
-    setTimeout(() => {
-      // FIXME: should put focus at the end, not start
-      domValue.focus()
-    })
+    event.preventDefault()
+    onSelect({ valuePath: path, edit: true })
   }
 
   function handleValueClick (event) {
@@ -242,33 +274,37 @@
   }
 
   function handleValueKeyDown (event) {
-    // TODO: cleanup?
-    // FIXME: think through a new quick key for opening a URL
-    if (event.ctrlKey && event.key === 'Enter') {
-      event.preventDefault()
-      event.stopPropagation()
+    event.stopPropagation()
 
+    // FIXME: this quickkey only works when in edit mode
+    if (valueIsUrl && event.ctrlKey && event.key === 'Enter') {
+      event.stopPropagation()
       window.open(value, '_blank')
     }
 
-    if (
-      (!event.ctrlKey && event.key === 'Enter') ||
-      (event.key === 'Escape')
-    ) {
-      event.stopPropagation()
-      editValue = undefined
+    if (event.key === 'Escape') {
+      // cancel changes
+      onSelect({ valuePath: path })
+    }
+
+    if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      // apply changes
+      updateValue()
+
+      // TODO: move selection to next value (if any) on Enter
+      onSelect({ valuePath: path })
     }
   }
 
   function handleMouseDown (event) {
-    // unselect existing selection on mouse down if any
-    if (selection) {
-      onSelect(null)
-    }
-
     // check if the mouse down is not happening in the key or value input fields or on a button
     if (isContentEditableDiv(event.target) || isChildOfNodeName(event.target, 'BUTTON')) {
       return
+    }
+
+    // unselect existing selection on mouse down if any
+    if (selection) {
+      onSelect(null)
     }
 
     if (event.target === domKey) {
@@ -420,7 +456,8 @@
           contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
-          on:blur={handleKeyBlur}
+          on:dblclick={handleKeyDoubleClick}
+          on:keydown={handleKeyKeyDown}
           bind:this={domKey}
         ></div>
         <div class="separator">:</div>
@@ -509,7 +546,8 @@
           contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
-          on:blur={handleKeyBlur}
+          on:dblclick={handleKeyDoubleClick}
+          on:keydown={handleKeyKeyDown}
           bind:this={domKey}
         ></div>
         <span class="separator">:</span>
@@ -576,7 +614,8 @@
           contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
-          on:blur={handleKeyBlur}
+          on:dblclick={handleKeyDoubleClick}
+          on:keydown={handleKeyKeyDown}
           bind:this={domKey}
         ></div>
         <span class="separator">:</span>
@@ -587,7 +626,6 @@
         contenteditable={editValue}
         spellcheck="false"
         on:input={handleValueInput}
-        on:blur={handleValueBlur}
         on:click={handleValueClick}
         on:dblclick={handleValueDoubleClick}
         on:keydown={handleValueKeyDown}

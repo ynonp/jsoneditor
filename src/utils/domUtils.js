@@ -215,3 +215,17 @@ export function isChildOf (element, predicate) {
 
   return e && predicate(e)
 }
+
+/**
+ * Set the cursor to the end of a content editable div
+ * Source: https://stackoverflow.com/questions/13513329/set-cursor-to-the-end-of-contenteditable-div
+ * @param {HTMLElement} element
+ */
+export function setCursorToEnd(element) {
+  const range = document.createRange()
+  const selection = window.getSelection()
+  range.setStart(element, 1)
+  range.collapse(true)
+  selection.removeAllRanges()
+  selection.addRange(range)
+}

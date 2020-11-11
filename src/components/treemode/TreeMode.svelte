@@ -443,12 +443,12 @@
    */
   function handleSelect (selectionSchema) {
     if (selectionSchema) {
-      const { anchorPath, focusPath, beforePath, appendPath, keyPath, valuePath } = selectionSchema
+      const { anchorPath, focusPath, beforePath, appendPath, keyPath, valuePath, edit = false } = selectionSchema
 
       if (keyPath) {
-        selection = { keyPath }
+        selection = { keyPath, edit }
       } else if (valuePath) {
-        selection = { valuePath }
+        selection = { valuePath, edit }
       } else if (beforePath) {
         selection = { beforePath }
       } else if (appendPath) {
@@ -469,6 +469,8 @@
       // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
       setTimeout(() => domHiddenInput.focus())
     } else {
+      debug('deselect') // TODO: cleanup
+
       selection = null
     }
   }
@@ -527,6 +529,16 @@
       }
 
       // TODO: implement Shift+Arrows to select multiple entries
+
+      if (combo === 'Enter' && (selection.keyPath || selection.valuePath)) {
+        // go to edit mode
+        event.preventDefault()
+
+        selection = {
+          ...selection,
+          edit: true
+        }
+      }
 
       if (combo === 'Escape') {
         event.preventDefault()

@@ -65,11 +65,11 @@
  */
 
 /**
- * @typedef {{keyPath: Path}} KeySelection
+ * @typedef {{keyPath: Path: edit?: boolean}} KeySelection
  */
 
 /**
- * @typedef {{valuePath: Path}} ValueSelection
+ * @typedef {{valuePath: Path: edit?: boolean}} ValueSelection
  */
 
 /**
