@@ -97,6 +97,7 @@
       if (editKey === true) {
         // edit changed to true -> set focus to end of input
         focusKey()
+        hovered = false
       } else {
         // edit changed to false -> apply actual key (cancel changes on Escape)
         setPlainText(domKey, key)
@@ -108,6 +109,7 @@
     if (domValue) {
       if (editValue === true) {
         focusValue()
+        hovered = false
       } else {
         // edit changed to false -> apply actual value (cancel changes on Escape)
         setPlainText(domValue, value)
@@ -300,59 +302,31 @@
       return
     }
 
+    singleton.mousedown = true
+    singleton.selectionAnchor = path
+    singleton.selectionFocus = null
+
     // unselect existing selection on mouse down if any
     if (selection) {
       onSelect(null)
     }
 
     if (event.target === domKey) {
-      singleton.mousedown = true
-      singleton.selectionAnchor = path
-      singleton.selectionFocus = null
-
-      onSelect({
-        keyPath: path
-      })
+      onSelect({ keyPath: path })
     } else if (event.target === domValue) {
-      singleton.mousedown = true
-      singleton.selectionAnchor = path
-      singleton.selectionFocus = null
-
-      onSelect({
-        valuePath: path
-      })
+      onSelect({ valuePath: path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'before-node-selector')) {
-      singleton.mousedown = true
-      singleton.selectionAnchor = path
-      singleton.selectionFocus = null
-
-      onSelect({
-        beforePath: path
-      })
+      onSelect({ beforePath: path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'append-node-selector')) {
-      singleton.mousedown = true
-      singleton.selectionAnchor = path
-      singleton.selectionFocus = null
-
-      onSelect({
-        appendPath: path
-      })
+      onSelect({ appendPath: path })
     } else {
-      // initialize dragging a selection
-      singleton.mousedown = true
-      singleton.selectionAnchor = path
-      singleton.selectionFocus = null
-
-      if (isChildOfAttribute(event.target, 'data-type', 'selectable-area')) {
-        // select current node
-        onSelect({
-          anchorPath: path,
-          focusPath: path
-        })
+      if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
+        onSelect({ valuePath: path })
       }
     }
 
     event.stopPropagation()
+    // event.preventDefault()
     // IMPORTANT: do not use event.preventDefault() here,
     //  else the :active style doesn't work!
 
@@ -398,10 +372,7 @@
   function handleMouseOver (event) {
     event.stopPropagation()
 
-    if (
-      isChildOfAttribute(event.target, 'data-type', 'selectable-area') && 
-      !isContentEditableDiv(event.target)
-    ) {
+    if (!editKey && !editValue) {
       hovered = true
     }
   }
@@ -435,7 +406,7 @@
     <div class="selector"></div>
   </div>
   {#if type === 'array'}
-    <div data-type="selectable-area" class='header' style={indentationStyle} >
+    <div class='header' style={indentationStyle} >
       <button
         class='expand'
         on:click={toggleExpand}
@@ -460,7 +431,7 @@
         ></div>
         <div class="separator">:</div>
       {/if}
-      <div class="meta">
+      <div class="meta" data-type="selectable-value">
         <div class="meta-inner">
           {#if expanded}
             <div class="delimiter">[</div>
@@ -520,12 +491,12 @@
           <div class="selector"></div>
         </div>
       </div>
-      <div data-type="selectable-area" class="footer" style={indentationStyle} >
+      <div data-type="selectable-value" class="footer" style={indentationStyle} >
         <span class="delimiter">]</span>
       </div>
     {/if}
   {:else if type === 'object'}
-    <div data-type="selectable-area" class="header" style={indentationStyle} >
+    <div class="header" style={indentationStyle} >
       <button
         class='expand'
         on:click={toggleExpand}
@@ -550,7 +521,7 @@
         ></div>
         <span class="separator">:</span>
       {/if}
-      <div class="meta">
+      <div class="meta" data-type="selectable-value" >
         <div class="meta-inner">
           {#if expanded}
             <span class="delimiter">&#123;</span>
@@ -599,12 +570,12 @@
           <div class="selector"></div>
         </div>
       </div>
-      <div data-type="selectable-area" class="footer" style={indentationStyle} >
+      <div data-type="selectable-value" class="footer" style={indentationStyle} >
         <span class="delimiter">&rbrace;</span>
       </div>
     {/if}
   {:else}
-    <div data-type="selectable-area" class="contents" style={indentationStyle} >
+    <div class="contents" style={indentationStyle} >
       {#if typeof key === 'string'}
         <div
           class={keyClass}
