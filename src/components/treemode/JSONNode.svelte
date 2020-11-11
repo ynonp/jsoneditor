@@ -84,18 +84,12 @@
 
   function focusKey () {
     // TODO: this timeout is ugly
-    setTimeout(() => {
-      domKey.focus()
-      setCursorToEnd(domKey)
-    })
+    setTimeout(() => setCursorToEnd(domKey))
   }
 
   function focusValue () {
     // TODO: this timeout is ugly
-    setTimeout(() => {
-      domValue.focus()
-      setCursorToEnd(domValue)
-    })
+    setTimeout(() => setCursorToEnd(domValue))
   }
 
   $: {
@@ -231,8 +225,10 @@
   }
 
   function handleKeyDoubleClick (event) {
-    event.preventDefault()
-    onSelect({ keyPath: path, edit: true })
+    if (!editKey) {
+      event.preventDefault()
+      onSelect({ keyPath: path, edit: true })
+    }
   }
 
   // get the value from the DOM
@@ -260,8 +256,10 @@
   }
 
   function handleValueDoubleClick (event) {
-    event.preventDefault()
-    onSelect({ valuePath: path, edit: true })
+    if (!editValue) {
+      event.preventDefault()
+      onSelect({ valuePath: path, edit: true })
+    }
   }
 
   function handleValueClick (event) {
@@ -344,7 +342,7 @@
       singleton.mousedown = true
       singleton.selectionAnchor = path
       singleton.selectionFocus = null
-     
+
       if (isChildOfAttribute(event.target, 'data-type', 'selectable-area')) {
         // select current node
         onSelect({
