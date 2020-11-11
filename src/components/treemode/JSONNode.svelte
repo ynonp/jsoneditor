@@ -306,11 +306,6 @@
     singleton.selectionAnchor = path
     singleton.selectionFocus = null
 
-    // unselect existing selection on mouse down if any
-    if (selection) {
-      onSelect(null)
-    }
-
     if (event.target === domKey) {
       onSelect({ keyPath: path })
     } else if (event.target === domValue) {
@@ -319,10 +314,10 @@
       onSelect({ beforePath: path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'append-node-selector')) {
       onSelect({ appendPath: path })
+    } else  if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
+      onSelect({ valuePath: path })
     } else {
-      if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
-        onSelect({ valuePath: path })
-      }
+      onSelect(null)
     }
 
     event.stopPropagation()
