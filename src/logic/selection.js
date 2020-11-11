@@ -95,6 +95,21 @@ export function getParentPath (selection) {
 
 /**
  * @param {Selection} selection
+ * @param {Path} path
+ * @return boolean
+ */
+// TODO: write unit test
+export function isSelectionInsidePath (selection, path) {
+  const firstPath = getFirstPath(selection)
+
+  return (
+    pathStartsWith(firstPath, path) &&
+    (firstPath.length > path.length || selection.appendPath)
+  )
+}
+
+/**
+ * @param {Selection} selection
  * @returns {Path}
  */
 function getFirstPath (selection) {
@@ -284,4 +299,24 @@ export function findRootPath (selection) {
       ? initial(first(selection.paths)) // the parent path of the paths
       : first(selection.paths) // the first and only path
     : []
+}
+
+/**
+ * @param {Path} path
+ * @param {Path} parentPath
+ * @return boolean
+ */
+// TODO: unit test
+export function pathStartsWith (path, parentPath) {
+  if (path.length < parentPath.length) {
+    return false
+  }
+
+  for (let  i = 0; i < parentPath.length; i++) {
+    if (path[i] !== parentPath[i]) {
+      return false
+    }
+  }
+
+  return true
 }

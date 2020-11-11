@@ -35,9 +35,12 @@
     createPathsMap,
     createSelectionFromOperations,
     expandSelection,
-    findRootPath, getSelectionDown,
+    findRootPath,
+    getSelectionDown,
     getSelectionLeft,
-    getSelectionRight, getSelectionUp
+    getSelectionRight,
+    getSelectionUp,
+    isSelectionInsidePath
   } from '../../logic/selection.js'
   import { mapValidationErrors } from '../../logic/validation.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
@@ -433,6 +436,14 @@
       })
     } else {
       state = setIn(state, path.concat(STATE_EXPANDED), expanded, true)
+    }
+
+    if (selection && !expanded) {
+      // check whether the selection is still visible and not collapsed
+      if (isSelectionInsidePath(selection, path)) {
+        // remove selection when not visible anymore
+        selection = null
+      }
     }
 
     setTimeout(() => domHiddenInput.focus())
