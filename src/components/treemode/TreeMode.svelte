@@ -47,7 +47,7 @@
     parseJSONPointer
   } from '../../utils/jsonPointer.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
-  import { isObjectOrArray } from '../../utils/typeUtils.js'
+  import { isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
   import JSONNode from './JSONNode.svelte'
@@ -552,6 +552,15 @@
             ...selection,
             edit: true
           }
+        }
+      }
+
+      if (combo === 'Ctrl+Enter' && selection.valuePath) {
+        const value = getIn(doc, selection.valuePath)
+
+        if (isUrl(value)) {
+          // open url in new page
+          window.open(value, '_blank')
         }
       }
 

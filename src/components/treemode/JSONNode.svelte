@@ -276,12 +276,6 @@
   function handleValueKeyDown (event) {
     event.stopPropagation()
 
-    // FIXME: this quickkey only works when in edit mode
-    if (valueIsUrl && event.ctrlKey && event.key === 'Enter') {
-      event.stopPropagation()
-      window.open(value, '_blank')
-    }
-
     if (event.key === 'Escape') {
       // cancel changes
       onSelect({ valuePath: path })
