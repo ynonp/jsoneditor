@@ -8,7 +8,7 @@
   } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
   import { isEqual } from 'lodash-es'
-  import { tick } from 'svelte'
+  import { onDestroy, tick } from 'svelte'
   import Icon from 'svelte-awesome'
   import {
     ACTIVE_SEARCH_RESULT,
@@ -76,44 +76,73 @@
   $: editKey = selectedKey && selection && selection.edit === true
   $: editValue = selectedValue && selection && selection.edit === true
 
+  // holds changed value of key/value which whilst typing new input
+  let newKey = key
+  let newValue = value
+
   $: expanded = state && state[STATE_EXPANDED]
   $: expanded = state && state[STATE_EXPANDED]
   $: visibleSections = state && state[STATE_VISIBLE_SECTIONS]
   $: props = state && state[STATE_PROPS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
+  onDestroy(() => {
+    updateKey()
+    updateValue()
+  })
+
   function focusKey () {
+    hovered = false
+
     // TODO: this timeout is ugly
-    setTimeout(() => setCursorToEnd(domKey))
+    setTimeout(() => {
+      if (domKey) {
+        setCursorToEnd(domKey)
+      }
+    })
   }
 
   function focusValue () {
+    hovered = false
+
     // TODO: this timeout is ugly
-    setTimeout(() => setCursorToEnd(domValue))
+    setTimeout(() => {
+      if (domValue) {
+        setCursorToEnd(domValue)
+      }
+    })
   }
 
   $: {
-    if (domKey) {
-      if (editKey === true) {
-        // edit changed to true -> set focus to end of input
-        focusKey()
-        hovered = false
-      } else {
-        // edit changed to false -> apply actual key (cancel changes on Escape)
-        setPlainText(domKey, key)
-      }
+    if (editKey === true) {
+      // edit changed to true -> set focus to end of input
+      focusKey()
     }
   }
 
   $: {
-    if (domValue) {
-      if (editValue === true) {
-        focusValue()
-        hovered = false
-      } else {
-        // edit changed to false -> apply actual value (cancel changes on Escape)
-        setPlainText(domValue, value)
-      }
+    applyKey(key)
+  }
+
+  $: {
+    if (editKey === false) {
+      updateKey()
+    }
+  }
+
+  $: {
+    if (editValue === true) {
+      focusValue()
+    }
+  }
+
+  $: {
+    applyValue(value)
+  }
+
+  $: {
+    if (editValue === false) {
+      updateValue()
     }
   }
 
@@ -186,11 +215,17 @@
     onExpand(path, true)
   }
 
-  function updateKey () {
-    const newKey = getPlainText(domKey)
+  function applyKey (updatedKey) {
+    if (domKey) {
+      setPlainText(domKey, updatedKey)
+    }
+  }
 
-    // must be handled by the parent which has knowledge about the other keys
-    onUpdateKey(key, newKey)
+  function updateKey () {
+    if (key !== newKey) {
+      // must be handled by the parent which has knowledge about the other keys
+      onUpdateKey(key, newKey)
+    }
   }
 
   function handleUpdateKey (oldKey, newKey) {
@@ -200,8 +235,8 @@
     onPatch(rename(path, oldKey, newKeyUnique, nextKeys))
   }
 
-  function handleKeyInput (event) {
-    const newKey = getPlainText(event.target)
+  function handleKeyInput () {
+    newKey = getPlainText(domKey)
     if (newKey === '') {
       // immediately update to cleanup any left over <br/>
       setPlainText(domKey, '')
@@ -213,6 +248,7 @@
 
     if (event.key === 'Escape') {
       // cancel changes
+      setPlainText(domKey, key)
       onSelect({ keyPath: path })
     }
 
@@ -233,24 +269,26 @@
     }
   }
 
-  // get the value from the DOM
-  function getValue () {
-    const valueText = getPlainText(domValue)
-    return stringConvert(valueText) // TODO: implement support for type "string"
+  function applyValue (updatedValue) {
+    if (domValue) {
+      setPlainText(domValue, updatedValue)
+    }
   }
 
   function updateValue () {
-    const newValue = getValue()
-
-    onPatch([{
-      op: 'replace',
-      path: compileJSONPointer(path),
-      value: newValue
-    }])
+    if (newValue !== value) {
+      onPatch([{
+        op: 'replace',
+        path: compileJSONPointer(path),
+        value: newValue
+      }])
+    }
   }
 
   function handleValueInput () {
-    const newValue = getValue()
+    const valueText = getPlainText(domValue)
+    newValue = stringConvert(valueText) // TODO: implement support for type "string"
+
     if (newValue === '') {
       // immediately update to cleanup any left over <br/>
       setPlainText(domValue, '')
@@ -278,6 +316,7 @@
 
     if (event.key === 'Escape') {
       // cancel changes
+      setPlainText(domValue, value)
       onSelect({ valuePath: path })
     }
 
