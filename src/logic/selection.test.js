@@ -1,11 +1,13 @@
 import assert from 'assert'
+import { syncState } from './documentState.js'
 import {
   expandSelection,
-  getParentPath,
   findRootPath,
-  getSelectionLeft, getSelectionRight
+  getInitialSelection,
+  getParentPath,
+  getSelectionLeft,
+  getSelectionRight
 } from './selection.js'
-import { syncState } from './documentState.js'
 
 describe('selection', () => {
   const doc = {
@@ -123,5 +125,20 @@ describe('selection', () => {
       assert.deepStrictEqual(null,
         getSelectionRight({ paths: [['path1'], ['path2']], pathsMap: { '/path1': true, '/path2': true } }))
     })
+  })
+
+  it('getInitialSelection', () => {
+    function getInitialSelectionWithState(doc) {
+      const state = syncState(doc, undefined, [], path => path.length <= 1)
+      return getInitialSelection(doc, state)
+    }
+
+    assert.deepStrictEqual(getInitialSelectionWithState({}), { valuePath: [] })
+    assert.deepStrictEqual(getInitialSelectionWithState([]), { valuePath: [] })
+    assert.deepStrictEqual(getInitialSelectionWithState('test'), { valuePath: [] })
+
+    assert.deepStrictEqual(getInitialSelectionWithState({a: 2, b: 3}), { keyPath: ['a'] })
+    assert.deepStrictEqual(getInitialSelectionWithState({a: {}}), { keyPath: ['a'] })
+    assert.deepStrictEqual(getInitialSelectionWithState([2,3,4]), { valuePath: [0] })
   })
 })

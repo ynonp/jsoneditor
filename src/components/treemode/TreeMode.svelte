@@ -22,7 +22,6 @@
   import {
     expandPath,
     expandSection,
-    getVisiblePaths,
     patchProps,
     syncState
   } from '../../logic/documentState.js'
@@ -44,6 +43,7 @@
     createSelectionFromOperations,
     expandSelection,
     findRootPath,
+    getInitialSelection,
     getSelectionDown,
     getSelectionLeft,
     getSelectionRight,
@@ -519,14 +519,14 @@
       }
 
       debug('select', selection)
-
-      // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
-      setTimeout(() => domHiddenInput.focus())
     } else {
       debug('deselect')
 
       selection = null
     }
+
+    // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
+    setTimeout(() => domHiddenInput.focus())
   }
 
   function handleExpandSection (path, section) {
@@ -537,6 +537,7 @@
 
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
+    debug('keydown', combo)
 
     if (combo === 'Ctrl+X' || combo === 'Command+X') {
       event.preventDefault()
@@ -567,7 +568,7 @@
       event.preventDefault()
       selection = selection
         ? getSelectionUp(doc, state, selection) || selection
-        : getInitialSelection()
+        : getInitialSelection(doc, state)
 
       const path = selection.keyPath || selection.valuePath || first(selection.paths)
       if (path) {
@@ -578,7 +579,7 @@
       event.preventDefault()
       selection = selection
         ? getSelectionDown(doc, state, selection) || selection
-        : getInitialSelection()
+        : getInitialSelection(doc, state)
 
       const path = selection.keyPath || selection.valuePath || first(selection.paths)
       if (path) {
@@ -589,13 +590,13 @@
       event.preventDefault()
       selection = selection
         ? getSelectionLeft(selection) || selection
-        : getInitialSelection()
+        : getInitialSelection(doc, state)
     }
     if (combo === 'Right') {
       event.preventDefault()
       selection = selection
         ? getSelectionRight(selection) || selection
-        : getInitialSelection()
+        : getInitialSelection(doc, state)
     }
 
     // TODO: implement Shift+Arrows to select multiple entries
@@ -676,16 +677,6 @@
       }
     }
   }
-
-  function getInitialSelection () {
-    const visiblePaths = getVisiblePaths(doc, state)
-
-    return {
-      valuePath: visiblePaths.length >= 2
-        ? visiblePaths[1]
-        : visiblePaths[0]
-    }
-  }
 </script>
 
 <div class="jsoneditor" on:keydown={handleKeyDown}>
@@ -717,7 +708,7 @@
   <label class="hidden-input-label">
     <input
       class="hidden-input"
-      class:visible={!!selection}
+      tabindex="-1"
       bind:this={domHiddenInput}
     />
   </label>

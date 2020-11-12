@@ -3,7 +3,11 @@ import { STATE_PROPS } from '../constants.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
 import { isObject } from '../utils/typeUtils.js'
-import { getNextVisiblePath, getPreviousVisiblePath } from './documentState.js'
+import {
+  getNextVisiblePath,
+  getPreviousVisiblePath,
+  getVisiblePaths
+} from './documentState.js'
 
 /**
  * Expand a selection start and end into an array containing all paths
@@ -246,6 +250,27 @@ export function getSelectionRight (selection) {
   }
 
   return null
+}
+
+/**
+ * Get a proper initial selection based on what is visible
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @returns {Selection}
+ */
+export function getInitialSelection (doc, state) {
+  const visiblePaths = getVisiblePaths(doc, state)
+
+  // find the first, deepest nested entry (normally a value, not an Object/Array)
+  let index = 0
+  while (index < visiblePaths.length - 1 && visiblePaths[index + 1].length > visiblePaths[index].length) {
+    index++
+  }
+
+  const path = visiblePaths[index]
+  return (path.length === 0 || Array.isArray(getIn(doc, initial(path))))
+    ? { valuePath: path } // Array items and root object/array do not have a key, so select value in that case
+    : { keyPath: path }
 }
 
 /**
