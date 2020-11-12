@@ -349,3 +349,19 @@ export function pathStartsWith (path, parentPath) {
 
   return true
 }
+
+/**
+ * @param {Selection} selection
+ * @return {Selection}
+ */
+// TODO: write unit tests
+export function removeEditModeFromSelection (selection) {
+  if (selection && selection.edit) {
+    return {
+      ...selection,
+      edit: false
+    }
+  } else {
+    return selection
+  }
+}

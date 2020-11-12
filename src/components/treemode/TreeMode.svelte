@@ -48,7 +48,8 @@
     getSelectionLeft,
     getSelectionRight,
     getSelectionUp,
-    isSelectionInsidePath
+    isSelectionInsidePath,
+    removeEditModeFromSelection
   } from '../../logic/selection.js'
   import { mapValidationErrors } from '../../logic/validation.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
@@ -217,8 +218,8 @@
       redo: operations,
       prevState,
       state,
-      prevSelection,
-      selection: newSelection
+      prevSelection: removeEditModeFromSelection(prevSelection),
+      selection: removeEditModeFromSelection(newSelection)
     })
 
     return {
