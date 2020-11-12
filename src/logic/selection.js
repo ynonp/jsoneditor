@@ -1,4 +1,4 @@
-import { first, initial, isEqual, last } from 'lodash-es'
+import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
 import { STATE_PROPS } from '../constants.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
@@ -138,6 +138,7 @@ function getLastPath (selection) {
  * @param {Selection} selection
  * @returns {Selection | null}
  */
+// TODO: write unit tests
 export function getSelectionUp (doc, state, selection) {
   const path = getFirstPath(selection)
   const previousPath = getPreviousVisiblePath(doc, state, path)
@@ -147,8 +148,8 @@ export function getSelectionUp (doc, state, selection) {
     if (selection.keyPath) {
       const parentPath = initial(previousPath)
       const parent = getIn(doc, parentPath)
-      if (Array.isArray(parent)) {
-        // switch to valuePath: array has no keys
+      if (Array.isArray(parent) || isEmpty(previousPath)) {
+        // switch to valuePath: array has no keys, and root object also not
         return { valuePath: previousPath }
       } else {
         return { keyPath: previousPath }
@@ -173,6 +174,7 @@ export function getSelectionUp (doc, state, selection) {
  * @param {Selection} selection
  * @returns {Selection | null}
  */
+// TODO: write unit tests
 export function getSelectionDown (doc, state, selection) {
   const path = getLastPath(selection)
   const nextPath = getNextVisiblePath(doc, state, path)
@@ -208,6 +210,7 @@ export function getSelectionDown (doc, state, selection) {
  * @param {Selection} selection
  * @returns {Selection | null}
  */
+// TODO: write unit tests
 export function getSelectionLeft (selection) {
   if (selection.valuePath) {
     return {
@@ -228,6 +231,7 @@ export function getSelectionLeft (selection) {
  * @param {Selection} selection
  * @returns {Selection | null}
  */
+// TODO: write unit tests
 export function getSelectionRight (selection) {
   if (selection.keyPath) {
     return {
