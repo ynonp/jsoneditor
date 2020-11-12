@@ -91,11 +91,13 @@
   let selection = null
   let clipboard = null
 
-  $: state = syncState(doc, state, [], (path) => {
-    return path.length < 1 
+  function defaultExpand (path) {
+    return path.length < 1
       ? true
       : (path.length === 1 && path[0] === 0) // first item of an array?
-  })
+  }
+
+  $: state = syncState(doc, state, [], defaultExpand)
   $: validationErrorsList = validate ? validate(doc) : []
   $: validationErrors = mapValidationErrors(validationErrorsList)
 
@@ -183,6 +185,11 @@
     searchResult = undefined
     state = undefined
     history.clear()
+  }
+
+  export function update(updatedDocument) {
+    doc = updatedDocument
+    state = syncState(doc, state, [], defaultExpand)
   }
 
   /**

@@ -15,6 +15,11 @@
     ref.set(json)
   }
 
+  export function update (json) {
+    // TODO: check if the method exists for this mode, if not, throw a clear error
+    ref.update(json)
+  }
+
   export function get () {
     // TODO: check if the method exists for this mode, if not, throw a clear error
     return ref.get()

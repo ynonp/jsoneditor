@@ -8,7 +8,7 @@
   } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
   import { isEqual } from 'lodash-es'
-  import { onDestroy, tick } from 'svelte'
+  import { beforeUpdate, onDestroy, onMount, tick } from 'svelte'
   import Icon from 'svelte-awesome'
   import {
     ACTIVE_SEARCH_RESULT,
@@ -46,7 +46,7 @@
   export let onUpdateKey
   export let onExpand
   export let onSelect
-  
+
   /** @type {function (path: Path, section: Section)} */
   export let onExpandSection
 
@@ -76,15 +76,19 @@
   $: editKey = selectedKey && selection && selection.edit === true
   $: editValue = selectedValue && selection && selection.edit === true
 
-  // holds changed value of key/value which whilst typing new input
-  let newKey = key
-  let newValue = value
-
   $: expanded = state && state[STATE_EXPANDED]
   $: expanded = state && state[STATE_EXPANDED]
   $: visibleSections = state && state[STATE_VISIBLE_SECTIONS]
   $: props = state && state[STATE_PROPS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
+
+  onMount(() => {
+
+  })
+
+  beforeUpdate(() => {
+
+  })
 
   onDestroy(() => {
     updateKey()
@@ -113,42 +117,9 @@
     })
   }
 
-  $: {
-    if (editKey === true) {
-      // edit changed to true -> set focus to end of input
-      focusKey()
-    }
-  }
-
-  $: {
-    applyKey(key)
-  }
-
-  $: {
-    if (editKey === false) {
-      updateKey()
-    }
-  }
-
-  $: {
-    if (editValue === true) {
-      focusValue()
-    }
-  }
-
-  $: {
-    applyValue(value)
-  }
-
-  $: {
-    if (editValue === false) {
-      updateValue()
-    }
-  }
-
   const escapeUnicode = false // TODO: pass via options
 
-  let domKey 
+  let domKey
   let domValue
   let hovered = false
 
@@ -161,22 +132,65 @@
   let valueClass
   $: valueClass = getValueClass(value, searchResult)
 
-  $: if (domKey) {
-    if (document.activeElement !== domKey) {
-      // synchronize the innerText of the editable div with the escaped value,
-      // but only when the domValue does not have focus else we will ruin 
-      // the cursor position.
-      setPlainText(domKey, key)
+  $: if (editKey === true) {
+    // edit changed to true -> set focus to end of input
+    focusKey()
+  }
+
+  $: if (editValue === true) {
+    focusValue()
+  }
+
+  $: if (domKey && document.activeElement !== domKey) {
+    // synchronize the innerText of the editable div with the escaped value,
+    // but only when the domValue does not have focus else we will ruin
+    // the cursor position.
+    setDomKey(key)
+  }
+
+  $: if (domValue && document.activeElement !== domValue) {
+    // synchronize the innerText of the editable div with the escaped value,
+    // but only when the domValue does not have focus else we will ruin
+    // the cursor position.
+    setDomValue(value)
+  }
+
+  $: if (editKey === false) {
+    updateKey()
+  }
+
+  // let prevEditValue = false
+  $: if (editValue === false) {
+      updateValue()
+  }
+
+  function getDomKey () {
+    if (!domKey) {
+      return key
+    }
+
+    return getPlainText(domKey)
+  }
+
+  function setDomKey (updatedKey) {
+    if (domKey) {
+      setPlainText(domKey, updatedKey)
     }
   }
 
-  $: if (domValue) {
-    if (document.activeElement !== domValue) {
-      // synchronize the innerText of the editable div with the escaped value,
-      // but only when the domValue does not have focus else we will ruin 
-      // the cursor position.
-      setPlainText(domValue, value)
+  function setDomValue (updatedValue) {
+    if (domValue) {
+      setPlainText(domValue, updatedValue)
     }
+  }
+
+  function getDomValue () {
+    if (!domValue) {
+      return value
+    }
+
+    const valueText = getPlainText(domValue)
+    return stringConvert(valueText) // TODO: implement support for type "string"
   }
 
   function getIndentationStyle(level) {
@@ -215,14 +229,10 @@
     onExpand(path, true)
   }
 
-  function applyKey (updatedKey) {
-    if (domKey) {
-      setPlainText(domKey, updatedKey)
-    }
-  }
-
   function updateKey () {
+    const newKey = getDomKey()
     if (key !== newKey) {
+      console.log('updateKey', key, newKey)
       // must be handled by the parent which has knowledge about the other keys
       onUpdateKey(key, newKey)
     }
@@ -236,10 +246,10 @@
   }
 
   function handleKeyInput () {
-    newKey = getPlainText(domKey)
+    const newKey = getDomKey()
     if (newKey === '') {
       // immediately update to cleanup any left over <br/>
-      setPlainText(domKey, '')
+      setDomKey('')
     }
   }
 
@@ -248,7 +258,7 @@
 
     if (event.key === 'Escape') {
       // cancel changes
-      setPlainText(domKey, key)
+      setDomKey(key)
       onSelect({ keyPath: path })
     }
 
@@ -269,13 +279,8 @@
     }
   }
 
-  function applyValue (updatedValue) {
-    if (domValue) {
-      setPlainText(domValue, updatedValue)
-    }
-  }
-
   function updateValue () {
+    const newValue = getDomValue()
     if (newValue !== value) {
       onPatch([{
         op: 'replace',
@@ -286,12 +291,10 @@
   }
 
   function handleValueInput () {
-    const valueText = getPlainText(domValue)
-    newValue = stringConvert(valueText) // TODO: implement support for type "string"
-
+    const newValue = getDomValue()
     if (newValue === '') {
       // immediately update to cleanup any left over <br/>
-      setPlainText(domValue, '')
+      setDomValue('')
     }
   }
 
@@ -316,7 +319,7 @@
 
     if (event.key === 'Escape') {
       // cancel changes
-      setPlainText(domValue, value)
+      setDomValue(value)
       onSelect({ valuePath: path })
     }
 
@@ -499,7 +502,7 @@
             />
           {/each}
           {#if visibleSection.end < value.length}
-            <CollapsedItems 
+            <CollapsedItems
               visibleSections={visibleSections}
               sectionIndex={sectionIndex}
               total={value.length}
