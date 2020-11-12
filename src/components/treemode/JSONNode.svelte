@@ -374,6 +374,7 @@
 
 <div
   class='json-node'
+  data-path={compileJSONPointer(path)}
   class:root={path.length === 0}
   class:selected={selected}
   class:selected-key={selectedKey}
@@ -408,7 +409,6 @@
       {#if typeof key === 'string'}
         <div
           class={keyClass}
-          data-path={compileJSONPointer(path.concat(STATE_SEARCH_PROPERTY))}
           contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
@@ -498,7 +498,6 @@
       {#if typeof key === 'string'}
         <div
           class={keyClass}
-          data-path={compileJSONPointer(path.concat(STATE_SEARCH_PROPERTY))}
           contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
@@ -566,7 +565,6 @@
       {#if typeof key === 'string'}
         <div
           class={keyClass}
-          data-path={compileJSONPointer(path.concat(STATE_SEARCH_PROPERTY))}
           contenteditable={editKey}
           spellcheck="false"
           on:input={handleKeyInput}
@@ -578,7 +576,6 @@
       {/if}
       <div
         class={valueClass}
-        data-path={compileJSONPointer(path.concat(STATE_SEARCH_VALUE))}
         contenteditable={editValue}
         spellcheck="false"
         on:input={handleValueInput}

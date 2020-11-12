@@ -2,7 +2,14 @@
 
 <script>
   import createDebug from 'debug'
-  import { cloneDeep, initial, last, throttle, uniqueId } from 'lodash-es'
+  import {
+    cloneDeep,
+    first,
+    initial,
+    last,
+    throttle,
+    uniqueId
+  } from 'lodash-es'
   import { getContext, tick } from 'svelte'
   import jump from '../../assets/jump.js/src/jump.js'
   import {
@@ -127,9 +134,10 @@
 
   async function focusActiveSearchResult (activeItem) {
     if (activeItem) {
-      state = expandPath(state, initial(activeItem))
+      const path = initial(activeItem)
+      state = expandPath(state, path)
       await tick()
-      scrollTo(activeItem)
+      scrollTo(path)
     }
   }
 
@@ -400,6 +408,40 @@
     }
   }
 
+  /**
+   * If given path is outside of the visible viewport, scroll up/down.
+   * When the path is already in view, nothing is done
+   * @param {Path} path
+   */
+  function scrollIntoView (path) {
+    const elem = divContents.querySelector(`div[data-path="${compileJSONPointer(path)}"]`)
+
+    if (elem) {
+      const viewPortRect = divContents.getBoundingClientRect()
+      const elemRect = elem.getBoundingClientRect()
+      const margin = 20
+      const elemHeight = isObjectOrArray(getIn(doc, path))
+        ? margin // do not use real height when array or object
+        : elemRect.height
+
+      if (elemRect.top < viewPortRect.top + margin) {
+        // scroll down
+        jump(elem, {
+          container: divContents,
+          offset: -margin,
+          duration: 0
+        })
+      } else if (elemRect.top + elemHeight > viewPortRect.bottom - margin) {
+        // scroll up
+        jump(elem, {
+          container: divContents,
+          offset: -(viewPortRect.height - elemHeight - margin),
+          duration: 0
+        })
+      }
+    }
+  }
+
   function emitOnChange() {
     // TODO: add more logic here to emit onChange, onChangeJson, onChangeText, etc.
     onChangeJson(doc)
@@ -475,12 +517,12 @@
         console.error('Unknown type of selection', selectionSchema)
       }
 
-      debug('select', selection) // TODO: cleanup
+      debug('select', selection)
 
       // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
       setTimeout(() => domHiddenInput.focus())
     } else {
-      debug('deselect') // TODO: cleanup
+      debug('deselect')
 
       selection = null
     }
@@ -494,7 +536,6 @@
 
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
-    debug('keydown', combo, selection) // TODO: cleanup
 
     if (selection) {
       if (combo === 'Ctrl+X' || combo === 'Command+X') {
@@ -525,10 +566,20 @@
       if (combo === 'Up') {
         event.preventDefault()
         selection = getSelectionUp(doc, state, selection) || selection
+
+        const path = selection.keyPath || selection.valuePath || first(selection.paths)
+        if (path) {
+          scrollIntoView(path)
+        }
       }
       if (combo === 'Down') {
         event.preventDefault()
         selection = getSelectionDown(doc, state, selection) || selection
+
+        const path = selection.keyPath || selection.valuePath || first(selection.paths)
+        if (path) {
+          scrollIntoView(path)
+        }
       }
       if (combo === 'Left') {
         event.preventDefault()
