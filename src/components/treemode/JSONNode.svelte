@@ -133,18 +133,12 @@
     focusValue()
   }
 
-  $: if (domKey && document.activeElement !== domKey) {
-    // synchronize the innerText of the editable div with the escaped value,
-    // but only when the domValue does not have focus else we will ruin
-    // the cursor position.
-    setDomKey(key)
+  $: if (domKey) {
+    setDomKeyIfNotEditing(key)
   }
 
-  $: if (domValue && document.activeElement !== domValue) {
-    // synchronize the innerText of the editable div with the escaped value,
-    // but only when the domValue does not have focus else we will ruin
-    // the cursor position.
-    setDomValue(value)
+  $: if (domValue) {
+    setDomValueIfNotEditing(value)
   }
 
   $: if (editKey === false) {
@@ -161,6 +155,18 @@
     }
 
     return getPlainText(domKey)
+  }
+
+  function setDomKeyIfNotEditing (updatedKey) {
+    if (editKey === false) {
+      setDomKey(updatedKey)
+    }
+  }
+
+  function setDomValueIfNotEditing (updatedValue) {
+    if (editValue === false) {
+      setDomValue(updatedValue)
+    }
   }
 
   function setDomKey (updatedKey) {
