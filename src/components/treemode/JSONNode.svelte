@@ -8,7 +8,7 @@
   } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
   import { isEqual } from 'lodash-es'
-  import { beforeUpdate, onDestroy, onMount, tick } from 'svelte'
+  import { onDestroy, tick } from 'svelte'
   import Icon from 'svelte-awesome'
   import {
     ACTIVE_SEARCH_RESULT,
@@ -82,14 +82,6 @@
   $: props = state && state[STATE_PROPS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
-  onMount(() => {
-
-  })
-
-  beforeUpdate(() => {
-
-  })
-
   onDestroy(() => {
     updateKey()
     updateValue()
@@ -159,9 +151,8 @@
     updateKey()
   }
 
-  // let prevEditValue = false
   $: if (editValue === false) {
-      updateValue()
+    updateValue()
   }
 
   function getDomKey () {
@@ -232,9 +223,11 @@
   function updateKey () {
     const newKey = getDomKey()
     if (key !== newKey) {
-      console.log('updateKey', key, newKey)
       // must be handled by the parent which has knowledge about the other keys
-      onUpdateKey(key, newKey)
+      const uniqueKey = onUpdateKey(key, newKey)
+      if (uniqueKey !== newKey) {
+        setDomKey(uniqueKey)
+      }
     }
   }
 
@@ -243,6 +236,8 @@
     const nextKeys = getNextKeys(props, key, false)
 
     onPatch(rename(path, oldKey, newKeyUnique, nextKeys))
+
+    return newKeyUnique
   }
 
   function handleKeyInput () {
