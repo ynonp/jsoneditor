@@ -5,6 +5,7 @@ import {
   STATE_PROPS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
+import { forEachIndex } from '../utils/arrayUtils.js'
 import {
   deleteIn,
   getIn,
@@ -71,13 +72,13 @@ export function syncState (doc, state = undefined, path, expand, forceRefresh = 
 
     if (updatedState[STATE_EXPANDED]) {
       updatedState[STATE_VISIBLE_SECTIONS].forEach(({ start, end }) => {
-        for (let i = start; i < Math.min(doc.length, end); i++) {
-          const childDocument = doc[i]
+        forEachIndex(start, Math.min(doc.length, end), index => {
+          const childDocument = doc[index]
           if (isObjectOrArray(childDocument)) {
-            const childState = state && state[i]
-            updatedState[i] = syncState(childDocument, childState, path.concat(i), expand, forceRefresh)
+            const childState = state && state[index]
+            updatedState[index] = syncState(childDocument, childState, path.concat(index), expand, forceRefresh)
           }
-        }
+        })
       })
     }
 
@@ -256,10 +257,13 @@ export function getVisiblePaths (doc, state) {
   function _recurse (doc, state, path) {
     if (doc && state && state[STATE_EXPANDED] === true) {
       if (Array.isArray(doc)) {
-        // FIXME: reckon with Array visible sections
-        doc.forEach((item, index) => {
-          paths.push(path.concat(index))
-          _recurse(item, state[index], path.concat(index))
+        const visibleSections = state[STATE_VISIBLE_SECTIONS]
+
+        visibleSections.forEach(({ start, end }) => {
+          forEachIndex(start, Math.min(doc.length, end), index => {
+            paths.push(path.concat(index))
+            _recurse(doc[index], state[index], path.concat(index))
+          })
         })
       } else { // Object
         const props = state[STATE_PROPS]

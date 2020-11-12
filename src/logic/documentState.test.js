@@ -1,12 +1,19 @@
 import assert from 'assert'
+import { times } from 'lodash-es'
 import {
+  ARRAY_SECTION_SIZE,
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
   STATE_PROPS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
-import { getVisiblePaths, syncState, updateProps } from './documentState.js'
+import {
+  expandSection,
+  getVisiblePaths,
+  syncState,
+  updateProps
+} from './documentState.js'
 
 describe('documentState', () => {
   it('syncState', () => {
@@ -107,6 +114,32 @@ describe('documentState', () => {
       '/object/a',
       '/object/b',
       '/value'
+    ])
+  })
+
+  it ('get all expanded paths should recon with visible sections in an array', () => {
+    const count = 5 * ARRAY_SECTION_SIZE
+    const doc = {
+      array: times(count, (index) => `item ${index}`)
+    }
+
+    // by default, should have a visible section from 0-100 only (so 100-500 is invisible)
+    const state1 = syncState(doc, undefined, [], path => path.length <= 1)
+    assert.deepStrictEqual(getVisiblePaths(doc, state1).map(compileJSONPointer), [
+      '',
+      '/array',
+      ...times(ARRAY_SECTION_SIZE, (index) => `/array/${index}`)
+    ])
+
+    // create a visible section from 200-300 (in addition to the visible section 0-100)
+    const start = 200
+    const end = 300
+    const state2 = expandSection(state1, ['array'], { start, end })
+    assert.deepStrictEqual(getVisiblePaths(doc, state2).map(compileJSONPointer), [
+      '',
+      '/array',
+      ...times(ARRAY_SECTION_SIZE, (index) => `/array/${index}`),
+      ...times((end - start), (index) => `/array/${index + start}`),
     ])
   })
 

@@ -98,4 +98,5 @@
   
 /**
  * @typedef {{start: number, end: number}} Section
+ *  Start included, end excluded
  */

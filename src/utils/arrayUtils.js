@@ -104,3 +104,20 @@ export function getNestedPaths (array, includeObjects = false) {
 
   return pathsArray.map(parseJSONPointer)
 }
+
+/**
+ * Invoke the callback with
+ * @param {number} start   Included start index
+ * @param {number} end       Excluded end index. End must be larger or equal to start
+ * @param {function (index: number) : void} iteratee
+ */
+// TODO: write tests
+export function forEachIndex (start, end, iteratee) {
+  if (end <= start) {
+    return
+  }
+
+  for (let index = start; index < end; index++) {
+    iteratee(index)
+  }
+}
