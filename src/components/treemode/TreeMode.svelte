@@ -22,6 +22,7 @@
   import {
     expandPath,
     expandSection,
+    getVisiblePaths,
     patchProps,
     syncState
   } from '../../logic/documentState.js'
@@ -537,99 +538,105 @@
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
 
-    if (selection) {
-      if (combo === 'Ctrl+X' || combo === 'Command+X') {
-        event.preventDefault()
-        handleCut()
-      }
-      if (combo === 'Ctrl+C' || combo === 'Command+C') {
-        event.preventDefault()
-        handleCopy()
-      }
-      if (combo === 'Ctrl+V' || combo === 'Command+V') {
-        event.preventDefault()
-        handlePaste()
-      }
-      if (combo === 'Ctrl+D' || combo === 'Command+D') {
-        event.preventDefault()
-        handleDuplicate()
-      }
-      if (combo === 'Delete') {
-        event.preventDefault()
-        handleRemove()
-      }
-      if (combo === 'Insert' || combo === 'Insert') {
-        event.preventDefault()
-        handleInsert('structure')
-      }
+    if (combo === 'Ctrl+X' || combo === 'Command+X') {
+      event.preventDefault()
+      handleCut()
+    }
+    if (combo === 'Ctrl+C' || combo === 'Command+C') {
+      event.preventDefault()
+      handleCopy()
+    }
+    if (combo === 'Ctrl+V' || combo === 'Command+V') {
+      event.preventDefault()
+      handlePaste()
+    }
+    if (combo === 'Ctrl+D' || combo === 'Command+D') {
+      event.preventDefault()
+      handleDuplicate()
+    }
+    if (combo === 'Delete') {
+      event.preventDefault()
+      handleRemove()
+    }
+    if (combo === 'Insert' || combo === 'Insert') {
+      event.preventDefault()
+      handleInsert('structure')
+    }
 
-      if (combo === 'Up') {
-        event.preventDefault()
-        selection = getSelectionUp(doc, state, selection) || selection
+    if (combo === 'Up') {
+      event.preventDefault()
+      selection = selection
+        ? getSelectionUp(doc, state, selection) || selection
+        : getInitialSelection()
 
-        const path = selection.keyPath || selection.valuePath || first(selection.paths)
-        if (path) {
-          scrollIntoView(path)
-        }
+      const path = selection.keyPath || selection.valuePath || first(selection.paths)
+      if (path) {
+        scrollIntoView(path)
       }
-      if (combo === 'Down') {
-        event.preventDefault()
-        selection = getSelectionDown(doc, state, selection) || selection
+    }
+    if (combo === 'Down') {
+      event.preventDefault()
+      selection = selection
+        ? getSelectionDown(doc, state, selection) || selection
+        : getInitialSelection()
 
-        const path = selection.keyPath || selection.valuePath || first(selection.paths)
-        if (path) {
-          scrollIntoView(path)
-        }
+      const path = selection.keyPath || selection.valuePath || first(selection.paths)
+      if (path) {
+        scrollIntoView(path)
       }
-      if (combo === 'Left') {
-        event.preventDefault()
-        selection = getSelectionLeft(selection) || selection
-      }
-      if (combo === 'Right') {
-        event.preventDefault()
-        selection = getSelectionRight(selection) || selection
-      }
+    }
+    if (combo === 'Left') {
+      event.preventDefault()
+      selection = selection
+        ? getSelectionLeft(selection) || selection
+        : getInitialSelection()
+    }
+    if (combo === 'Right') {
+      event.preventDefault()
+      selection = selection
+        ? getSelectionRight(selection) || selection
+        : getInitialSelection()
+    }
 
-      // TODO: implement Shift+Arrows to select multiple entries
+    // TODO: implement Shift+Arrows to select multiple entries
 
-      if (combo === 'Enter' && selection.keyPath) {
-        // go to key edit mode
-        event.preventDefault()
+    if (combo === 'Enter' && selection && selection.keyPath) {
+      // go to key edit mode
+      event.preventDefault()
+      selection = {
+        ...selection,
+        edit: true
+      }
+    }
+
+    if (combo === 'Enter' && selection && selection.valuePath) {
+      event.preventDefault()
+
+      const value = getIn(doc, selection.valuePath)
+      if (isObjectOrArray(value)) {
+        // expand object/array
+        handleExpand(selection.valuePath, true)
+      } else {
+        // go to value edit mode
         selection = {
           ...selection,
           edit: true
         }
       }
+    }
 
-      if (combo === 'Enter' && selection.valuePath) {
-        event.preventDefault()
+    if (combo === 'Ctrl+Enter' && selection && selection.valuePath) {
+      const value = getIn(doc, selection.valuePath)
 
-        const value = getIn(doc, selection.valuePath)
-        if (isObjectOrArray(value)) {
-          // expand object/array
-          handleExpand(selection.valuePath, true)
-        } else {
-          // go to value edit mode
-          selection = {
-            ...selection,
-            edit: true
-          }
-        }
+      if (isUrl(value)) {
+        // open url in new page
+        window.open(value, '_blank')
       }
+    }
 
-      if (combo === 'Ctrl+Enter' && selection.valuePath) {
-        const value = getIn(doc, selection.valuePath)
-
-        if (isUrl(value)) {
-          // open url in new page
-          window.open(value, '_blank')
-        }
-      }
-
-      if (combo === 'Escape') {
-        event.preventDefault()
-        selection = null
-      }
+    if (combo === 'Escape' && selection) {
+      event.preventDefault()
+      selection = null
     }
 
     if (combo === 'Ctrl+F' || combo === 'Command+F') {
@@ -667,6 +674,16 @@
       } else {
         handleRedo()
       }
+    }
+  }
+
+  function getInitialSelection () {
+    const visiblePaths = getVisiblePaths(doc, state)
+
+    return {
+      valuePath: visiblePaths.length >= 2
+        ? visiblePaths[1]
+        : visiblePaths[0]
     }
   }
 </script>
