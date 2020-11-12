@@ -64,12 +64,14 @@
  * @typedef {{appendPath: Path}} AppendSelection
  */
 
+// TODO: neatly split definition of Selection and SelectionSchema
+
 /**
- * @typedef {{keyPath: Path: edit?: boolean}} KeySelection
+ * @typedef {{keyPath: Path: edit?: boolean, next?: boolean}} KeySelection
  */
 
 /**
- * @typedef {{valuePath: Path: edit?: boolean}} ValueSelection
+ * @typedef {{valuePath: Path: edit?: boolean, next?: boolean}} ValueSelection
  */
 
 /**
@@ -81,7 +83,7 @@
  */
 
 /**
- * @typedef {MultiSelectionSchema  | BeforeSelection | AppendSelection} SelectionSchema
+ * @typedef {MultiSelectionSchema  | BeforeSelection | AppendSelection | KeySelection | ValueSelection} SelectionSchema
  */
 
 /**

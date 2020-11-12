@@ -505,12 +505,18 @@
    */
   function handleSelect (selectionSchema) {
     if (selectionSchema) {
-      const { anchorPath, focusPath, beforePath, appendPath, keyPath, valuePath, edit = false } = selectionSchema
+      const { anchorPath, focusPath, beforePath, appendPath, keyPath, valuePath, edit = false, next = false } = selectionSchema
 
       if (keyPath) {
         selection = { keyPath, edit }
+        if (next) {
+          selection = getSelectionDown(doc, state, selection)
+        }
       } else if (valuePath) {
         selection = { valuePath, edit }
+        if (next) {
+          selection = getSelectionDown(doc, state, selection)
+        }
       } else if (beforePath) {
         selection = { beforePath }
       } else if (appendPath) {

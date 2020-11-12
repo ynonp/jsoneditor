@@ -266,10 +266,9 @@
     if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
       updateKey()
 
-      // TODO: move selection to next value (if any) on Enter
       // we apply selection on next tick, since the actual path will change
       await tick()
-      onSelect({ keyPath: path })
+      onSelect({ keyPath: path, next: true })
     }
   }
 
@@ -328,8 +327,7 @@
       // apply changes
       updateValue()
 
-      // TODO: move selection to next value (if any) on Enter
-      onSelect({ valuePath: path })
+      onSelect({ valuePath: path, next: true })
     }
   }
 
