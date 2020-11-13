@@ -439,12 +439,10 @@ export function createSelection(doc, state, selectionSchema) {
     // the original anchorPath or focusPath may be somewhere inside the
     // returned paths: when one of the two paths is inside an object and the
     // other is outside. Then the selection is enlarged to span the whole object.
-    const focusPathLast = isEqual(focusPath, last(paths)) || !isEqual(focusPath, first(paths))
+    const focusPathLast = isEqual(focusPath, last(paths)) || isEqual(anchorPath, first(paths))
 
     return {
       paths,
-      // anchorPath: focusPathLast ? first(paths) : last(paths),
-      // focusPath: focusPathLast ? last(paths) : first(paths),
       anchorPath: focusPathLast ? first(paths) : last(paths),
       focusPath: focusPathLast ? last(paths) : first(paths),
       pathsMap: createPathsMap(paths)

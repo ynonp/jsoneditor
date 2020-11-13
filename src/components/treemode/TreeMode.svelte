@@ -557,10 +557,7 @@
         : getInitialSelection(doc, state)
       debug('selection', selection)
 
-      const path = selection.keyPath || selection.valuePath || first(selection.paths)
-      if (path) {
-        scrollIntoView(path)
-      }
+      scrollIntoView(selection.focusPath)
     }
     if (combo === 'Down' || combo === 'Shift+Down') {
       event.preventDefault()
@@ -569,10 +566,7 @@
         : getInitialSelection(doc, state)
       debug('selection', selection)
 
-      const path = selection.keyPath || selection.valuePath || first(selection.paths)
-      if (path) {
-        scrollIntoView(path)
-      }
+      scrollIntoView(selection.focusPath)
     }
     if (combo === 'Left' || combo === 'Shift+Left') {
       event.preventDefault()
