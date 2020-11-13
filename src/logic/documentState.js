@@ -32,6 +32,7 @@ import {
  * @param {boolean} [forceRefresh=false] if true, force refreshing the expanded state
  * @returns {JSON | undefined}
  */
+// TODO: refactor syncState so we don't have to pass path=[] all the time, this is only used internally for recursiveness
 export function syncState (doc, state = undefined, path, expand, forceRefresh = false) {
   // TODO: this function can be made way more efficient if we pass prevState:
   //  when immutable, we can simply be done already when the state === prevState

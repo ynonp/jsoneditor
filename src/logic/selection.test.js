@@ -118,36 +118,112 @@ describe('selection', () => {
   })
 
   describe('navigate', () => {
+    const doc = {
+      path: true,
+      path1: true,
+      path2: true
+    }
+    const state = syncState(doc, undefined, [], () => false)
+
+
     it ('should move selection left', () => {
-      const expected = { keyPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }
+      const expected = {
+        keyPath: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path'],
+        edit: false
+      }
 
-      assert.deepStrictEqual(getSelectionLeft({ valuePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
-      assert.deepStrictEqual(getSelectionLeft({ keyPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
-      assert.deepStrictEqual(getSelectionLeft({ beforePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
-      assert.deepStrictEqual(getSelectionLeft({ appendPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
+      assert.deepStrictEqual(getSelectionLeft(doc, state, {
+        valuePath: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path']
+      }), expected)
 
-      assert.deepStrictEqual(getSelectionLeft({
-          paths: [['path1'], ['path2']],
-          anchorPath: ['path1'],
-          focusPath: ['path2'],
-          pathsMap: { '/path1': true, '/path2': true }
-        }), { keyPath: ['path2'], anchorPath: ['path2'], focusPath: ['path2'] })
+      assert.deepStrictEqual(getSelectionLeft(doc, state, {
+        keyPath: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path']
+      }), null)
+      assert.deepStrictEqual(getSelectionLeft(doc, state, {
+        beforePath: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path']
+      }), expected)
+      assert.deepStrictEqual(getSelectionLeft(doc, state, {
+        appendPath: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path']
+      }), expected)
+
+      assert.deepStrictEqual(getSelectionLeft(doc, state, {
+        paths: [['path1'], ['path2']],
+        anchorPath: ['path1'],
+        focusPath: ['path2'],
+        pathsMap: {'/path1': true, '/path2': true}
+      }), {
+        keyPath: ['path2'],
+        anchorPath: ['path2'],
+        focusPath: ['path2'],
+        edit: false
+      })
+    })
+
+    it ('should move selection left and keep anchor path', () => {
+      const keepAnchorPath = true
+      assert.deepStrictEqual(getSelectionLeft(doc, state, { valuePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }, keepAnchorPath), {
+        paths: [
+          ['path']
+        ],
+        anchorPath: ['path'],
+        focusPath: ['path'],
+        pathsMap: {
+          '/path': true
+        }
+      })
+
     })
 
     it ('should move selection right', () => {
-      const expected = { valuePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }
+      const expected = {
+        valuePath: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path'],
+        edit: false
+      }
 
-      assert.deepStrictEqual(getSelectionRight({ keyPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
-      assert.deepStrictEqual(getSelectionRight({ valuePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
-      assert.deepStrictEqual(getSelectionRight({ beforePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
-      assert.deepStrictEqual(getSelectionRight({ appendPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
+      assert.deepStrictEqual(getSelectionRight(doc, state, { keyPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
 
-      assert.deepStrictEqual(getSelectionRight({
+      assert.deepStrictEqual(getSelectionRight(doc, state, { valuePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), null)
+      assert.deepStrictEqual(getSelectionRight(doc, state, { beforePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
+      assert.deepStrictEqual(getSelectionRight(doc, state, { appendPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }), expected)
+
+      assert.deepStrictEqual(getSelectionRight(doc, state, {
         paths: [['path1'], ['path2']],
         anchorPath: ['path1'],
         focusPath: ['path2'],
         pathsMap: { '/path1': true, '/path2': true }
-      }), { valuePath: ['path2'], anchorPath: ['path2'], focusPath: ['path2'] })
+      }), {
+        valuePath: ['path2'],
+        anchorPath: ['path2'],
+        focusPath: ['path2'],
+        edit: false
+      })
+    })
+
+
+    it ('should move selection right and keep anchor path', () => {
+      const keepAnchorPath = true
+      assert.deepStrictEqual(getSelectionRight(doc, state, { keyPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }, keepAnchorPath), {
+        paths: [
+          ['path']
+        ],
+        anchorPath: ['path'],
+        focusPath: ['path'],
+        pathsMap: {
+          '/path': true
+        }
+      })
     })
   })
 

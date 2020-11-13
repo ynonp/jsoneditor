@@ -1,8 +1,8 @@
 import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
-import { STATE_PROPS } from '../constants.js'
-import { getIn } from '../utils/immutabilityHelpers.js'
+import { STATE_EXPANDED, STATE_PROPS } from '../constants.js'
+import { getIn, setIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
-import { isObject } from '../utils/typeUtils.js'
+import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import {
   getNextVisiblePath,
   getPreviousVisiblePath,
@@ -111,47 +111,137 @@ export function isSelectionInsidePath (selection, path) {
 }
 
 /**
- * @param {Selection} selection
- * @returns {Path}
- */
-function getLastPath (selection) {
-  return (selection.beforePath ||
-    selection.appendPath ||
-    selection.keyPath ||
-    selection.valuePath ||
-    last(selection.paths))
-}
-
-/**
  * @param {JSON} doc
  * @param {JSON} state
  * @param {Selection} selection
+ * @param {boolean} [keepAnchorPath=false]
  * @returns {Selection | null}
  */
 // TODO: write unit tests
-export function getSelectionUp (doc, state, selection) {
+export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
+  // TODO: deduplicate this function from getSelectionDown
+
   const previousPath = getPreviousVisiblePath(doc, state, selection.focusPath)
 
-  // TODO: deduplicate
-  if (previousPath !== null) {
-    if (selection.keyPath) {
-      const parentPath = initial(previousPath)
-      const parent = getIn(doc, parentPath)
-      if (Array.isArray(parent) || isEmpty(previousPath)) {
-        // switch to valuePath: array has no keys, and root object also not
-        return createSelection(doc, state, { valuePath: previousPath })
-      } else {
-        return createSelection(doc, state, { keyPath: previousPath })
-      }
-    } else if (selection.valuePath) {
-      return createSelection(doc, state, { valuePath: previousPath })
+  if (previousPath === null) {
+    return null
+  }
+
+  if (keepAnchorPath) {
+    // multi selection
+    return createSelection(doc, state, {
+      anchorPath: selection.anchorPath,
+      focusPath: previousPath
+    })
+  }
+
+  const anchorPath = previousPath
+  const focusPath = previousPath
+
+  if (selection.keyPath) {
+    const parentPath = initial(previousPath)
+    const parent = getIn(doc, parentPath)
+    if (Array.isArray(parent) || isEmpty(previousPath)) {
+      // switch to valuePath: array has no keys, and root object also not
+      return { valuePath: previousPath, anchorPath, focusPath }
     } else {
-      // multi selection with one entry
-      return createSelection(doc, state, {
-        anchorPath: previousPath,
-        focusPath: previousPath
-      })
+      return { keyPath: previousPath, anchorPath, focusPath }
     }
+  }
+
+  if (selection.valuePath) {
+    return { valuePath: previousPath, anchorPath, focusPath }
+  }
+
+  // multi selection with one entry
+  return createSelection(doc, state, {
+    anchorPath,
+    focusPath
+  })
+}
+
+/**
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Selection} selection
+ * @param {boolean} [keepAnchorPath=false]
+ * @returns {Selection | null}
+ */
+// TODO: write unit tests
+export function getSelectionDown (doc, state, selection, keepAnchorPath = false) {
+  // TODO: deduplicate this function from getSelectionUp
+
+  if (keepAnchorPath) {
+    // multi selection
+
+    // if the focusPath is an Array or object, we must not step into it but
+    // over it. Therefore we create a state where the path is collapsed and
+    // use that to find the next item
+    const focusPath = selection.focusPath
+    const collapsedState = (isObjectOrArray(getIn(doc, focusPath)))
+      ? setIn(state, focusPath.concat(STATE_EXPANDED), false, true)
+      : state
+    const nextPath = getNextVisiblePath(doc, collapsedState, focusPath)
+
+    if (nextPath === null) {
+      return null
+    }
+
+    return createSelection(doc, collapsedState, {
+      anchorPath: selection.anchorPath,
+      focusPath: nextPath
+    })
+  }
+
+  const nextPath = getNextVisiblePath(doc, state, selection.focusPath)
+  const anchorPath = nextPath
+  const focusPath = nextPath
+
+  if (nextPath === null) {
+    return null
+  }
+
+  if (selection.keyPath) {
+    const parentPath = initial(nextPath)
+    const parent = getIn(doc, parentPath)
+    if (Array.isArray(parent)) {
+      // switch to valuePath: array has no keys
+      return { valuePath: nextPath, anchorPath, focusPath }
+    } else {
+      return { keyPath: nextPath, anchorPath, focusPath }
+    }
+  }
+
+  if (selection.valuePath) {
+    return { valuePath: nextPath, anchorPath, focusPath }
+  }
+
+  // multi selection with one entry
+  return createSelection(doc, state, {
+    anchorPath,
+    focusPath
+  })
+}
+
+/**
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Selection} selection
+ * @param {boolean} [keepAnchorPath=false]
+ * @returns {Selection | null}
+ */
+export function getSelectionLeft (doc, state, selection, keepAnchorPath = false) {
+  if (keepAnchorPath && selection.valuePath) {
+    return createSelection(doc, state, {
+      anchorPath: selection.valuePath,
+      focusPath: selection.valuePath
+    })
+  }
+
+  if (!selection.keyPath) {
+    return createSelection(doc, state, {
+      keyPath: selection.focusPath
+    })
   }
 
   return null
@@ -161,64 +251,24 @@ export function getSelectionUp (doc, state, selection) {
  * @param {JSON} doc
  * @param {JSON} state
  * @param {Selection} selection
+ * @param {boolean} [keepAnchorPath=false]
  * @returns {Selection | null}
  */
-// TODO: write unit tests
-export function getSelectionDown (doc, state, selection) {
-  const path = getLastPath(selection)
-  const nextPath = getNextVisiblePath(doc, state, path)
+export function getSelectionRight (doc, state, selection, keepAnchorPath = false) {
+  if (keepAnchorPath && selection.keyPath) {
+    return createSelection(doc, state, {
+      anchorPath: selection.keyPath,
+      focusPath: selection.keyPath
+    })
+  }
 
-  // TODO: deduplicate
-  if (nextPath !== null) {
-    if (selection.keyPath) {
-      const parentPath = initial(nextPath)
-      const parent = getIn(doc, parentPath)
-      if (Array.isArray(parent)) {
-        // switch to valuePath: array has no keys
-        return createSelection(doc, state, { valuePath: nextPath })
-      } else {
-        return createSelection(doc, state, { keyPath: nextPath })
-      }
-    } else if (selection.valuePath) {
-      return createSelection(doc, state, { valuePath: nextPath })
-    } else {
-      // multi selection with one entry
-      return createSelection(doc, state, {
-        anchorPath: nextPath,
-        focusPath: nextPath
-      })
-    }
+  if (!selection.valuePath) {
+    return createSelection(doc, state, {
+      valuePath: selection.focusPath
+    })
   }
 
   return null
-}
-
-/**
- * @param {Selection} selection
- * @returns {Selection | null}
- */
-// TODO: write unit tests
-export function getSelectionLeft (selection) {
-  const path = selection.focusPath
-  return {
-    keyPath: path,
-    anchorPath: path,
-    focusPath: path
-  }
-}
-
-/**
- * @param {Selection} selection
- * @returns {Selection | null}
- */
-// TODO: write unit tests
-export function getSelectionRight (selection) {
-  const path = selection.focusPath
-  return {
-    valuePath: path,
-    anchorPath: path,
-    focusPath: path
-  }
 }
 
 /**
@@ -346,6 +396,7 @@ export function removeEditModeFromSelection (selection) {
  */
 // TODO: write unit tests
 export function createSelection(doc, state, selectionSchema) {
+  // TODO: remove next from SelectionSchema, pass it as a separate argument
   const { anchorPath, focusPath, beforePath, appendPath, keyPath, valuePath, edit = false, next = false } = selectionSchema
 
   if (keyPath) {
@@ -385,10 +436,17 @@ export function createSelection(doc, state, selectionSchema) {
   } else if (anchorPath && focusPath) {
     const paths = expandSelection(doc, state, anchorPath, focusPath)
 
+    // the original anchorPath or focusPath may be somewhere inside the
+    // returned paths: when one of the two paths is inside an object and the
+    // other is outside. Then the selection is enlarged to span the whole object.
+    const focusPathLast = isEqual(focusPath, last(paths)) || !isEqual(focusPath, first(paths))
+
     return {
       paths,
-      anchorPath,
-      focusPath,
+      // anchorPath: focusPathLast ? first(paths) : last(paths),
+      // focusPath: focusPathLast ? last(paths) : first(paths),
+      anchorPath: focusPathLast ? first(paths) : last(paths),
+      focusPath: focusPathLast ? last(paths) : first(paths),
       pathsMap: createPathsMap(paths)
     }
   } else {

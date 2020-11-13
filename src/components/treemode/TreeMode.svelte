@@ -522,6 +522,7 @@
 
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
+    const keepAnchorPath = event.shiftKey
     debug('keydown', combo)
 
     if (combo === 'Ctrl+X' || combo === 'Command+X') {
@@ -549,39 +550,43 @@
       handleInsert('structure')
     }
 
-    if (combo === 'Up') {
+    if (combo === 'Up' || combo === 'Shift+Up') {
       event.preventDefault()
       selection = selection
-        ? getSelectionUp(doc, state, selection) || selection
+        ? getSelectionUp(doc, state, selection, keepAnchorPath) || selection
         : getInitialSelection(doc, state)
+      debug('selection', selection)
 
       const path = selection.keyPath || selection.valuePath || first(selection.paths)
       if (path) {
         scrollIntoView(path)
       }
     }
-    if (combo === 'Down') {
+    if (combo === 'Down' || combo === 'Shift+Down') {
       event.preventDefault()
       selection = selection
-        ? getSelectionDown(doc, state, selection) || selection
+        ? getSelectionDown(doc, state, selection, keepAnchorPath) || selection
         : getInitialSelection(doc, state)
+      debug('selection', selection)
 
       const path = selection.keyPath || selection.valuePath || first(selection.paths)
       if (path) {
         scrollIntoView(path)
       }
     }
-    if (combo === 'Left') {
+    if (combo === 'Left' || combo === 'Shift+Left') {
       event.preventDefault()
       selection = selection
-        ? getSelectionLeft(selection) || selection
+        ? getSelectionLeft(doc, state, selection, keepAnchorPath) || selection
         : getInitialSelection(doc, state)
+      debug('selection', selection)
     }
-    if (combo === 'Right') {
+    if (combo === 'Right' || combo === 'Shift+Right') {
       event.preventDefault()
       selection = selection
-        ? getSelectionRight(selection) || selection
+        ? getSelectionRight(doc, state, selection, keepAnchorPath) || selection
         : getInitialSelection(doc, state)
+      debug('selection', selection)
     }
 
     // TODO: implement Shift+Arrows to select multiple entries
