@@ -39,9 +39,8 @@
     updateSearchResult
   } from '../../logic/search.js'
   import {
-    createPathsMap,
+    createSelection,
     createSelectionFromOperations,
-    expandSelection,
     findRootPath,
     getInitialSelection,
     getSelectionDown,
@@ -354,7 +353,7 @@
   }
 
   function handleSort () {
-    const rootPath = findRootPath(selection)
+    const rootPath = selection ? findRootPath(selection) : []
 
     open(SortModal, {
       id: sortModalId,
@@ -374,7 +373,7 @@
   }
 
   function handleTransform () {
-    const rootPath = findRootPath(selection)
+    const rootPath = selection ? findRootPath(selection): []
 
     open(TransformModal, {
       id: transformModalId,
@@ -494,10 +493,9 @@
       if (isSelectionInsidePath(selection, path)) {
         // remove selection when not visible anymore
         selection = null
+        debug('deselect')
       }
     }
-
-    setTimeout(() => domHiddenInput.focus())
   }
 
   /**
@@ -505,38 +503,11 @@
    */
   function handleSelect (selectionSchema) {
     if (selectionSchema) {
-      const { anchorPath, focusPath, beforePath, appendPath, keyPath, valuePath, edit = false, next = false } = selectionSchema
-
-      if (keyPath) {
-        selection = { keyPath, edit }
-        if (next) {
-          selection = getSelectionDown(doc, state, selection)
-        }
-      } else if (valuePath) {
-        selection = { valuePath, edit }
-        if (next) {
-          selection = getSelectionDown(doc, state, selection)
-        }
-      } else if (beforePath) {
-        selection = { beforePath }
-      } else if (appendPath) {
-        selection = { appendPath }
-      } else if (anchorPath && focusPath) {
-        const paths = expandSelection(doc, state, anchorPath, focusPath)
-
-        selection = {
-          paths,
-          pathsMap: createPathsMap(paths)
-        }
-      } else {
-        console.error('Unknown type of selection', selectionSchema)
-      }
-
+      selection = createSelection(doc, state, selectionSchema)
       debug('select', selection)
     } else {
-      debug('deselect')
-
       selection = null
+      debug('deselect')
     }
 
     // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V

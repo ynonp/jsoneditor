@@ -52,24 +52,26 @@
 /**
  * @typedef {{
  *   paths: Path[],
+ *   anchorPath: Path,
+ *   focusPath: Path,
  *   pathsMap: Object<string, boolean>
  * }} MultiSelection
  */
 
 /**
- * @typedef {{beforePath: Path}} BeforeSelection
+ * @typedef {{beforePath: Path, anchorPath: Path, focusPath: Path}} BeforeSelection
  */
 
 /**
- * @typedef {{appendPath: Path}} AppendSelection
+ * @typedef {{appendPath: Path, anchorPath: Path, focusPath: Path}} AppendSelection
  */
 
 /**
- * @typedef {{keyPath: Path}} KeySelection
+ * @typedef {{keyPath: Path, anchorPath: Path, focusPath: Path, edit?: boolean}} KeySelection
  */
 
 /**
- * @typedef {{valuePath: Path}} ValueSelection
+ * @typedef {{valuePath: Path, anchorPath: Path, focusPath: Path, edit?: boolean}} ValueSelection
  */
 
 /**
