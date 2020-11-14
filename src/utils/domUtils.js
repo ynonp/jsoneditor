@@ -222,6 +222,11 @@ export function isChildOf (element, predicate) {
  * @param {HTMLElement} element
  */
 export function setCursorToEnd(element) {
+  if (element.firstChild == null) {
+    element.focus()
+    return
+  }
+
   const range = document.createRange()
   const selection = window.getSelection()
   range.setStart(element, 1)
