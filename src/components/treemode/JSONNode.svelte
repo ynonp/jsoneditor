@@ -341,10 +341,13 @@
     singleton.selectionAnchor = path
     singleton.selectionFocus = null
 
-    // TODO: Shift+Click should select multiple entries
-    const keepAnchorPath = event.shiftKey
-
-    if (event.target === domKey) {
+    if (event.shiftKey) {
+      // Shift+Click will select multiple entries
+      onSelect({
+        anchorPath: selection.anchorPath,
+        focusPath: path
+      })
+    } else if (event.target === domKey) {
       onSelect({ keyPath: path })
     } else if (event.target === domValue) {
       onSelect({ valuePath: path })

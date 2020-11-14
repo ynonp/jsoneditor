@@ -523,7 +523,6 @@
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
     const keepAnchorPath = event.shiftKey
-    debug('keydown', combo)
 
     if (combo === 'Ctrl+X' || combo === 'Command+X') {
       event.preventDefault()
