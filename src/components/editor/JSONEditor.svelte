@@ -89,7 +89,6 @@
   let state = undefined
 
   let selection = null
-  let clipboard = null
 
   function defaultExpand (path) {
     return path.length < 1
@@ -242,114 +241,162 @@
     })
   }
 
-  function handleCut() {
-    if (selection && selection.paths) {
-      debug('cut', { selection, clipboard })
+  async function handleCut() {
+    if (!selection || !selection.paths) {
+      return
+    }
 
-      clipboard = selectionToClipboard(selection)
-      
-      const operations = removeAll(selection.paths)
-      handlePatch(operations)
-      selection = null
+    // FIXME: copy as partial JSON instead
+    const clipboard = selectionToClipboard(selection)
+    debug('cut', {selection, clipboard})
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(clipboard, null, 2))
+    } catch (err) {
+      // TODO: report error to user -> onError callback
+      console.error(err)
+    }
+
+    const operations = removeAll(selection.paths)
+    handlePatch(operations)
+    selection = null
+  }
+
+  async function handleCopy() {
+    if (!selection || !selection.paths) {
+      return
+    }
+
+    // FIXME: copy as partial JSON instead
+    const clipboard = selectionToClipboard(selection)
+    debug('copy', { clipboard })
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(clipboard, null, 2))
+    } catch (err) {
+      // TODO: report error to user -> onError callback
+      console.error(err)
     }
   }
 
-  function handleCopy() {
-    if (selection && selection.paths) {
-      clipboard = selectionToClipboard(selection)
-      debug('copy', { clipboard })
+  function handlePaste(clipboardText) {
+    if (!selection || clipboardText === '') {
+      return
     }
-  }
 
-  function handlePaste() {
-    if (selection && clipboard) {
-      debug('paste', { clipboard, selection })
+    // FIXME: paste as partial JSON instead
+    try {
+      const clipboard = JSON.parse(clipboardText)
+      debug('paste', {clipboard, selection})
 
       const operations = insert(doc, state, selection, clipboard)
       const newSelection = createSelectionFromOperations(operations)
 
       handlePatch(operations, newSelection)
+    } catch (err) {
+      // TODO: report error to user -> onError callback
+      console.error(err)
     }
+  }
+
+  function handlePasteFromMenu () {
+    // FIXME: create a proper prompt to explain how to paste
+    alert('Pasting is unavailable via the menu due to security restrictions in browsers. ' +
+      'Please use Ctrl+X, Ctrl+C, Ctrl+V to cut, copy and paste.')
   }
 
   function handleRemove() {
-    if (selection && selection.paths) {
-      debug('remove', { selection })
-
-      const operations = removeAll(selection.paths)
-      handlePatch(operations)
-      
-      selection = null
+    if (!selection || !selection.paths) {
+      return
     }
+
+    debug('remove', { selection })
+
+    const operations = removeAll(selection.paths)
+    handlePatch(operations)
+
+    selection = null
   }
 
   function handleDuplicate() {
-    if (selection && selection.paths) {
-      debug('duplicate', { selection })
-
-      const operations = duplicate(doc, state, selection.paths)
-      const newSelection = createSelectionFromOperations(operations)
-
-      handlePatch(operations, newSelection)
+    if (!selection || !selection.paths) {
+      return
     }
+
+    debug('duplicate', { selection })
+
+    const operations = duplicate(doc, state, selection.paths)
+    const newSelection = createSelectionFromOperations(operations)
+
+    handlePatch(operations, newSelection)
   }
 
   /**
    * @param {'value' | 'object' | 'array' | 'structure'} type
    */ 
   function handleInsert(type) {
-    if (selection != null) {
-      debug('insert', { type, selection })
+    if (selection == null) {
+      return
+    }
 
-      const value = createNewValue(doc, selection, type)
-      const values = [
-        { 
-          key: 'new', 
-          value
-        }
-      ]
-      const operations = insert(doc, state, selection, values)
-      const newSelection = createSelectionFromOperations(operations)
+    debug('insert', { type, selection })
 
-      handlePatch(operations, newSelection)
-
-      if (isObjectOrArray(value)) {
-        // expand the new object/array in case of inserting a structure
-        operations
-          .filter(operation => operation.op === 'add')
-          .forEach(operation => handleExpand(parseJSONPointer(operation.path), true, true))
+    const value = createNewValue(doc, selection, type)
+    const values = [
+      {
+        key: 'new',
+        value
       }
+    ]
+    const operations = insert(doc, state, selection, values)
+    const newSelection = createSelectionFromOperations(operations)
+
+    handlePatch(operations, newSelection)
+
+    if (isObjectOrArray(value)) {
+      // expand the new object/array in case of inserting a structure
+      operations
+        .filter(operation => operation.op === 'add')
+        .forEach(operation => handleExpand(parseJSONPointer(operation.path), true, true))
     }
   }
 
   function handleUndo() {
-    if (history.getState().canUndo) {
-      const item = history.undo()
-      if (item) {
-        doc = immutableJSONPatch(doc, item.undo).json
-        state = item.prevState
-        selection = item.prevSelection
-
-        debug('undo', { item,  doc, state, selection })
-
-        emitOnChange()
-      }
+    if (!history.getState().canUndo) {
+      return
     }
+
+    const item = history.undo()
+    if (!item) {
+      return
+    }
+
+    doc = immutableJSONPatch(doc, item.undo).json
+    state = item.prevState
+    selection = item.prevSelection
+
+    debug('undo', { item,  doc, state, selection })
+
+    emitOnChange()
   }
 
   function handleRedo() {
-    if (history.getState().canRedo) {
-      const item = history.redo()
-      if (item) {
-        doc = immutableJSONPatch(doc, item.redo).json
-        state = item.state
-        selection = item.selection
-
-        debug('redo', { item,  doc, state, selection })
-
-        emitOnChange()
-      }
+    if (!history.getState().canRedo) {
+      return
     }
+
+    const item = history.redo()
+    if (!item) {
+      return
+    }
+
+    doc = immutableJSONPatch(doc, item.redo).json
+    state = item.state
+    selection = item.selection
+
+    debug('redo', { item,  doc, state, selection })
+
+    emitOnChange()
   }
 
   function handleSort () {
@@ -533,8 +580,10 @@
       handleCopy()
     }
     if (combo === 'Ctrl+V' || combo === 'Command+V') {
-      event.preventDefault()
-      handlePaste()
+      domHiddenInput.value = ''
+      setTimeout(() => {
+        handlePaste(domHiddenInput.value)
+      })
     }
     if (combo === 'Ctrl+D' || combo === 'Command+D') {
       event.preventDefault()
@@ -671,11 +720,10 @@
     bind:showSearch
 
     selection={selection}
-    clipboard={clipboard}
     
     onCut={handleCut}
     onCopy={handleCopy}
-    onPaste={handlePaste}
+    onPaste={handlePasteFromMenu}
     onRemove={handleRemove}
     onDuplicate={handleDuplicate}
     onInsert={handleInsert}

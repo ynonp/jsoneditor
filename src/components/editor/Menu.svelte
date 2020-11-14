@@ -11,7 +11,6 @@
   export let searching
   export let showSearch = false
   export let selection
-  export let clipboard
   export let historyState
 
   export let onCut
@@ -33,7 +32,7 @@
   $: hasSelectionContents = selection != null && selection.paths != null
   $: hasSelectionWithoutContents = (selection != null &&
     (selection.beforePath != null || selection.appendPath != null))
-  $: hasClipboardContents = clipboard != null && selection != null
+  $: hasClipboardContents = selection != null
 
   function handleToggleSearch() {
     showSearch = !showSearch
