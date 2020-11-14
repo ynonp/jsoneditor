@@ -51,7 +51,7 @@
 	</p>
 
 	<script type="module">
-		import jsoneditor, { TreeMode } from './dist/es/jsoneditor.js'
+		import jsoneditor from './dist/es/jsoneditor.js'
 
 		const doc = {
 			'array': [1, 2, 3, {
@@ -92,7 +92,6 @@
 
 		const testEditor = jsoneditor({
 			target: document.getElementById('testEditorContainer'),
-			mode: TreeMode,
 			doc,
 			onChangeJson: doc => console.log('onChangeJson', doc),
 			validate: doc => {

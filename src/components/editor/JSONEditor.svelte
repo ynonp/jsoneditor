@@ -712,4 +712,4 @@
   </div>
 </div>
 
-<style src="./TreeMode.scss"></style>
+<style src="./JSONEditor.scss"></style>

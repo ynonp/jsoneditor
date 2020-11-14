@@ -1,0 +1,52 @@
+<svelte:options immutable={true} />
+
+<script>
+  import Modal from 'svelte-simple-modal'
+  import JSONEditor from './editor/JSONEditor.svelte'
+
+  // This Main.svelte wrapper is there purely to be able to wrap JSONEditor inside Modal
+  // It would be nice if there is a solution that doesn't require this wrapping.
+
+  export let config = {}
+
+  let ref
+
+  export function set (json) {    
+    ref.set(json)
+  }
+
+  export function update (json) {
+    ref.update(json)
+  }
+
+  export function get () {
+    return ref.get()
+  }
+
+  export function expand (callback) {
+    return ref.expand(callback)
+  }
+
+  export function collapse (callback) {
+    return ref.collapse(callback)
+  }
+
+  export function setValidator (newValidate) {
+    ref.setValidator(newValidate)
+  }
+
+  export function getValidator () {
+    return ref.getValidator()
+  }
+
+  export function patch(operations, newSelection) {
+    return ref.patch(operations, newSelection)
+  }
+</script>
+
+<Modal>
+  <JSONEditor
+    bind:this={ref}
+    {...config}
+  />
+</Modal>
