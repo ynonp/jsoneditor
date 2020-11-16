@@ -12,4 +12,4 @@ export default function jsoneditor (config) {
 }
 
 // plugins
-export { createAjvValidator } from './plugins/createAjvValidator.mjs'
+export { createAjvValidator } from './plugins/createAjvValidator.js'

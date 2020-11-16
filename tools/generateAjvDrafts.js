@@ -19,7 +19,7 @@ mkdirp.sync(outputFolder)
 // Create an embedded version of the json drafts for Ajv: a data url
 jsonDrafts.forEach(jsonDraft => {
   const json = String(readFileSync(jsonDraft.path))
-  const outputFile = path.join(outputFolder, jsonDraft.name + '.mjs')
+  const outputFile = path.join(outputFolder, jsonDraft.name + '.js')
 
   writeFileSync(outputFile, `export const ${jsonDraft.name} = ${json}\n`)
 })

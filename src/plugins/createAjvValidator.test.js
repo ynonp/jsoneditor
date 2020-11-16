@@ -1,5 +1,5 @@
 import assert from "assert"
-import { createAjvValidator } from './createAjvValidator.mjs'
+import { createAjvValidator } from './createAjvValidator.js'
 
 const schema = {
   "title": "Employee",

@@ -1,7 +1,7 @@
 import Ajv from 'ajv'
 import { parseJSONPointer } from '../utils/jsonPointer.js'
-import { draft04 } from '../generated/ajv/draft04.mjs'
-import { draft06 } from '../generated/ajv/draft06.mjs'
+import { draft04 } from '../generated/ajv/draft04.js'
+import { draft06 } from '../generated/ajv/draft06.js'
 
 /**
  * Create a JSON Schema validator powered by Ajv.

@@ -7,8 +7,6 @@
 /**
  * @typedef {{
  *   name: string?,
- *   mode: 'code' | 'form' | 'text' | 'tree' | 'view'?,
- *   modes: string[]?,
  *   history: boolean?,
  *   indentation: number | string?,
  *   onChange: function (patch: JSONPatchDocument, revert: JSONPatchDocument)?,
@@ -19,8 +17,7 @@
  *   isValueEditable: function (Path)?,
  *   escapeUnicode: boolean?,
  *   expand: function(path: Path) : boolean?,
- *   ajv: Object?,
- *   ace: Object?
+ *   ajv: Object?
  * }} Options
  */
 
