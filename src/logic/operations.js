@@ -141,7 +141,7 @@ export function replace (json, paths, values, nextKeys) { // TODO: find a better
       ...removeAll(paths),
 
       // insert operations
-      values.map((entry, index) => ({
+      ...values.map((entry, index) => ({
         op: 'add',
         path: compileJSONPointer(parentPath.concat(index + offset)),
         value: entry.value
