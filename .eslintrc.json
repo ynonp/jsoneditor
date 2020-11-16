@@ -24,7 +24,8 @@
     {
       "files": ["*.svelte"],
       "rules": {
-        "import/first": "off"
+        "import/first": "off",
+        "no-multiple-empty-lines": "off"
       }
     }
   ]
