@@ -60,6 +60,7 @@
   import { isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
+  import CopyPasteModal from '../modals/CopyPasteModal.svelte'
   import JSONNode from './JSONNode.svelte'
   import Menu from './Menu.svelte'
 
@@ -299,9 +300,13 @@
   }
 
   function handlePasteFromMenu () {
-    // FIXME: create a proper prompt to explain how to paste
-    alert('Pasting is unavailable via the menu due to security restrictions in browsers. ' +
-      'Please use Ctrl+X, Ctrl+C, Ctrl+V to cut, copy and paste.')
+    open(CopyPasteModal, {}, {
+      ...SIMPLE_MODAL_OPTIONS,
+      styleWindow: {
+        ...SIMPLE_MODAL_OPTIONS.styleWindow,
+        width: '450px'
+      }
+    })
   }
 
   function handleRemove () {

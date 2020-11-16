@@ -1,0 +1,16 @@
+@import '../../styles.scss';
+@import './Modal.scss';
+
+.jsoneditor-modal.copy-paste {
+  .shortcuts {
+    display: flex;
+    justify-content: space-around;
+    margin: 2*$padding 0;
+
+    .shortcut {
+      .key {
+        font-size: 200%;
+      }
+    }
+  }
+}
