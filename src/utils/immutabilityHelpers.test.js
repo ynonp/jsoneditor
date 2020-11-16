@@ -88,13 +88,12 @@ describe('immutabilityHelpers', () => {
   it('setIn non existing path with createPath=true and nested array', () => {
     const obj = {}
 
-    assert.deepStrictEqual(setIn(obj, ['a', 2, 'c'], 4, true), {
-      a: [
-        ,
-        ,
-        { c: 4 }
-      ]
-    })
+    const expected = {
+      a: []
+    }
+    expected.a[2] = { c: 4 }
+
+    assert.deepStrictEqual(setIn(obj, ['a', 2, 'c'], 4, true), expected)
     assert.deepStrictEqual(obj, {})
   })
 

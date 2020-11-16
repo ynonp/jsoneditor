@@ -125,8 +125,7 @@ describe('selection', () => {
     }
     const state = syncState(doc, undefined, [], () => false)
 
-
-    it ('should move selection left', () => {
+    it('should move selection left', () => {
       const expected = {
         keyPath: ['path'],
         anchorPath: ['path'],
@@ -160,7 +159,7 @@ describe('selection', () => {
         paths: [['path1'], ['path2']],
         anchorPath: ['path1'],
         focusPath: ['path2'],
-        pathsMap: {'/path1': true, '/path2': true}
+        pathsMap: { '/path1': true, '/path2': true }
       }), {
         keyPath: ['path2'],
         anchorPath: ['path2'],
@@ -169,7 +168,7 @@ describe('selection', () => {
       })
     })
 
-    it ('should move selection left and keep anchor path', () => {
+    it('should move selection left and keep anchor path', () => {
       const keepAnchorPath = true
       assert.deepStrictEqual(getSelectionLeft(doc, state, { valuePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }, keepAnchorPath), {
         paths: [
@@ -181,10 +180,9 @@ describe('selection', () => {
           '/path': true
         }
       })
-
     })
 
-    it ('should move selection right', () => {
+    it('should move selection right', () => {
       const expected = {
         valuePath: ['path'],
         anchorPath: ['path'],
@@ -211,8 +209,7 @@ describe('selection', () => {
       })
     })
 
-
-    it ('should move selection right and keep anchor path', () => {
+    it('should move selection right and keep anchor path', () => {
       const keepAnchorPath = true
       assert.deepStrictEqual(getSelectionRight(doc, state, { keyPath: ['path'], anchorPath: ['path'], focusPath: ['path'] }, keepAnchorPath), {
         paths: [
@@ -228,7 +225,7 @@ describe('selection', () => {
   })
 
   it('getInitialSelection', () => {
-    function getInitialSelectionWithState(doc) {
+    function getInitialSelectionWithState (doc) {
       const state = syncState(doc, undefined, [], path => path.length <= 1)
       return getInitialSelection(doc, state)
     }
@@ -237,8 +234,8 @@ describe('selection', () => {
     assert.deepStrictEqual(getInitialSelectionWithState([]), { valuePath: [], anchorPath: [], focusPath: [] })
     assert.deepStrictEqual(getInitialSelectionWithState('test'), { valuePath: [], anchorPath: [], focusPath: [] })
 
-    assert.deepStrictEqual(getInitialSelectionWithState({a: 2, b: 3}), { keyPath: ['a'], anchorPath: ['a'], focusPath: ['a'] })
-    assert.deepStrictEqual(getInitialSelectionWithState({a: {}}), { keyPath: ['a'], anchorPath: ['a'], focusPath: ['a'] })
-    assert.deepStrictEqual(getInitialSelectionWithState([2,3,4]), { valuePath: [0], anchorPath: [0], focusPath: [0] })
+    assert.deepStrictEqual(getInitialSelectionWithState({ a: 2, b: 3 }), { keyPath: ['a'], anchorPath: ['a'], focusPath: ['a'] })
+    assert.deepStrictEqual(getInitialSelectionWithState({ a: {} }), { keyPath: ['a'], anchorPath: ['a'], focusPath: ['a'] })
+    assert.deepStrictEqual(getInitialSelectionWithState([2, 3, 4]), { valuePath: [0], anchorPath: [0], focusPath: [0] })
   })
 })

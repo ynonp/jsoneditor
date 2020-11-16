@@ -69,7 +69,7 @@ describe('documentState', () => {
     assert.deepStrictEqual(props2, props1)
   })
 
-  it ('get all expanded paths', () => {
+  it('get all expanded paths', () => {
     const doc = {
       array: [1, 2, { c: 6 }],
       object: { a: 4, b: 5 },
@@ -117,7 +117,7 @@ describe('documentState', () => {
     ])
   })
 
-  it ('get all expanded paths should recon with visible sections in an array', () => {
+  it('get all expanded paths should recon with visible sections in an array', () => {
     const count = 5 * ARRAY_SECTION_SIZE
     const doc = {
       array: times(count, (index) => `item ${index}`)
@@ -139,7 +139,7 @@ describe('documentState', () => {
       '',
       '/array',
       ...times(ARRAY_SECTION_SIZE, (index) => `/array/${index}`),
-      ...times((end - start), (index) => `/array/${index + start}`),
+      ...times((end - start), (index) => `/array/${index + start}`)
     ])
   })
 

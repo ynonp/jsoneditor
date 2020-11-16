@@ -363,7 +363,7 @@ export function pathStartsWith (path, parentPath) {
     return false
   }
 
-  for (let  i = 0; i < parentPath.length; i++) {
+  for (let i = 0; i < parentPath.length; i++) {
     if (path[i] !== parentPath[i]) {
       return false
     }
@@ -395,7 +395,7 @@ export function removeEditModeFromSelection (selection) {
  * @return {Selection}
  */
 // TODO: write unit tests
-export function createSelection(doc, state, selectionSchema) {
+export function createSelection (doc, state, selectionSchema) {
   // TODO: remove next from SelectionSchema, pass it as a separate argument
   const { anchorPath, focusPath, beforePath, appendPath, keyPath, valuePath, edit = false, next = false } = selectionSchema
 

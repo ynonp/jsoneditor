@@ -221,7 +221,7 @@ export function isChildOf (element, predicate) {
  * Source: https://stackoverflow.com/questions/13513329/set-cursor-to-the-end-of-contenteditable-div
  * @param {HTMLElement} element
  */
-export function setCursorToEnd(element) {
+export function setCursorToEnd (element) {
   if (element.firstChild == null) {
     element.focus()
     return

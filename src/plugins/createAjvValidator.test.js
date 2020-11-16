@@ -1,77 +1,77 @@
-import assert from "assert"
+import assert from 'assert'
 import { createAjvValidator } from './createAjvValidator.js'
 
 const schema = {
-  "title": "Employee",
-  "description": "Object containing employee details",
-  "type": "object",
-  "properties": {
-    "firstName": {
-      "title": "First Name",
-      "description": "The given name.",
-      "examples": [
-        "John"
+  title: 'Employee',
+  description: 'Object containing employee details',
+  type: 'object',
+  properties: {
+    firstName: {
+      title: 'First Name',
+      description: 'The given name.',
+      examples: [
+        'John'
       ],
-      "type": "string"
+      type: 'string'
     },
-    "lastName": {
-      "title": "Last Name",
-      "description": "The family name.",
-      "examples": [
-        "Smith"
+    lastName: {
+      title: 'Last Name',
+      description: 'The family name.',
+      examples: [
+        'Smith'
       ],
-      "type": "string"
+      type: 'string'
     },
-    "gender": {
-      "title": "Gender",
-      "enum": ["male", "female"]
+    gender: {
+      title: 'Gender',
+      enum: ['male', 'female']
     },
-    "availableToHire": {
-      "type": "boolean",
-      "default": false
+    availableToHire: {
+      type: 'boolean',
+      default: false
     },
-    "age": {
-      "description": "Age in years",
-      "type": "integer",
-      "minimum": 0,
-      "examples": [28, 32]
+    age: {
+      description: 'Age in years',
+      type: 'integer',
+      minimum: 0,
+      examples: [28, 32]
     },
-    "job": {
-      "$ref": "job"
+    job: {
+      $ref: 'job'
     }
   },
-  "required": ["firstName", "lastName"]
+  required: ['firstName', 'lastName']
 }
 
 const schemaRefs = {
   job: {
-    "title": "Job description",
-    "type": "object",
-    "required": ["address"],
-    "properties": {
-      "company": {
-        "type": "string",
-        "examples": [
-          "ACME",
-          "Dexter Industries"
+    title: 'Job description',
+    type: 'object',
+    required: ['address'],
+    properties: {
+      company: {
+        type: 'string',
+        examples: [
+          'ACME',
+          'Dexter Industries'
         ]
       },
-      "role": {
-        "description": "Job title.",
-        "type": "string",
-        "examples": [
-          "Human Resources Coordinator",
-          "Software Developer"
+      role: {
+        description: 'Job title.',
+        type: 'string',
+        examples: [
+          'Human Resources Coordinator',
+          'Software Developer'
         ],
-        "default": "Software Developer"
+        default: 'Software Developer'
       },
-      "address": {
-        "type": "string"
+      address: {
+        type: 'string'
       },
-      "salary": {
-        "type": "number",
-        "minimum": 120,
-        "examples": [100, 110, 120]
+      salary: {
+        type: 'number',
+        minimum: 120,
+        examples: [100, 110, 120]
       }
     }
   }
@@ -85,7 +85,7 @@ describe('createAjvValidator', () => {
       firstName: 'John',
       lastName: 'Doe',
       gender: null,
-      age: "28",
+      age: '28',
       availableToHire: true,
       job: {
         company: 'freelance',
@@ -95,7 +95,7 @@ describe('createAjvValidator', () => {
     }
 
     assert.deepStrictEqual(validate(invalidDoc), [
-      { path: ['gender'], message: 'should be equal to one of: \"male\", \"female\"' },
+      { path: ['gender'], message: 'should be equal to one of: "male", "female"' },
       { path: ['age'], message: 'should be integer' },
       { path: ['job'], message: 'should have required property \'address\'' },
       { path: ['job', 'salary'], message: 'should be >= 120' }

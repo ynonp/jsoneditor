@@ -5,7 +5,7 @@ import { draft06 } from '../generated/ajv/draft06.js'
 
 /**
  * Create a JSON Schema validator powered by Ajv.
- * @param {JSON} schema 
+ * @param {JSON} schema
  * @param {Object} [schemaRefs=undefined]  An object containing JSON Schema references
  * @return {function (doc: JSON) : Array<Object>} Returns a valiation function
  */
@@ -32,7 +32,7 @@ export function createAjvValidator (schema, schemaRefs) {
 
   return function validate (doc) {
     validateAjv(doc)
-    const ajvErrors = validateAjv.errors 
+    const ajvErrors = validateAjv.errors
 
     return ajvErrors
       .map(improveAjvError)
@@ -42,19 +42,19 @@ export function createAjvValidator (schema, schemaRefs) {
 
 /**
  * @param {Object} ajvError
- * @return {ValidationError} 
+ * @return {ValidationError}
  */
 function normalizeAjvError (ajvError) {
   return {
     path: parseJSONPointer(ajvError.dataPath),
-    message: ajvError.message 
+    message: ajvError.message
   }
 }
 
 /**
- * Improve the error message of a JSON schema error, 
+ * Improve the error message of a JSON schema error,
  * for example list the available values of an enum.
- * 
+ *
  * @param {Object} ajvError
  * @return {Object} Returns the error with improved message
  */

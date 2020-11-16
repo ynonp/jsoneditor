@@ -43,7 +43,7 @@ export function compareStrings (a, b) {
  * @param {number} focusOffset
  * @return {string}
  */
-export function duplicateInText(text, anchorOffset, focusOffset) {
+export function duplicateInText (text, anchorOffset, focusOffset) {
   const startOffset = Math.min(anchorOffset, focusOffset)
   const endOffset = Math.max(anchorOffset, focusOffset)
 

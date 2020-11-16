@@ -105,12 +105,12 @@
  * @property {function} onClick
  * @property {string} [title=undefined]
  * @property {boolean} [default=false]
- */ 
+ */
 
- /**
+/**
   * @typedef {{path: Path, message: string, isChildError?: boolean}} ValidationError
   */
-  
+
 /**
  * @typedef {{start: number, end: number}} Section
  *  Start included, end excluded

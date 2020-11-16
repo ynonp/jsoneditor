@@ -16,7 +16,7 @@ describe('arrayUtils', () => {
       ['a'],
       [],
       ['b', 'c'],
-      ['b'],
+      ['b']
     ]
 
     assert.deepStrictEqual(arrays.sort(compareArrays), [

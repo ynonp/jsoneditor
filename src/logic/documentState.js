@@ -33,7 +33,7 @@ import {
  * @returns {JSON | undefined}
  */
 // TODO: refactor syncState so we don't have to pass path=[] all the time, this is only used internally for recursiveness
-export function syncState (doc, state = undefined, path, expand, forceRefresh = false) {
+export function syncState (doc, state, path, expand, forceRefresh = false) {
   // TODO: this function can be made way more efficient if we pass prevState:
   //  when immutable, we can simply be done already when the state === prevState
 
@@ -166,7 +166,7 @@ export function updateProps (value, prevProps) {
 export function patchProps (state, operations) {
   let updatedState = state
 
-  operations.map(operation => {
+  operations.forEach(operation => {
     if (operation.op === 'move') {
       if (isEqual(
         initial(parseJSONPointer(operation.from)),
@@ -251,7 +251,7 @@ export function getNextKeys (props, key, includeKey = false) {
  */
 // TODO: create memoized version of getVisiblePaths which remembers just the previous result if doc and state are the same
 export function getVisiblePaths (doc, state) {
-  let paths = [
+  const paths = [
     [] // root itself is always visible
   ]
 

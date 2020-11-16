@@ -14,17 +14,14 @@ describe('validation', () => {
     const validationErrorsList = [error1, error2]
 
     const expected = {
-      pupils: [
-        ,
-        ,
-        {
-          age: {
-            [VALIDATION_ERROR]: error1
-          }
-        }
-      ],
+      pupils: [],
       year: {
         [VALIDATION_ERROR]: error2
+      }
+    }
+    expected.pupils[2] = {
+      age: {
+        [VALIDATION_ERROR]: error1
       }
     }
     expected[VALIDATION_ERROR] = { isChildError: true, path: [], message: message3 }
