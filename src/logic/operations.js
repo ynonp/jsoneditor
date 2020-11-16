@@ -1,11 +1,15 @@
-import { first, initial, isEmpty, last, pickBy, cloneDeepWith } from 'lodash-es'
+import { cloneDeepWith, first, initial, isEmpty, last, pickBy } from 'lodash-es'
 import { STATE_PROPS } from '../constants.js'
-import { getNextKeys } from '../logic/documentState.js'
-import { getParentPath } from '../logic/selection.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { findUniqueName } from '../utils/stringUtils.js'
-import { isObject } from '../utils/typeUtils.js'
+import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
+import { getNextKeys } from './documentState.js'
+import {
+  createSelection,
+  createSelectionFromOperations,
+  getParentPath
+} from './selection.js'
 
 /**
  * Create a JSONPatch for an insert operation.
@@ -256,6 +260,9 @@ export function insert (doc, state, selection, values) {
     // TODO: move calculation of nextKeys inside replace?
 
     return operations
+  } else {
+    // TODO: implement support for inserting in value or keyPath and valuePath?
+    throw new Error('Cannot insert: unsupported type of selection')
   }
 }
 
@@ -330,4 +337,110 @@ function moveDown (parentPath, key) {
     from: compileJSONPointer(parentPath.concat(key)),
     path: compileJSONPointer(parentPath.concat(key))
   }
+}
+
+/**
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Selection} selection
+ * @param {string} clipboardData
+ * @return {{
+ *   operations: JSONPatchDocument,
+ *   newSelection: Selection
+ * }}
+ */
+// TODO: write unit tests
+export function createPasteOperations (doc, state, selection, clipboardData) {
+  const clipboard = parsePartialJson(clipboardData)
+
+  if (selection.valuePath) {
+    // replace selected value
+    const operations = [
+      {
+        op: 'replace',
+        path: compileJSONPointer(selection.valuePath),
+        value: clipboard
+      }
+    ]
+
+    return { operations, newSelection: selection }
+  } else if (selection.keyPath) {
+    if (isObjectOrArray(clipboard)) {
+      // replace current entry, not just the key
+      const values = clipboardToValues(clipboard)
+      const operations = insert(doc, state, selection, values)
+      const newSelection = createSelectionFromOperations(operations)
+
+      return { operations, newSelection }
+
+    } else {
+      // rename key
+      const path = initial(selection.keyPath)
+      const oldKey = last(selection.keyPath)
+      const props = getIn(state, path.concat(STATE_PROPS))
+      const nextKeys = getNextKeys(props, oldKey, false)
+      const newKey = String(clipboard)
+      const newKeyUnique = findUniqueName(newKey, getIn(doc, path))
+      const operations = rename(path, oldKey, newKeyUnique, nextKeys)
+      const newSelection = createSelection(doc, state, { keyPath: path.concat(newKeyUnique) })
+
+      return { operations, newSelection }
+    }
+  } else {
+    const values = clipboardToValues(clipboard)
+    console.log('values', { values, clipboard }) // FIXME: cleanup
+    const operations = insert(doc, state, selection, values)
+    const newSelection = createSelectionFromOperations(operations)
+
+    return { operations, newSelection }
+  }
+}
+
+/**
+ * @param {JSON} clipboard
+ * @returns {Array.<{key: string, value: *}>}
+ */
+function clipboardToValues (clipboard) {
+  if (Array.isArray(clipboard)) {
+    return clipboard.map((value, index) => {
+      return { key: 'New item ' + index, value }
+    })
+  } else if (isObject(clipboard)) {
+    return Object.keys(clipboard).map(key => {
+      return { key, value: clipboard[key] }
+    })
+  } else {
+    // regular value
+    return [
+      { key: 'New Item', value: clipboard }
+    ]
+  }
+}
+
+/**
+ * @param {string} partialJson
+ * @return {JSON}
+ */
+export function parsePartialJson (partialJson) {
+  // TODO: this should be processed and fixed by simple-json-repair
+  // for now: dumb brute force approach: simply try out a few things...
+
+  // remove trailing comma
+  if (partialJson.endsWith(',')) {
+    partialJson = partialJson.substring(0, partialJson.length - 1)
+  }
+
+  try {
+    return JSON.parse(partialJson)
+  } catch (err) {}
+
+  try {
+    return JSON.parse('[' + partialJson + ']')
+  } catch (err) {}
+
+  try {
+    return JSON.parse('{' + partialJson + '}')
+  } catch (err) {}
+
+  throw new Error('Failed to parse partial JSON')
 }

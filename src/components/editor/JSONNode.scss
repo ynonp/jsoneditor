@@ -141,9 +141,17 @@
 
 .meta,
 .separator,
-.delimiter {
+.bracket {
   vertical-align: top;
   color: $gray;
+}
+
+.bracket {
+  padding: 0 2px;
+
+  &.expanded {
+    padding-right: $padding * 2;
+  }
 }
 
 .tag {
@@ -155,7 +163,7 @@
   background: $light-gray;
   border-radius: 2px;
   padding: 0 4px 1px;
-  margin: 2px 5px;
+  margin: 2px;
   cursor: pointer;
   position: relative;
 
@@ -234,7 +242,7 @@ div.empty {
     .header,
     .contents,
     .meta,
-    .delimiter,
+    .bracket,
     .separator,
     .expand,
     .footer {
@@ -281,7 +289,7 @@ div.empty {
         color: $selection-color;
       }
 
-      .delimiter {
+      .bracket {
         color: $selection-color;
       }
 

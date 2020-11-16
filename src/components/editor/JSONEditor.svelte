@@ -2,13 +2,7 @@
 
 <script>
   import createDebug from 'debug'
-  import {
-    cloneDeep,
-    initial,
-    last,
-    throttle,
-    uniqueId
-  } from 'lodash-es'
+  import { initial, throttle, uniqueId } from 'lodash-es'
   import { getContext, tick } from 'svelte'
   import jump from '../../assets/jump.js/src/jump.js'
   import {
@@ -27,6 +21,7 @@
   import { createHistory } from '../../logic/history.js'
   import {
     createNewValue,
+    createPasteOperations,
     duplicate,
     insert,
     removeAll
@@ -47,7 +42,8 @@
     getSelectionRight,
     getSelectionUp,
     isSelectionInsidePath,
-    removeEditModeFromSelection
+    removeEditModeFromSelection,
+    selectionToPartialJson
   } from '../../logic/selection.js'
   import { mapValidationErrors } from '../../logic/validation.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
@@ -58,9 +54,9 @@
   } from '../../utils/jsonPointer.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
   import { isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
+  import CopyPasteModal from '../modals/CopyPasteModal.svelte'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
-  import CopyPasteModal from '../modals/CopyPasteModal.svelte'
   import JSONNode from './JSONNode.svelte'
   import Menu from './Menu.svelte'
 
@@ -228,30 +224,16 @@
     }
   }
 
-  function selectionToClipboard (selection) {
-    if (!selection || !selection.paths) {
-      return null
-    }
-
-    return selection.paths.map(path => {
-      return {
-        key: String(last(path)),
-        value: cloneDeep(getIn(doc, path))
-      }
-    })
-  }
-
   async function handleCut () {
-    if (!selection || !selection.paths) {
+    const clipboard = selectionToPartialJson(doc, selection)
+    if (clipboard == null) {
       return
     }
 
-    // FIXME: copy as partial JSON instead
-    const clipboard = selectionToClipboard(selection)
     debug('cut', { selection, clipboard })
 
     try {
-      await navigator.clipboard.writeText(JSON.stringify(clipboard, null, 2))
+      await navigator.clipboard.writeText(clipboard)
     } catch (err) {
       // TODO: report error to user -> onError callback
       console.error(err)
@@ -263,16 +245,15 @@
   }
 
   async function handleCopy () {
-    if (!selection || !selection.paths) {
+    const clipboard = selectionToPartialJson(doc, selection)
+    if (clipboard == null) {
       return
     }
 
-    // FIXME: copy as partial JSON instead
-    const clipboard = selectionToClipboard(selection)
     debug('copy', { clipboard })
 
     try {
-      await navigator.clipboard.writeText(JSON.stringify(clipboard, null, 2))
+      await navigator.clipboard.writeText(clipboard)
     } catch (err) {
       // TODO: report error to user -> onError callback
       console.error(err)
@@ -286,14 +267,11 @@
       return
     }
 
-    // FIXME: paste as partial JSON instead
     try {
-      const data = event.clipboardData.getData('text/plain')
-      const clipboard = JSON.parse(data)
-      debug('paste', { clipboard, selection })
+      const clipboardData = event.clipboardData.getData('text/plain')
+      const { operations, newSelection } = createPasteOperations(doc, state, selection, clipboardData)
 
-      const operations = insert(doc, state, selection, clipboard)
-      const newSelection = createSelectionFromOperations(operations)
+      debug('paste', { clipboardData, operations, selection, newSelection })
 
       handlePatch(operations, newSelection)
     } catch (err) {
@@ -636,27 +614,40 @@
 
     // TODO: implement Shift+Arrows to select multiple entries
 
-    if (combo === 'Enter' && selection && selection.keyPath) {
-      // go to key edit mode
-      event.preventDefault()
-      selection = {
-        ...selection,
-        edit: true
+    if (combo === 'Enter' && selection) {
+      // when the selection consists of one Array item, change selection to editing its value
+      // TODO: this is a bit hacky
+      if (selection.paths && selection.paths.length === 1) {
+        const path = selection.focusPath
+        const parent = getIn(doc, initial(path))
+        if (Array.isArray(parent)) {
+          // change into selection of the value
+          selection = createSelection(doc, state, { valuePath: path })
+        }
       }
-    }
 
-    if (combo === 'Enter' && selection && selection.valuePath) {
-      event.preventDefault()
-
-      const value = getIn(doc, selection.valuePath)
-      if (isObjectOrArray(value)) {
-        // expand object/array
-        handleExpand(selection.valuePath, true)
-      } else {
-        // go to value edit mode
+      if (selection.keyPath) {
+        // go to key edit mode
+        event.preventDefault()
         selection = {
           ...selection,
           edit: true
+        }
+      }
+
+      if (selection.valuePath) {
+        event.preventDefault()
+
+        const value = getIn(doc, selection.valuePath)
+        if (isObjectOrArray(value)) {
+          // expand object/array
+          handleExpand(selection.valuePath, true)
+        } else {
+          // go to value edit mode
+          selection = {
+            ...selection,
+            edit: true
+          }
         }
       }
     }

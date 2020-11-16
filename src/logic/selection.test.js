@@ -1,12 +1,14 @@
 import assert from 'assert'
 import { syncState } from './documentState.js'
 import {
+  createSelection,
   expandSelection,
   findRootPath,
   getInitialSelection,
   getParentPath,
   getSelectionLeft,
-  getSelectionRight
+  getSelectionRight,
+  selectionToPartialJson
 } from './selection.js'
 
 describe('selection', () => {
@@ -168,6 +170,17 @@ describe('selection', () => {
       })
     })
 
+    it('should NOT move selection left when in an array', () => {
+      const doc = [1, 2, 3]
+      const state = syncState(doc, undefined, [], () => false)
+
+      assert.deepStrictEqual(getSelectionLeft(doc, state, {
+        valuePath: [1],
+        anchorPath: [1],
+        focusPath: [1]
+      }), null)
+    })
+
     it('should move selection left and keep anchor path', () => {
       const keepAnchorPath = true
       assert.deepStrictEqual(getSelectionLeft(doc, state, { valuePath: ['path'], anchorPath: ['path'], focusPath: ['path'] }, keepAnchorPath), {
@@ -237,5 +250,55 @@ describe('selection', () => {
     assert.deepStrictEqual(getInitialSelectionWithState({ a: 2, b: 3 }), { keyPath: ['a'], anchorPath: ['a'], focusPath: ['a'] })
     assert.deepStrictEqual(getInitialSelectionWithState({ a: {} }), { keyPath: ['a'], anchorPath: ['a'], focusPath: ['a'] })
     assert.deepStrictEqual(getInitialSelectionWithState([2, 3, 4]), { valuePath: [0], anchorPath: [0], focusPath: [0] })
+  })
+
+  it('should turn selection into text' ,() => {
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { keyPath: ['str']})), '"str"')
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { valuePath: ['str']})), '"hello world"')
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { beforePath: ['str']})), null)
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { appendPath: ['str']})), null)
+
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { anchorPath: ['str'], focusPath: ['bool'] })),
+      '"str": "hello world",\n' +
+      '"nill": null,\n' +
+      '"bool": false,'
+    )
+
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { anchorPath: ['obj', 'arr', 0], focusPath: ['obj', 'arr', 1] })),
+      '1,\n' +
+      '2,'
+    )
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { anchorPath: ['obj', 'arr', 0], focusPath: ['obj', 'arr', 0] })), '1')
+
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { valuePath: ['obj']})), JSON.stringify(doc.obj, null, 2))
+
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, {
+      anchorPath: ['obj'],
+      focusPath: ['obj']
+    })), '"obj": ' + JSON.stringify(doc.obj, null, 2) + ',')
+  })
+
+  it('should turn selection into text with specified indentation' ,() => {
+    const indentation = 4
+    const objArr2 = '{\n' +
+      '    "first": 3,\n' +
+      '    "last": 4\n' +
+      '}'
+
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { valuePath: ['obj', 'arr', 2]}), indentation), objArr2)
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, {
+      anchorPath: ['obj', 'arr', 1],
+      focusPath: ['obj', 'arr', 2]
+    }), indentation), `2,\n${objArr2},`)
+
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, {
+      anchorPath: ['obj'],
+      focusPath: ['obj']
+    })), '"obj": ' + JSON.stringify(doc.obj, null, 2) + ',')
+
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, {
+      anchorPath: ['obj'],
+      focusPath: ['obj']
+    }), indentation), '"obj": ' + JSON.stringify(doc.obj, null, indentation) + ',')
   })
 })

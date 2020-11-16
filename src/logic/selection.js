@@ -238,7 +238,8 @@ export function getSelectionLeft (doc, state, selection, keepAnchorPath = false)
     })
   }
 
-  if (!selection.keyPath) {
+  const parentPath = initial(selection.focusPath)
+  if (!selection.keyPath && !Array.isArray(getIn(doc, parentPath))) {
     return createSelection(doc, state, {
       keyPath: selection.focusPath
     })
@@ -299,7 +300,14 @@ export function getInitialSelection (doc, state) {
 // TODO: write unit tests
 export function createSelectionFromOperations (operations) {
   const paths = operations
-    .filter(operation => operation.op === 'add' || operation.op === 'copy')
+    .filter(operation => {
+      return (
+        operation.op === 'add' ||
+        operation.op === 'copy' ||
+        operation.op === 'rename' ||
+        operation.op === 'replace'
+      )
+    })
     .map(operation => parseJSONPointer(operation.path))
 
   return {
@@ -450,4 +458,49 @@ export function createSelection (doc, state, selectionSchema) {
   } else {
     throw new TypeError(`Unknown type of selection ${JSON.stringify(selectionSchema)}`)
   }
+}
+
+/**
+ * Turn selected contents into plain text partial JSON, usable for copying to
+ * clipboard for example.
+ * @param {JSON} doc
+ * @param {Selection} selection
+ * @param {number} [indentation=2]
+ * @returns {string | null}
+ */
+export function selectionToPartialJson (doc, selection, indentation = 2) {
+  if (selection.keyPath) {
+    return JSON.stringify(last(selection.keyPath))
+  }
+
+  if (selection.valuePath) {
+    const value = getIn(doc, selection.valuePath)
+    return JSON.stringify(value, null, indentation) // TODO: customizable indentation?
+  }
+
+  if (selection.paths) {
+    const parentPath = getParentPath(selection)
+    const parent = getIn(doc, parentPath)
+    if (Array.isArray(parent)) {
+      if (selection.paths.length === 1) {
+        // do not suffix a single selected array item with a comma
+        const item = getIn(doc, first(selection.paths))
+        return JSON.stringify(item, null, indentation)
+      } else {
+        return selection.paths.map(path => {
+          const item = getIn(doc, path)
+          return `${JSON.stringify(item, null, indentation)},`
+        }).join('\n')
+      }
+    } else {
+      // parent is Object
+      return selection.paths.map(path => {
+        const key = last(path)
+        const value = getIn(doc, path)
+        return `${JSON.stringify(key)}: ${JSON.stringify(value, null, indentation)},`
+      }).join('\n')
+    }
+  }
+
+  return null
 }

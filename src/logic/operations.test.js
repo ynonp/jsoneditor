@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { createNewValue } from './operations.js'
+import { createNewValue, parsePartialJson } from './operations.js'
 
 describe('operations', () => {
   describe('createNewValue', () => {
@@ -39,4 +39,28 @@ describe('operations', () => {
       })
     })
   })
+
+  it ('should parse partial JSON', () => {
+    assert.deepStrictEqual(parsePartialJson('"hello world"'), 'hello world')
+    assert.deepStrictEqual(parsePartialJson('null'), null)
+    assert.deepStrictEqual(parsePartialJson('42'), 42)
+
+    // parse partial array
+    assert.deepStrictEqual(parsePartialJson('1,2'), [1, 2])
+    assert.deepStrictEqual(parsePartialJson('1,2,'), [1, 2])
+
+    // parse partial object
+    const partialJson = '"str": "hello world",\n' +
+      '"nill": null,\n' +
+      '"bool": false'
+    const expected = {
+      str: 'hello world',
+      nill: null,
+      bool: false
+    }
+    assert.deepStrictEqual(parsePartialJson(partialJson), expected)
+    assert.deepStrictEqual(parsePartialJson(partialJson + ','), expected)
+  })
+
+  // TODO: write tests for all operations
 })

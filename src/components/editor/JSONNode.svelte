@@ -467,11 +467,11 @@
       <div class="meta" data-type="selectable-value">
         <div class="meta-inner">
           {#if expanded}
-            <div class="delimiter">[</div>
+            <div class="bracket expanded">[</div>
           {:else}
-            <div class="delimiter">[</div>
+            <div class="bracket">[</div>
             <button class="tag" on:click={handleExpand}>{value.length} items</button>
-            <div class="delimiter">]</div>
+            <div class="bracket">]</div>
             {#if validationError}
               <!-- FIXME: implement proper tooltip -->
               <button
@@ -525,7 +525,7 @@
         </div>
       </div>
       <div data-type="selectable-value" class="footer" style={indentationStyle} >
-        <span class="delimiter">]</span>
+        <span class="bracket">]</span>
       </div>
     {/if}
   {:else if type === 'object'}
@@ -556,11 +556,11 @@
       <div class="meta" data-type="selectable-value" >
         <div class="meta-inner">
           {#if expanded}
-            <span class="delimiter">&#123;</span>
+            <span class="bracket expanded">&#123;</span>
           {:else}
-            <span class="delimiter"> &#123;</span>
+            <span class="bracket"> &#123;</span>
             <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
-            <span class="delimiter">&rbrace;</span>
+            <span class="bracket">&rbrace;</span>
             {#if validationError}
               <!-- FIXME: implement proper tooltip -->
               <button
@@ -603,7 +603,7 @@
         </div>
       </div>
       <div data-type="selectable-value" class="footer" style={indentationStyle} >
-        <span class="delimiter">&rbrace;</span>
+        <span class="bracket">&rbrace;</span>
       </div>
     {/if}
   {:else}

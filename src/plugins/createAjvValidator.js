@@ -19,8 +19,8 @@ export function createAjvValidator (schema, schemaRefs) {
   })
 
   // support both draft-04 and draft-06 alongside the latest draft-07
-  ajv.addMetaSchema(draft04) // FIXME
-  ajv.addMetaSchema(draft06) // FIXME
+  ajv.addMetaSchema(draft04)
+  ajv.addMetaSchema(draft06)
 
   if (schemaRefs) {
     Object.keys(schemaRefs).forEach(ref => {
