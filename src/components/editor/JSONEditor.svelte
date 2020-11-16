@@ -279,14 +279,17 @@
     }
   }
 
-  function handlePaste (clipboardText) {
-    if (!selection || clipboardText === '') {
+  function handlePaste (event) {
+    event.preventDefault()
+
+    if (!selection) {
       return
     }
 
     // FIXME: paste as partial JSON instead
     try {
-      const clipboard = JSON.parse(clipboardText)
+      const data = event.clipboardData.getData('text/plain')
+      const clipboard = JSON.parse(data)
       debug('paste', { clipboard, selection })
 
       const operations = insert(doc, state, selection, clipboard)
@@ -583,12 +586,8 @@
       event.preventDefault()
       handleCopy()
     }
-    if (combo === 'Ctrl+V' || combo === 'Command+V') {
-      domHiddenInput.value = ''
-      setTimeout(() => {
-        handlePaste(domHiddenInput.value)
-      })
-    }
+    // Ctrl+V (paste) is handled by the on:paste event
+
     if (combo === 'Ctrl+D' || combo === 'Command+D') {
       event.preventDefault()
       handleDuplicate()
@@ -745,6 +744,7 @@
       class="hidden-input"
       tabindex="-1"
       bind:this={domHiddenInput}
+      on:paste={handlePaste}
     />
   </label>
   <div class="contents" bind:this={divContents}>
