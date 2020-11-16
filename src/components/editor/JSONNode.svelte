@@ -36,6 +36,7 @@
   import CollapsedItems from './CollapsedItems.svelte'
   import { singleton } from './singleton.js'
 
+  // eslint-disable-next-line no-undef-init
   export let key = undefined // only applicable for object properties
   export let value
   export let path
@@ -109,13 +110,11 @@
     })
   }
 
-  const escapeUnicode = false // TODO: pass via options
-
   let domKey
   let domValue
   let hovered = false
 
-  $: type = valueType (value)
+  $: type = valueType(value)
   $: valueIsUrl = isUrl(value)
 
   let keyClass
@@ -190,12 +189,12 @@
     return stringConvert(valueText) // TODO: implement support for type "string"
   }
 
-  function getIndentationStyle(level) {
+  function getIndentationStyle (level) {
     return `margin-left: ${level * INDENTATION_WIDTH}px`
   }
 
   function getValueClass (value, searchResult) {
-    const type = valueType (value)
+    const type = valueType(value)
 
     return classnames('value', type, {
       search: searchResult && searchResult[STATE_SEARCH_VALUE],
@@ -205,7 +204,7 @@
     })
   }
 
-  function getKeyClass(key, searchResult) {
+  function getKeyClass (key, searchResult) {
     return classnames('key', {
       search: searchResult && searchResult[STATE_SEARCH_PROPERTY],
       active: searchResult && searchResult[STATE_SEARCH_PROPERTY] === ACTIVE_SEARCH_RESULT,
@@ -355,7 +354,7 @@
       onSelect({ beforePath: path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'append-node-selector')) {
       onSelect({ appendPath: path })
-    } else  if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
+    } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
       onSelect({ valuePath: path })
     } else {
       onSelect(null)

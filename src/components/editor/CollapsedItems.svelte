@@ -15,14 +15,14 @@
   $: visibleSection = visibleSections[sectionIndex]
 
   $: startIndex = visibleSection.end
-  $: endIndex = visibleSections[sectionIndex + 1] 
-    ? visibleSections[sectionIndex + 1].start 
+  $: endIndex = visibleSections[sectionIndex + 1]
+    ? visibleSections[sectionIndex + 1].start
     : total
 
   $: expandItemsSections = getExpandItemsSections(startIndex, endIndex)
 
   // TODO: this is duplicated from the same function in JSONNode
-  function getIndentationStyle(level) {
+  function getIndentationStyle (level) {
     return `margin-left: ${level * INDENTATION_WIDTH}px`
   }
 

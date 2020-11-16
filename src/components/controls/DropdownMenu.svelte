@@ -1,8 +1,10 @@
+<svelte:options immutable={true} />
+
 <script>
   import Icon from 'svelte-awesome'
   import { faCaretDown } from '@fortawesome/free-solid-svg-icons'
   import { onDestroy, onMount } from 'svelte'
-  import { keyComboFromEvent} from '../../utils/keyBindings.js'
+  import { keyComboFromEvent } from '../../utils/keyBindings.js'
 
   /** @type {MenuDropdownItem[]} */
   export let items = []
@@ -23,9 +25,9 @@
   function handleKeyDown (event) {
     const combo = keyComboFromEvent(event)
     if (combo === 'Escape') {
-        event.preventDefault()
-        visible = false
-      }
+      event.preventDefault()
+      visible = false
+    }
   }
 
   onMount(() => {

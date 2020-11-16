@@ -11,32 +11,32 @@
   export let onQuery
 
   // fields
-  export let filterField = undefined
-  export let filterRelation = undefined
-  export let filterValue = undefined
-  export let sortField = undefined
-  export let sortDirection = undefined
-  export let pickFields = undefined
+  export let filterField
+  export let filterRelation
+  export let filterValue
+  export let sortField
+  export let sortDirection
+  export let pickFields
 
   // options
   $: jsonIsArray = Array.isArray(json)
   $: paths = jsonIsArray ? getNestedPaths(json) : undefined
   $: fieldOptions = paths ? paths.map(pathToOption) : undefined
 
-  const filterRelationOptions = ['==', '!=', '<', '<=', '>', '>='].map(relation => ({ 
-    value: relation, 
+  const filterRelationOptions = ['==', '!=', '<', '<=', '>', '>='].map(relation => ({
+    value: relation,
     label: relation
   }))
 
   const sortDirectionOptions = [
     { value: 'asc', label: 'ascending' },
-    { value: 'desc', label: 'descending' },
+    { value: 'desc', label: 'descending' }
   ]
 
   function pathToOption (path) {
-    return { 
-        value: path, 
-        label: stringifyPath(path) 
+    return {
+      value: path,
+      label: stringifyPath(path)
     }
   }
 
@@ -68,7 +68,7 @@
     if (!isEqual(newQueryOptions, queryOptions)) {
       queryOptions = newQueryOptions
       const query = createQuery(json, queryOptions)
-      
+  
       // console.log('query updated', query, queryOptions)
 
       onQuery(query)

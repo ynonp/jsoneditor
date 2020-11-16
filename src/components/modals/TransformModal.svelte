@@ -11,7 +11,6 @@
   import { truncate } from '../../utils/stringUtils.js'
   import TransformWizard from './TransformWizard.svelte'
   import * as _ from 'lodash-es'
-  import { getIn } from '../../utils/immutabilityHelpers.js'
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
 
   export let id
@@ -21,9 +20,9 @@
 
   const DEFAULT_QUERY = 'function query (data) {\n  return data\n}'
 
-  const {close} = getContext('simple-modal')
+  const { close } = getContext('simple-modal')
 
-  let stateId = `${id}:${compileJSONPointer(rootPath)}`
+  const stateId = `${id}:${compileJSONPointer(rootPath)}`
 
   const state = transformModalState[stateId] || {}
 
@@ -41,10 +40,11 @@
   let sortDirection = state.sortDirection
   let pickFields = state.pickFields
 
-  function evalTransform(json, query) {
-    // FIXME: replace unsafe new Function with a JS based query language 
+  function evalTransform (json, query) {
+    // FIXME: replace unsafe new Function with a JS based query language
     //  As long as we don't persist or fetch queries, there is no security risk.
     // TODO: only import the most relevant subset of lodash instead of the full library?
+    // eslint-disable-next-line no-new-func
     const queryFn = new Function('_', `'use strict'; return (${query})`)(_)
     return queryFn(json)
   }
@@ -54,7 +54,7 @@
     query = newQuery
   }
 
-  function previewTransform(json, query) {
+  function previewTransform (json, query) {
     try {
       const jsonTransformed = evalTransform(json, query)
 
@@ -98,8 +98,8 @@
 
       close()
     } catch (err) {
-      // this should never occur since we can only press the Transform 
-      // button when creating a preview was succesful
+      // this should never occur since we can only press the Transform
+      // button when creating a preview was successful
       console.error(err)
       preview = err.toString()
       previewHasError = true
@@ -153,7 +153,7 @@
     <div class="label">
       Query
     </div>
-    <textarea class="query" bind:value={query} />
+    <textarea class="query" bind:value={query}></textarea>
 
     <div class="label">Preview</div>
     <textarea
@@ -161,7 +161,7 @@
       class:error={previewHasError}
       bind:value={preview} 
       readonly 
-    />
+    ></textarea>
 
     <div class="actions">
       <button 

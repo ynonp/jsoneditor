@@ -1,3 +1,5 @@
+<svelte:options immutable={true} />
+
 <script>
   import { getContext } from 'svelte'
   import Icon from 'svelte-awesome'
@@ -5,7 +7,7 @@
 
   export let title = 'Modal'
   
-  const {close} = getContext('simple-modal')
+  const { close } = getContext('simple-modal')
 </script>
 
 <div class="header">

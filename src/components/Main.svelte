@@ -8,10 +8,9 @@
   // It would be nice if there is a solution that doesn't require this wrapping.
 
   export let config = {}
-
   let ref
 
-  export function set (json) {    
+  export function set (json) {
     ref.set(json)
   }
 
@@ -39,7 +38,7 @@
     return ref.getValidator()
   }
 
-  export function patch(operations, newSelection) {
+  export function patch (operations, newSelection) {
     return ref.patch(operations, newSelection)
   }
 </script>

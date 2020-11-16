@@ -10,18 +10,15 @@
   import { sortArray, sortObjectKeys } from '../../logic/sort.js'
   import { sortModalState } from './sortModalState.js'
   import { compileJSONPointer } from '../../utils/jsonPointer.js'
-  import { get } from 'lodash-es'
-  import { getIn } from '../../utils/immutabilityHelpers.js'
 
   export let id
   export let json
   export let rootPath
   export let onSort
 
-  const {close} = getContext('simple-modal')
+  const { close } = getContext('simple-modal')
 
-  let stateId = `${id}:${compileJSONPointer(rootPath)}`
-  $: json
+  const stateId = `${id}:${compileJSONPointer(rootPath)}`
   $: jsonIsArray = Array.isArray(json)
   $: paths = jsonIsArray ? getNestedPaths(json) : undefined
   $: properties = paths ? paths.map(pathToOption) : undefined
@@ -47,9 +44,9 @@
   }
 
   function pathToOption (path) {
-    return { 
-        value: path, 
-        label: stringifyPath(path) 
+    return {
+      value: path,
+      label: stringifyPath(path)
     }
   }
 
@@ -74,7 +71,7 @@
     } else if (isObject(json)) {
       const direction = selectedDirection.value
       const operations = sortObjectKeys(json, rootPath, direction)
-      
+  
       onSort(operations)
     } else {
       console.error('Cannot sort: no array or object')

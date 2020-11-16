@@ -4,7 +4,6 @@
   import createDebug from 'debug'
   import {
     cloneDeep,
-    first,
     initial,
     last,
     throttle,
@@ -86,7 +85,7 @@
   }
 
   export let doc = {}
-  let state = undefined
+  let state
 
   let selection = null
 
@@ -103,8 +102,8 @@
   let showSearch = false
   let searching = false
   let searchText = ''
-  let searchResult = undefined
-  let searchHandler = undefined
+  let searchResult
+  let searchHandler
 
   function handleSearchProgress (results) {
     searchResult = updateSearchResult(doc, results, searchResult)
@@ -175,18 +174,18 @@
     state = syncState(doc, state, [], callback, true)
   }
 
-  export function get() {
+  export function get () {
     return doc
   }
 
-  export function set(newDocument) {
+  export function set (newDocument) {
     doc = newDocument
     searchResult = undefined
     state = undefined
     history.clear()
   }
 
-  export function update(updatedDocument) {
+  export function update (updatedDocument) {
     doc = updatedDocument
     state = syncState(doc, state, [], defaultExpand)
   }
@@ -195,7 +194,7 @@
    * @param {JSONPatchDocument} operations
    * @param {Selection} [newSelection]
    */
-  export function patch(operations, newSelection) {
+  export function patch (operations, newSelection) {
     const prevState = state
     const prevSelection = selection
 
@@ -241,14 +240,14 @@
     })
   }
 
-  async function handleCut() {
+  async function handleCut () {
     if (!selection || !selection.paths) {
       return
     }
 
     // FIXME: copy as partial JSON instead
     const clipboard = selectionToClipboard(selection)
-    debug('cut', {selection, clipboard})
+    debug('cut', { selection, clipboard })
 
     try {
       await navigator.clipboard.writeText(JSON.stringify(clipboard, null, 2))
@@ -262,7 +261,7 @@
     selection = null
   }
 
-  async function handleCopy() {
+  async function handleCopy () {
     if (!selection || !selection.paths) {
       return
     }
@@ -279,7 +278,7 @@
     }
   }
 
-  function handlePaste(clipboardText) {
+  function handlePaste (clipboardText) {
     if (!selection || clipboardText === '') {
       return
     }
@@ -287,7 +286,7 @@
     // FIXME: paste as partial JSON instead
     try {
       const clipboard = JSON.parse(clipboardText)
-      debug('paste', {clipboard, selection})
+      debug('paste', { clipboard, selection })
 
       const operations = insert(doc, state, selection, clipboard)
       const newSelection = createSelectionFromOperations(operations)
@@ -305,7 +304,7 @@
       'Please use Ctrl+X, Ctrl+C, Ctrl+V to cut, copy and paste.')
   }
 
-  function handleRemove() {
+  function handleRemove () {
     if (!selection || !selection.paths) {
       return
     }
@@ -318,7 +317,7 @@
     selection = null
   }
 
-  function handleDuplicate() {
+  function handleDuplicate () {
     if (!selection || !selection.paths) {
       return
     }
@@ -333,8 +332,8 @@
 
   /**
    * @param {'value' | 'object' | 'array' | 'structure'} type
-   */ 
-  function handleInsert(type) {
+   */
+  function handleInsert (type) {
     if (selection == null) {
       return
     }
@@ -361,7 +360,7 @@
     }
   }
 
-  function handleUndo() {
+  function handleUndo () {
     if (!history.getState().canUndo) {
       return
     }
@@ -375,12 +374,12 @@
     state = item.prevState
     selection = item.prevSelection
 
-    debug('undo', { item,  doc, state, selection })
+    debug('undo', { item, doc, state, selection })
 
     emitOnChange()
   }
 
-  function handleRedo() {
+  function handleRedo () {
     if (!history.getState().canRedo) {
       return
     }
@@ -394,7 +393,7 @@
     state = item.state
     selection = item.selection
 
-    debug('redo', { item,  doc, state, selection })
+    debug('redo', { item, doc, state, selection })
 
     emitOnChange()
   }
@@ -411,7 +410,7 @@
         patch(operations, selection)
       }
     }, {
-      ...SIMPLE_MODAL_OPTIONS, 
+      ...SIMPLE_MODAL_OPTIONS,
       styleWindow: {
         ...SIMPLE_MODAL_OPTIONS.styleWindow,
         width: '400px'
@@ -420,7 +419,7 @@
   }
 
   function handleTransform () {
-    const rootPath = selection ? findRootPath(selection): []
+    const rootPath = selection ? findRootPath(selection) : []
 
     open(TransformModal, {
       id: transformModalId,
@@ -438,7 +437,7 @@
         state = setIn(state, rootPath.concat(STATE_EXPANDED), expanded)
       }
     }, {
-      ...SIMPLE_MODAL_OPTIONS, 
+      ...SIMPLE_MODAL_OPTIONS,
       styleWindow: {
         ...SIMPLE_MODAL_OPTIONS.styleWindow,
         width: '600px'
@@ -497,7 +496,7 @@
     }
   }
 
-  function emitOnChange() {
+  function emitOnChange () {
     // TODO: add more logic here to emit onChange, onChangeJson, onChangeText, etc.
     onChangeJson(doc)
   }
@@ -506,7 +505,7 @@
    * @param {JSONPatchDocument} operations
    * @param {Selection} [newSelection]
    */
-  function handlePatch(operations, newSelection) {
+  function handlePatch (operations, newSelection) {
     // debug('handlePatch', operations)
 
     const patchResult = patch(operations, newSelection)

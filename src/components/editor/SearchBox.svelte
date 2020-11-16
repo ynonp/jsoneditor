@@ -17,7 +17,7 @@
   export let onNext = () => {}
   export let onClose = () => {}
 
-  $: formattedResultCount = resultCount >= MAX_SEARCH_RESULTS 
+  $: formattedResultCount = resultCount >= MAX_SEARCH_RESULTS
     ? `${MAX_SEARCH_RESULTS - 1}+`
     : String(resultCount)
 

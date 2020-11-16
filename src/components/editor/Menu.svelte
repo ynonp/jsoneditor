@@ -34,7 +34,7 @@
     (selection.beforePath != null || selection.appendPath != null))
   $: hasClipboardContents = selection != null
 
-  function handleToggleSearch() {
+  function handleToggleSearch () {
     showSearch = !showSearch
   }
 
