@@ -6,7 +6,7 @@ import {
   setIn
 } from './immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from './jsonPointer.js'
-import { isEqual, initial } from 'lodash-es'
+import { isEqual, initial, last } from 'lodash-es'
 
 /**
  * Apply a patch to a JSON object
@@ -276,15 +276,18 @@ export function test (json, path, value) {
 }
 
 /**
- * Resolve the path of an index like '''
+ * Resolve the path index of an array, resolves indexes '-'
  * @param {JSON} json
  * @param {Path} path
  * @returns {Path} Returns the resolved path
  */
 export function resolvePathIndex (json, path) {
-  const parent = getIn(json, initial(path))
+  if (last(path) !== '-') {
+    return path
+  }
 
-  return (path[path.length - 1] === '-')
-    ? path.slice(0, path.length - 1).concat(parent.length)
-    : path
+  const parentPath = initial(path)
+  const parent = getIn(json, parentPath)
+
+  return parentPath.concat(parent.length)
 }
