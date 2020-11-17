@@ -178,7 +178,6 @@
     doc = newDocument
     state = syncState(doc, state, [], defaultExpand)
     searchResult = undefined
-    state = undefined
     history.clear()
   }
 
