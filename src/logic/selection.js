@@ -1,5 +1,5 @@
 import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
-import { STATE_EXPANDED, STATE_PROPS } from '../constants.js'
+import { STATE_EXPANDED, STATE_KEYS } from '../constants.js'
 import { getIn, setIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
@@ -37,9 +37,9 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
     const value = getIn(doc, sharedPath)
 
     if (isObject(value)) {
-      const props = getIn(state, sharedPath.concat(STATE_PROPS))
-      const anchorIndex = props.findIndex(prop => prop.key === anchorKey)
-      const focusIndex = props.findIndex(prop => prop.key === focusKey)
+      const keys = getIn(state, sharedPath.concat(STATE_KEYS))
+      const anchorIndex = keys.indexOf(anchorKey)
+      const focusIndex = keys.indexOf(focusKey)
 
       if (anchorIndex !== -1 && focusIndex !== -1) {
         const startIndex = Math.min(anchorIndex, focusIndex)
@@ -47,7 +47,7 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
         const paths = []
 
         for (let i = startIndex; i <= endIndex; i++) {
-          paths.push(sharedPath.concat(props[i].key))
+          paths.push(sharedPath.concat(keys[i]))
         }
 
         return paths

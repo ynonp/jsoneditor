@@ -3,7 +3,7 @@ import {
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
   STATE_ID,
-  STATE_PROPS,
+  STATE_KEYS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
 import { forEachIndex } from '../utils/arrayUtils.js'
@@ -24,7 +24,7 @@ import {
 } from './expandItemsSections.js'
 
 /**
- * Sync a state object with the doc it belongs to: update props, limit, and expanded state
+ * Sync a state object with the doc it belongs to: update keys, limit, and expanded state
  *
  * @param {JSON} doc
  * @param {JSON | undefined} state
@@ -45,7 +45,7 @@ export function syncState (doc, state, path, expand, forceRefresh = false) {
     : uniqueId()
 
   if (isObject(doc)) {
-    updatedState[STATE_PROPS] = updateProps(doc, state && state[STATE_PROPS])
+    updatedState[STATE_KEYS] = syncKeys(doc, state && state[STATE_KEYS])
 
     updatedState[STATE_EXPANDED] = (state && !forceRefresh)
       ? state[STATE_EXPANDED]
@@ -131,33 +131,28 @@ export function expandSection (state, path, section) {
   })
 }
 
-export function updateProps (value, prevProps) {
+export function syncKeys (value, prevKeys) {
   if (!isObject(value)) {
     return undefined
   }
 
-  // copy the props that still exist
-  const props = prevProps
-    ? prevProps.filter(item => value[item.key] !== undefined)
+  // copy the keys that still exist
+  const keys = prevKeys
+    ? prevKeys.filter(key => value[key] !== undefined)
     : []
 
-  // add new props
-  const prevKeys = new Set(props.map(item => item.key))
-  Object.keys(value).forEach(key => {
-    if (!prevKeys.has(key)) {
-      props.push({
-        id: uniqueId(),
-        key
-      })
-    }
-  })
+  // add new keys
+  const keysSet = new Set(keys)
+  Object.keys(value)
+    .filter(key => !keysSet.has(key))
+    .forEach(key => keys.push(key))
 
-  return props
+  return keys
 }
 
 // TODO: write unit tests
 // TODO: split this function in smaller functions
-export function patchProps (state, operations) {
+export function patchKeys (state, operations) {
   let updatedState = state
 
   operations.forEach(operation => {
@@ -170,34 +165,32 @@ export function patchProps (state, operations) {
         const pathFrom = parseJSONPointer(operation.from)
         const pathTo = parseJSONPointer(operation.path)
         const parentPath = initial(pathFrom)
-        const props = getIn(updatedState, parentPath.concat(STATE_PROPS))
+        const keys = getIn(updatedState, parentPath.concat(STATE_KEYS))
 
-        if (props) {
-          const oldKey = last(pathFrom)
-          const newKey = last(pathTo)
-          const oldIndex = props.findIndex(item => item.key === oldKey)
+        const oldKey = last(pathFrom)
+        const newKey = last(pathTo)
+        const oldIndex = keys.indexOf(oldKey)
 
-          if (oldIndex !== -1) {
-            if (oldKey !== newKey) {
-              // A property is renamed.
+        if (oldIndex !== -1) {
+          if (oldKey !== newKey) {
+            // A key is renamed.
 
-              // in case the new key shadows an existing key, remove the existing key
-              const newIndex = props.findIndex(item => item.key === newKey)
-              if (newIndex !== -1) {
-                const updatedProps = deleteIn(props, [newIndex])
-                updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps, true)
-              }
-
-              // Rename the key in the object's props so it maintains its identity and hence its index
-              updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS, oldIndex, 'key']), newKey, true)
-            } else {
-              // operation.from and operation.path are the same:
-              // property is moved but stays the same -> move it to the end of the props
-              const oldProp = props[oldIndex]
-              const updatedProps = insertAt(deleteIn(props, [oldIndex]), [props.length - 1], oldProp)
-
-              updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps, true)
+            // in case the new key shadows an existing key, remove the existing key
+            const newIndex = keys.indexOf(newKey)
+            if (newIndex !== -1) {
+              const updatedKeys = deleteIn(keys, [newIndex])
+              updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS]), updatedKeys, true)
             }
+
+            // Rename the key in the object's keys so it maintains its identity and hence its index
+            updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS, oldIndex, 'key']), newKey, true)
+          } else {
+            // operation.from and operation.path are the same:
+            // key is moved but stays the same -> move it to the end of the keys
+            const oldKey = keys[oldIndex]
+            const updatedKeys = insertAt(deleteIn(keys, [oldIndex]), [keys.length - 1], oldKey)
+
+            updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS]), updatedKeys, true)
           }
         }
       }
@@ -207,17 +200,13 @@ export function patchProps (state, operations) {
       const pathTo = parseJSONPointer(operation.path)
       const parentPath = initial(pathTo)
       const key = last(pathTo)
-      const props = getIn(updatedState, parentPath.concat(STATE_PROPS))
-      if (props) {
-        const index = props.findIndex(item => item.key === key)
+      const keys = getIn(updatedState, parentPath.concat(STATE_KEYS))
+      if (keys) {
+        const index = keys.indexOf(key)
         if (index === -1) {
-          const newProp = {
-            id: uniqueId(),
-            key
-          }
-          const updatedProps = insertAt(props, [props.length], newProp)
+          const updatedKeys = insertAt(keys, [keys.length], key)
 
-          updatedState = setIn(updatedState, parentPath.concat([STATE_PROPS]), updatedProps, true)
+          updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS]), updatedKeys, true)
         }
       }
     }
@@ -226,11 +215,13 @@ export function patchProps (state, operations) {
   return updatedState
 }
 
-export function getNextKeys (props, key, includeKey = false) {
-  if (props) {
-    const index = props.findIndex(prop => prop.key === key)
+export function getNextKeys (keys, key, includeKey = false) {
+  if (keys) {
+    const index = keys.indexOf(key)
     if (index !== -1) {
-      return props.slice(index + (includeKey ? 0 : 1)).map(prop => prop.key)
+      return includeKey
+        ? keys.slice(index)
+        : keys.slice(index + 1)
     }
   }
 
@@ -261,10 +252,10 @@ export function getVisiblePaths (doc, state) {
           })
         })
       } else { // Object
-        const props = state[STATE_PROPS]
-        props.forEach(prop => {
-          paths.push(path.concat(prop.key))
-          _recurse(doc[prop.key], state[prop.key], path.concat(prop.key))
+        const keys = state[STATE_KEYS]
+        keys.forEach(key => {
+          paths.push(path.concat(key))
+          _recurse(doc[key], state[key], path.concat(key))
         })
       }
     }

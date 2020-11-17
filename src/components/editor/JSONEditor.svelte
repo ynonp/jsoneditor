@@ -15,7 +15,7 @@
   import {
     expandPath,
     expandSection,
-    patchProps,
+    patchKeys,
     syncState
   } from '../../logic/documentState.js'
   import { createHistory } from '../../logic/history.js'
@@ -202,7 +202,7 @@
     // TODO: only apply operations to state for relevant operations: move, copy, delete? Figure out
 
     doc = documentPatchResult.json
-    state = patchProps(statePatchResult.json, operations)
+    state = patchKeys(statePatchResult.json, operations)
     if (newSelection) {
       selection = newSelection
     }

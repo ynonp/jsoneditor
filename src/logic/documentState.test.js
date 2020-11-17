@@ -5,7 +5,7 @@ import {
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
   STATE_ID,
-  STATE_PROPS,
+  STATE_KEYS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
@@ -13,7 +13,7 @@ import {
   expandSection,
   getVisiblePaths,
   syncState,
-  updateProps
+  syncKeys
 } from './documentState.js'
 
 describe('documentState', () => {
@@ -37,11 +37,7 @@ describe('documentState', () => {
     const expectedState = {}
     expectedState[STATE_EXPANDED] = true
     expectedState[STATE_ID] = state[STATE_ID] || throwUndefinedId()
-    expectedState[STATE_PROPS] = [
-      { id: state[STATE_PROPS][0].id || throwUndefinedId(), key: 'array' },
-      { id: state[STATE_PROPS][1].id || throwUndefinedId(), key: 'object' },
-      { id: state[STATE_PROPS][2].id || throwUndefinedId(), key: 'value' }
-    ]
+    expectedState[STATE_KEYS] = [ 'array', 'object', 'value' ]
     expectedState.array = [
       {
         [STATE_ID]: state.array[0][STATE_ID] || throwUndefinedId()
@@ -52,9 +48,7 @@ describe('documentState', () => {
       {
         [STATE_ID]: state.array[2][STATE_ID] || throwUndefinedId(),
         [STATE_EXPANDED]: false,
-        [STATE_PROPS]: [
-          { id: state.array[2][STATE_PROPS][0].id || throwUndefinedId(), key: 'c' } // FIXME: props should not be created because node is not expanded
-        ]
+        [STATE_KEYS]: [ 'c' ] // FIXME: keys should not be created because node is not expanded
       },
     ]
     expectedState.array[STATE_ID] = state.array[STATE_ID] || throwUndefinedId()
@@ -63,10 +57,7 @@ describe('documentState', () => {
     expectedState.object = {
       [STATE_ID]: state.object[STATE_ID] || throwUndefinedId(),
       [STATE_EXPANDED]: true,
-      [STATE_PROPS]: [
-        { id: state.object[STATE_PROPS][0].id || throwUndefinedId(), key: 'a' },
-        { id: state.object[STATE_PROPS][1].id || throwUndefinedId(), key: 'b' }
-      ],
+      [STATE_KEYS]: [ 'a', 'b' ],
       a: {
         [STATE_ID]: state.object.a[STATE_ID] || throwUndefinedId(),
       },
@@ -81,19 +72,18 @@ describe('documentState', () => {
     assert.deepStrictEqual(state, expectedState)
   })
 
-  it('updateProps (1)', () => {
-    const props1 = updateProps({ b: 2 })
-    assert.deepStrictEqual(props1.map(item => item.key), ['b'])
+  it('updateKeys (1)', () => {
+    const keys1 = syncKeys({ b: 2 })
+    assert.deepStrictEqual(keys1, ['b'])
 
-    const props2 = updateProps({ a: 1, b: 2 }, props1)
-    assert.deepStrictEqual(props2.map(item => item.key), ['b', 'a'])
-    assert.deepStrictEqual(props2[0], props1[0]) // b must still have the same id
+    const keys2 = syncKeys({ a: 1, b: 2 }, keys1)
+    assert.deepStrictEqual(keys2, ['b', 'a'])
   })
 
-  it('updateProps (2)', () => {
-    const props1 = updateProps({ a: 1, b: 2 })
-    const props2 = updateProps({ a: 1, b: 2 }, props1)
-    assert.deepStrictEqual(props2, props1)
+  it('updateKeys (2)', () => {
+    const keys1 = syncKeys({ a: 1, b: 2 })
+    const keys2 = syncKeys({ a: 1, b: 2 }, keys1)
+    assert.deepStrictEqual(keys2, keys1)
   })
 
   it('get all expanded paths', () => {

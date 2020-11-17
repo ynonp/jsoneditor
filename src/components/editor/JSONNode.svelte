@@ -16,7 +16,7 @@
     INDENTATION_WIDTH,
     STATE_EXPANDED,
     STATE_ID,
-    STATE_PROPS,
+    STATE_KEYS,
     STATE_SEARCH_PROPERTY,
     STATE_SEARCH_VALUE,
     STATE_VISIBLE_SECTIONS,
@@ -81,10 +81,10 @@
   $: editKey = selectedKey && selection && selection.edit === true
   $: editValue = selectedValue && selection && selection.edit === true
 
-  $: expanded = state && state[STATE_EXPANDED]
-  $: expanded = state && state[STATE_EXPANDED]
-  $: visibleSections = state && state[STATE_VISIBLE_SECTIONS]
-  $: props = state && state[STATE_PROPS]
+  $: expanded = state[STATE_EXPANDED]
+  $: expanded = state[STATE_EXPANDED]
+  $: visibleSections = state[STATE_VISIBLE_SECTIONS]
+  $: keys = state[STATE_KEYS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
   onDestroy(() => {
@@ -243,7 +243,7 @@
 
   function handleUpdateKey (oldKey, newKey) {
     const newKeyUnique = findUniqueName(newKey, value)
-    const nextKeys = getNextKeys(props, key, false)
+    const nextKeys = getNextKeys(keys, key, false)
 
     onPatch(rename(path, oldKey, newKeyUnique, nextKeys))
 
@@ -499,7 +499,7 @@
               key={visibleSection.start + itemIndex}
               value={item}
               path={path.concat(visibleSection.start + itemIndex)}
-              state={state && state[visibleSection.start + itemIndex]}
+              state={state[visibleSection.start + itemIndex]}
               searchResult={searchResult ? searchResult[visibleSection.start + itemIndex] : undefined}
               validationErrors={validationErrors ? validationErrors[visibleSection.start + itemIndex] : undefined}
               onPatch={onPatch}
@@ -582,14 +582,14 @@
     </div>
     {#if expanded}
       <div class="props">
-        {#each props as prop (prop.id)}
+        {#each keys as key (state[key][STATE_ID])}
           <svelte:self
-            key={prop.key}
-            value={value[prop.key]}
-            path={path.concat(prop.key)}
-            state={state && state[prop.key]}
-            searchResult={searchResult ? searchResult[prop.key] : undefined}
-            validationErrors={validationErrors ? validationErrors[prop.key] : undefined}
+            key={key}
+            value={value[key]}
+            path={path.concat(key)}
+            state={state[key]}
+            searchResult={searchResult ? searchResult[key] : undefined}
+            validationErrors={validationErrors ? validationErrors[key] : undefined}
             onPatch={onPatch}
             onUpdateKey={handleUpdateKey}
             onExpand={onExpand}
