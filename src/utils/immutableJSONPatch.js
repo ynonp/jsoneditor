@@ -18,8 +18,9 @@ const DEFAULT_OPTIONS = {
  * @return {{json: JSON, revert: JSONPatchDocument, error: string | null}}
  */
 export function immutableJSONPatch (json, operations, options = DEFAULT_OPTIONS) {
+  // TODO: create a version of immutableJSONPatch which doesn't calculate revert operations (faster, and tree-shakable)
   let updatedJson = json
-  let reverts = []
+  let revertOperations = []
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
@@ -39,31 +40,31 @@ export function immutableJSONPatch (json, operations, options = DEFAULT_OPTIONS)
 
     switch (operation.op) {
       case 'add': {
-        reverts.unshift(revertAdd(updatedJson, path, operation.value, options))
+        revertOperations.unshift(revertAdd(updatedJson, path, operation.value, options))
         updatedJson = add(updatedJson, path, operation.value, options)
         break
       }
 
       case 'remove': {
-        reverts.unshift(revertRemove(updatedJson, path, options))
+        revertOperations.unshift(revertRemove(updatedJson, path, options))
         updatedJson = remove(updatedJson, path, options)
         break
       }
 
       case 'replace': {
-        reverts.unshift(revertReplace(updatedJson, path, operation.value, options))
+        revertOperations.unshift(revertReplace(updatedJson, path, operation.value, options))
         updatedJson = replace(updatedJson, path, operation.value, options)
         break
       }
 
       case 'copy': {
-        reverts.unshift(revertCopy(updatedJson, path, from, options))
+        revertOperations.unshift(revertCopy(updatedJson, path, from, options))
         updatedJson = copy(updatedJson, path, from, options)
         break
       }
 
       case 'move': {
-        reverts = revertMove(updatedJson, path, from, options).concat(reverts)
+        revertOperations = revertMove(updatedJson, path, from, options).concat(revertOperations)
         updatedJson = move(updatedJson, path, from, options)
         break
       }
@@ -91,7 +92,7 @@ export function immutableJSONPatch (json, operations, options = DEFAULT_OPTIONS)
 
   return {
     json: updatedJson,
-    revert: reverts,
+    revert: revertOperations,
     error: null
   }
 }
