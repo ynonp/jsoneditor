@@ -65,8 +65,7 @@ export function immutableJSONPatch (json, operations) {
 /**
  * Replace an existing item
  * @param {JSON} json
- * @param {Path} path
- * @param {JSON} value
+ * @param {{ path: Path, value: JSON }} operation
  * @return {JSON}
  */
 export function replace (json, { path, value }) {
@@ -76,7 +75,7 @@ export function replace (json, { path, value }) {
 /**
  * Remove an item or property
  * @param {JSON} json
- * @param {Path} path
+ * @param {{ path: Path }} operation
  * @return {JSON}
  */
 export function remove (json, { path }) {
@@ -85,9 +84,7 @@ export function remove (json, { path }) {
 
 /**
  * @param {JSON} json
- * @param {Path} path
- * @param {JSON} value
- * @return {JSON}
+ * @param {{ path: Path, value: JSON }} operation
  * @return {JSON}
  */
 export function add (json, { path, value }) {
@@ -101,8 +98,7 @@ export function add (json, { path, value }) {
 /**
  * Copy a value
  * @param {JSON} json
- * @param {Path} path
- * @param {Path} from
+ * @param {{ path: Path, from: Path }} operation
  * @return {JSON}
  */
 export function copy (json, { path, from }) {
@@ -120,8 +116,7 @@ export function copy (json, { path, from }) {
 /**
  * Move a value
  * @param {JSON} json
- * @param {Path} path
- * @param {Path} from
+ * @param {{ path: Path, from: Path }} operation
  * @return {JSON}
  */
 export function move (json, { path, from }) {
@@ -137,8 +132,7 @@ export function move (json, { path, from }) {
  * Test whether the data contains the provided value at the specified path.
  * Returns an error message when the tests, returns null otherwise
  * @param {JSON} json
- * @param {Path} path
- * @param {JSON} value
+ * @param {{ path: Path, value: JSON }} operation
  * @return {null | string}
  */
 export function test (json, { path, value }) {
@@ -158,8 +152,7 @@ export function test (json, { path, value }) {
 
 /**
  * @param {JSON} json
- * @param {Path} path
- * @param {JSON} value
+ * @param {{ path: Path, value: JSON }} operation
  * @return {JSONPatchOperation[]}
  */
 function revertReplace (json, { path, value }) {
@@ -172,7 +165,7 @@ function revertReplace (json, { path, value }) {
 
 /**
  * @param {JSON} json
- * @param {Path} path
+ * @param {{ path: Path }} operation
  * @return {JSONPatchOperation[]}
  */
 function revertRemove (json, { path }) {
@@ -185,8 +178,7 @@ function revertRemove (json, { path }) {
 
 /**
  * @param {JSON} json
- * @param {Path} path
- * @param {JSON} value
+ * @param {{ path: Path, value: JSON }} operation
  * @return {JSONPatchOperation[]}
  */
 function revertAdd (json, { path, value }) {
@@ -202,8 +194,7 @@ function revertAdd (json, { path, value }) {
 
 /**
  * @param {JSON} json
- * @param {Path} path
- * @param {JSON} value
+ * @param {{ path: Path, value: JSON }} operation
  * @return {JSONPatchOperation[]}
  */
 function revertCopy (json, { path, value }) {
@@ -212,8 +203,7 @@ function revertCopy (json, { path, value }) {
 
 /**
  * @param {JSON} json
- * @param {Path} path
- * @param {Path} from
+ * @param {{ path: Path, from: Path }} operation
  * @return {JSONPatchOperation[]}
  */
 function revertMove (json, { path, from }) {
