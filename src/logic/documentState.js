@@ -40,7 +40,9 @@ export function syncState (doc, state, path, expand, forceRefresh = false) {
 
   const updatedState = Array.isArray(doc) ? [] : {}
 
-  updatedState[STATE_ID] = state
+  // note that state may be a primitive value, inserted by applying a JSON Patch
+  // operation. So state[STATE_ID] may be undefined.
+  updatedState[STATE_ID] = state && state[STATE_ID]
     ? state[STATE_ID]
     : uniqueId()
 
@@ -58,6 +60,8 @@ export function syncState (doc, state, path, expand, forceRefresh = false) {
         updatedState[key] = syncState(childDocument, childState, path.concat(key), expand, forceRefresh)
       })
     }
+
+    // FIXME: must create new id's in case of duplicate id's
   } else if (Array.isArray(doc)) {
     updatedState[STATE_EXPANDED] = (state && !forceRefresh)
       ? state[STATE_EXPANDED]
@@ -136,10 +140,12 @@ export function syncKeys (value, prevKeys) {
     return undefined
   }
 
+  if (!prevKeys) {
+    return Object.keys(value)
+  }
+
   // copy the keys that still exist
-  const keys = prevKeys
-    ? prevKeys.filter(key => value[key] !== undefined)
-    : []
+  const keys = prevKeys.filter(key => value[key] !== undefined)
 
   // add new keys
   const keysSet = new Set(keys)

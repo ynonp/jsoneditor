@@ -82,7 +82,7 @@
   }
 
   export let doc = {}
-  let state
+  let state = syncState(doc, undefined, [], defaultExpand)
 
   let selection = null
 
@@ -92,7 +92,6 @@
       : (path.length === 1 && path[0] === 0) // first item of an array?
   }
 
-  $: state = syncState(doc, state, [], defaultExpand)
   $: validationErrorsList = validate ? validate(doc) : []
   $: validationErrors = mapValidationErrors(validationErrorsList)
 
@@ -177,6 +176,7 @@
 
   export function set (newDocument) {
     doc = newDocument
+    state = syncState(doc, state, [], defaultExpand)
     searchResult = undefined
     state = undefined
     history.clear()
@@ -202,7 +202,7 @@
     // TODO: only apply operations to state for relevant operations: move, copy, delete? Figure out
 
     doc = documentPatchResult.json
-    state = patchKeys(statePatchResult.json, operations)
+    state = patchKeys(statePatchResult.json, operations) // TODO: shouldn't this be syncState?
     if (newSelection) {
       selection = newSelection
     }
@@ -522,6 +522,10 @@
       })
     } else {
       state = setIn(state, path.concat(STATE_EXPANDED), expanded, true)
+
+      state = updateIn(state, path, (childState) => {
+        return syncState(getIn(doc, path), childState, [], defaultExpand, false)
+      })
     }
 
     if (selection && !expanded) {
