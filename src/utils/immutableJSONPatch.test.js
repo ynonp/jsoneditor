@@ -1,5 +1,8 @@
 import assert from 'assert'
-import { immutableJSONPatch } from './immutableJSONPatch.js'
+import {
+  immutableJSONPatch,
+  immutableJSONPatchWithRevert
+} from './immutableJSONPatch.js'
 
 describe('immutableJSONPatch', () => {
   it('test strictEqual, notStrictEqual, deepStrictEqual', () => {
@@ -22,7 +25,8 @@ describe('immutableJSONPatch', () => {
       { op: 'add', path: '/obj/b', value: { foo: 'bar' } }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, {
       arr: [1, 2, 3],
@@ -44,7 +48,8 @@ describe('immutableJSONPatch', () => {
       { op: 'add', path: '/arr/1', value: 4 }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, {
       arr: [1, 4, 2, 3],
@@ -66,7 +71,8 @@ describe('immutableJSONPatch', () => {
       { op: 'add', path: '/arr/-', value: 4 }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, {
       arr: [1, 2, 3, 4],
@@ -90,7 +96,8 @@ describe('immutableJSONPatch', () => {
       { op: 'remove', path: '/arr/1' }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, {
       arr: [1, 3],
@@ -103,7 +110,7 @@ describe('immutableJSONPatch', () => {
     ])
 
     // test revert
-    const result2 = immutableJSONPatch(result.json, result.revert)
+    const result2 = immutableJSONPatchWithRevert(result.json, result.revert)
 
     assert.deepStrictEqual(result2.json, json)
     assert.deepStrictEqual(result2.revert, patch)
@@ -122,7 +129,8 @@ describe('immutableJSONPatch', () => {
       { op: 'replace', path: '/arr/1', value: 200 }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, {
       arr: [1, 200, 3],
@@ -135,7 +143,7 @@ describe('immutableJSONPatch', () => {
     ])
 
     // test revert
-    const result2 = immutableJSONPatch(result.json, result.revert)
+    const result2 = immutableJSONPatchWithRevert(result.json, result.revert)
 
     assert.deepStrictEqual(result2.json, json)
     assert.deepStrictEqual(result2.revert, [
@@ -152,7 +160,8 @@ describe('immutableJSONPatch', () => {
     const patch = [
       { op: 'replace', path: '', value: { b: 3 } }
     ]
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, { b: 3 })
   })
@@ -167,7 +176,8 @@ describe('immutableJSONPatch', () => {
       { op: 'copy', from: '/obj', path: '/arr/2' }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, {
       arr: [1, 2, { a: 4 }, 3],
@@ -178,7 +188,7 @@ describe('immutableJSONPatch', () => {
     ])
 
     // test revert
-    const result2 = immutableJSONPatch(result.json, result.revert)
+    const result2 = immutableJSONPatchWithRevert(result.json, result.revert)
 
     assert.deepStrictEqual(result2.json, json)
     assert.deepStrictEqual(result2.revert, [
@@ -199,9 +209,9 @@ describe('immutableJSONPatch', () => {
       { op: 'move', from: '/obj', path: '/arr/2' }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
-    assert.deepStrictEqual(result.error, null)
     assert.deepStrictEqual(result.json, {
       arr: [1, 2, { a: 4 }, 3],
       unchanged: {}
@@ -211,7 +221,7 @@ describe('immutableJSONPatch', () => {
     ])
 
     // test revert
-    const result2 = immutableJSONPatch(result.json, result.revert)
+    const result2 = immutableJSONPatchWithRevert(result.json, result.revert)
 
     assert.deepStrictEqual(result2.json, json)
     assert.deepStrictEqual(result2.revert, patch)
@@ -226,7 +236,8 @@ describe('immutableJSONPatch', () => {
       { op: 'move', from: '/a', path: '/b' }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, { b: 2 })
     assert.deepStrictEqual(result.revert, [
@@ -235,7 +246,7 @@ describe('immutableJSONPatch', () => {
     ])
 
     // test revert
-    const result2 = immutableJSONPatch(result.json, result.revert)
+    const result2 = immutableJSONPatchWithRevert(result.json, result.revert)
 
     assert.deepStrictEqual(result2.json, json)
     assert.deepStrictEqual(result2.revert, [
@@ -255,7 +266,8 @@ describe('immutableJSONPatch', () => {
       { op: 'move', from: '/obj', path: '/arr' }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, {
       arr: { a: 4 },
@@ -267,7 +279,7 @@ describe('immutableJSONPatch', () => {
     ])
 
     // test revert
-    const result2 = immutableJSONPatch(result.json, result.revert)
+    const result2 = immutableJSONPatchWithRevert(result.json, result.revert)
 
     assert.deepStrictEqual(result2.json, json)
     assert.deepStrictEqual(result2.revert, [
@@ -289,7 +301,8 @@ describe('immutableJSONPatch', () => {
       { op: 'add', path: '/added', value: 'ok' }
     ]
 
-    const result = immutableJSONPatch(json, patch)
+    const result = immutableJSONPatchWithRevert(json, patch)
+    assert.deepStrictEqual(immutableJSONPatch(json, patch), result.json)
 
     assert.deepStrictEqual(result.json, {
       arr: [1, 2, 3],
@@ -312,15 +325,10 @@ describe('immutableJSONPatch', () => {
       { op: 'add', path: '/added', value: 'ok' }
     ]
 
-    const result = immutableJSONPatch(json, patch)
-
-    // patch shouldn't be applied
-    assert.deepStrictEqual(result.json, {
-      arr: [1, 2, 3],
-      obj: { a: 4 }
-    })
-    assert.deepStrictEqual(result.revert, [])
-    assert.deepStrictEqual(result.error, 'Test failed, path not found')
+    assert.throws(() => immutableJSONPatchWithRevert(json, patch),
+      new Error('Test failed: path not found (path: "/arr/5")'))
+    assert.throws(() => immutableJSONPatch(json, patch),
+      new Error('Test failed: path not found (path: "/arr/5")'))
   })
 
   it('jsonpatch test (fail: value not equal)', () => {
@@ -334,15 +342,10 @@ describe('immutableJSONPatch', () => {
       { op: 'add', path: '/added', value: 'ok' }
     ]
 
-    const result = immutableJSONPatch(json, patch)
-
-    // patch shouldn't be applied
-    assert.deepStrictEqual(result.json, {
-      arr: [1, 2, 3],
-      obj: { a: 4 }
-    })
-    assert.deepStrictEqual(result.revert, [])
-    assert.deepStrictEqual(result.error, 'Test failed, value differs')
+    assert.throws(() => immutableJSONPatchWithRevert(json, patch),
+      new Error('Test failed, value differs (path: "/obj")'))
+    assert.throws(() => immutableJSONPatch(json, patch),
+      new Error('Test failed, value differs (path: "/obj")'))
   })
 
   // TODO

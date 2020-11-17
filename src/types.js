@@ -35,6 +35,15 @@
  */
 
 /**
+ * @typedef {{
+ *   op: 'add' | 'remove' | 'replace' | 'copy' | 'move' | 'test',
+ *   path: Path,
+ *   from?: Path,
+ *   value?: *
+ * }} PreprocessedJSONPatchOperation
+ */
+
+/**
  * @typedef {JSONPatchOperation[]} JSONPatchDocument
  */
 
@@ -44,6 +53,13 @@
  *   revert: JSONPatchDocument,
  *   error: Error | null
  * }} JSONPatchResult
+ */
+
+/**
+ * @typedef {{
+ *   before?: function (json: JSON, operation: PreprocessedJSONPatchOperation) : { json?: JSON, operation?: PreprocessedJSONPatchOperation } | undefined,
+ *   after?: function (json: JSON, previousJson: JSON, operation: PreprocessedJSONPatchOperation) : JSON
+ * }} JSONPatchOptions
  */
 
 /**

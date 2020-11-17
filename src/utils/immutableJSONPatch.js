@@ -2,6 +2,80 @@ import { isEqual, initial, last } from 'lodash-es'
 import { setIn, getIn, deleteIn, insertAt, existsIn } from './immutabilityHelpers.js'
 import { parseJSONPointer, compileJSONPointer } from './jsonPointer.js'
 
+/**
+ * Apply a patch to a JSON object
+ * The original JSON object will not be changed,
+ * instead, the patch is applied in an immutable way
+ * @param {JSON} json
+ * @param {JSONPatchDocument} operations    Array with JSON patch actions
+ * @param {JSONPatchOptions} [options]
+ * @return {JSON} Returns the updated json
+ */
+export function immutableJSONPatch (json, operations, options) {
+  let updatedJson = json
+
+  for (let i = 0; i < operations.length; i++) {
+    validateJSONPatchOperation(operations[i])
+
+    let operation = preprocessJSONPatchOperation(updatedJson, operations[i])
+
+    if (options && options.before) {
+      const result = options.before(updatedJson, operation)
+      if (result) {
+        if (result.json) {
+          updatedJson = result.json
+        }
+        if (result.operation) {
+          operation = result.operation
+        }
+      }
+    }
+
+    const previousJson = updatedJson
+    const patch = PATCH_OPS[operation.op]
+    if (patch) {
+      updatedJson = patch(updatedJson, operation)
+    } else if (operation.op === 'test') {
+      test(updatedJson, operation)
+    } else {
+      throw new Error('Unknown JSONPatch operation ' + JSON.stringify(operation.op))
+    }
+
+    if (options && options.after) {
+      updatedJson = options.after(updatedJson, previousJson, operation)
+    }
+  }
+
+  return updatedJson
+}
+
+/**
+ * Apply a patch to a JSON object
+ * The original JSON object will not be changed,
+ * instead, the patch is applied in an immutable way
+ * @param {JSON} json
+ * @param {JSONPatchDocument} operations    Array with JSON patch actions
+ * @return {{json: JSON, revert: JSONPatchDocument}}
+ *    Returns an object with the updated json, and operations to revert the changes
+ */
+export function immutableJSONPatchWithRevert (json, operations) {
+  let revertOperations = []
+
+  const updatedJson = immutableJSONPatch(json, operations, {
+    before: (json, operation) => {
+      const revert = REVERT_OPS[operation.op]
+      if (revert) {
+        revertOperations = revert(json, operation).concat(revertOperations)
+      }
+    }
+  })
+
+  return {
+    json: updatedJson,
+    revert: revertOperations
+  }
+}
+
 const PATCH_OPS = {
   add,
   remove,
@@ -16,50 +90,6 @@ const REVERT_OPS = {
   replace: revertReplace,
   copy: revertCopy,
   move: revertMove
-}
-
-/**
- * Apply a patch to a JSON object
- * The original JSON object will not be changed,
- * instead, the patch is applied in an immutable way
- * @param {JSON} json
- * @param {JSONPatchDocument} operations    Array with JSON patch actions
- * @return {{json: JSON, revert: JSONPatchDocument, error: string | null}}
- */
-export function immutableJSONPatch (json, operations) {
-  // TODO: create a version of immutableJSONPatch which doesn't calculate revert operations (faster, and tree-shakable)
-  let updatedJson = json
-  let revertOperations = []
-
-  for (let i = 0; i < operations.length; i++) {
-    const error = validateJSONPatchOperation(operations[i])
-    if (error) {
-      return { json, revert: [], error }
-    }
-
-    const operation = preprocessJSONPatchOperation(updatedJson, operations[i])
-
-    const patch = PATCH_OPS[operation.op]
-    const revert = REVERT_OPS[operation.op]
-    if (patch && revert) {
-      revertOperations = revert(updatedJson, operation).concat(revertOperations)
-      updatedJson = patch(updatedJson, operation)
-    } else if (operation.op === 'test') {
-      const error = test(updatedJson, operation)
-      if (error) {
-        return { json, revert: [], error }
-      }
-    } else {
-      const error = 'Unknown JSONPatch operation ' + JSON.stringify(operation.op)
-      return { json, revert: [], error }
-    }
-  }
-
-  return {
-    json: updatedJson,
-    revert: revertOperations,
-    error: null
-  }
 }
 
 /**
@@ -130,32 +160,31 @@ export function move (json, { path, from }) {
 
 /**
  * Test whether the data contains the provided value at the specified path.
- * Returns an error message when the tests, returns null otherwise
+ * Throws an error when the test fails
  * @param {JSON} json
  * @param {{ path: Path, value: JSON }} operation
- * @return {null | string}
  */
 export function test (json, { path, value }) {
   if (value === undefined) {
-    return 'Test failed, no value provided'
+    throw new Error(`Test failed: no value provided (path: "${compileJSONPointer(path)}")`)
   }
 
   if (!existsIn(json, path)) {
-    return 'Test failed, path not found'
+    throw new Error(`Test failed: path not found (path: "${compileJSONPointer(path)}")`)
   }
 
   const actualValue = getIn(json, path)
   if (!isEqual(actualValue, value)) {
-    return 'Test failed, value differs'
+    throw new Error(`Test failed, value differs (path: "${compileJSONPointer(path)}")`)
   }
 }
 
 /**
  * @param {JSON} json
- * @param {{ path: Path, value: JSON }} operation
+ * @param {{ path: Path }} operation
  * @return {JSONPatchOperation[]}
  */
-function revertReplace (json, { path, value }) {
+function revertReplace (json, { path }) {
   return [{
     op: 'replace',
     path: compileJSONPointer(path),
@@ -252,29 +281,27 @@ export function resolvePathIndex (json, path) {
 }
 
 /**
- * Validate a JSONPatch operation
+ * Validate a JSONPatch operation.
+ * Throws an error when there is an issue
  * @param {JSONPatchOperation} operation
- * @returns {null | string}
  */
 export function validateJSONPatchOperation (operation) {
   // TODO: write unit tests
   const ops = ['add', 'remove', 'replace', 'copy', 'move', 'test']
 
   if (!ops.includes(operation.op)) {
-    return 'Unknown JSONPatch op ' + JSON.stringify(operation.op)
+    throw new Error('Unknown JSONPatch op ' + JSON.stringify(operation.op))
   }
 
   if (typeof operation.path !== 'string') {
-    return 'Required property "path" missing or not a string in operation ' + JSON.stringify(operation)
+    throw new Error('Required property "path" missing or not a string in operation ' + JSON.stringify(operation))
   }
 
   if (operation.op === 'copy' || operation.op === 'move') {
     if (typeof operation.from !== 'string') {
-      return 'Required property "from" missing or not a string in operation ' + JSON.stringify(operation)
+      throw new Error('Required property "from" missing or not a string in operation ' + JSON.stringify(operation))
     }
   }
-
-  return null
 }
 
 // TODO: write unit tests

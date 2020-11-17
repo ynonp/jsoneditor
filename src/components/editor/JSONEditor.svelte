@@ -48,6 +48,7 @@
   import { mapValidationErrors } from '../../logic/validation.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
   import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
+  import { immutableJSONPatchWithRevert } from '../../utils/immutableJSONPatch.js'
   import {
     compileJSONPointer,
     parseJSONPointer
@@ -196,12 +197,13 @@
 
     debug('operations', operations)
 
-    const documentPatchResult = immutableJSONPatch(doc, operations)
-    const statePatchResult = immutableJSONPatch(state, operations)
-    // TODO: only apply operations to state for relevant operations: move, copy, delete? Figure out
+    const documentPatchResult = immutableJSONPatchWithRevert(doc, operations)
 
     doc = documentPatchResult.json
-    state = patchKeys(statePatchResult.json, operations) // TODO: shouldn't this be syncState?
+    state = immutableJSONPatch(state, operations)
+    // TODO: only apply operations to state for relevant operations: move, copy, delete? Figure out
+
+    state = patchKeys(state, operations) // TODO: shouldn't this be syncState?
     if (newSelection) {
       selection = newSelection
     }
@@ -217,7 +219,6 @@
 
     return {
       doc,
-      error: documentPatchResult.error,
       undo: documentPatchResult.revert,
       redo: operations
     }
@@ -359,7 +360,7 @@
       return
     }
 
-    doc = immutableJSONPatch(doc, item.undo).json
+    doc = immutableJSONPatch(doc, item.undo)
     state = item.prevState
     selection = item.prevSelection
 
@@ -378,7 +379,7 @@
       return
     }
 
-    doc = immutableJSONPatch(doc, item.redo).json
+    doc = immutableJSONPatch(doc, item.redo)
     state = item.state
     selection = item.selection
 
