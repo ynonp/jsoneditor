@@ -47,8 +47,7 @@
   } from '../../logic/selection.js'
   import { mapValidationErrors } from '../../logic/validation.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
-  import { immutableJSONPatch } from '../../utils/immutableJSONPatch'
-  import { immutableJSONPatchWithRevert } from '../../utils/immutableJSONPatch.js'
+  import { immutableJSONPatch, revertJSONPatch } from '../../utils/immutableJSONPatch'
   import {
     compileJSONPointer,
     parseJSONPointer
@@ -197,19 +196,18 @@
 
     debug('operations', operations)
 
-    const documentPatchResult = immutableJSONPatchWithRevert(doc, operations)
-
-    doc = documentPatchResult.json
+    const undo = revertJSONPatch(doc, operations)
+    doc = immutableJSONPatch(doc, operations)
     state = immutableJSONPatch(state, operations)
     // TODO: only apply operations to state for relevant operations: move, copy, delete? Figure out
-
     state = patchKeys(state, operations) // TODO: shouldn't this be syncState?
+
     if (newSelection) {
       selection = newSelection
     }
 
     history.add({
-      undo: documentPatchResult.revert,
+      undo,
       redo: operations,
       prevState,
       state,
@@ -219,7 +217,7 @@
 
     return {
       doc,
-      undo: documentPatchResult.revert,
+      undo,
       redo: operations
     }
   }

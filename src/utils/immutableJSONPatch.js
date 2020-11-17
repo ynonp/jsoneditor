@@ -50,18 +50,15 @@ export function immutableJSONPatch (json, operations, options) {
 }
 
 /**
- * Apply a patch to a JSON object
- * The original JSON object will not be changed,
- * instead, the patch is applied in an immutable way
+ * Create the inverse of a set of json patch operations
  * @param {JSON} json
  * @param {JSONPatchDocument} operations    Array with JSON patch actions
- * @return {{json: JSON, revert: JSONPatchDocument}}
- *    Returns an object with the updated json, and operations to revert the changes
+ * @return {JSONPatchDocument} Returns the operations to revert the changes
  */
-export function immutableJSONPatchWithRevert (json, operations) {
+export function revertJSONPatch (json, operations) {
   let revertOperations = []
 
-  const updatedJson = immutableJSONPatch(json, operations, {
+  immutableJSONPatch(json, operations, {
     before: (json, operation) => {
       const revert = REVERT_OPS[operation.op]
       if (revert) {
@@ -70,10 +67,7 @@ export function immutableJSONPatchWithRevert (json, operations) {
     }
   })
 
-  return {
-    json: updatedJson,
-    revert: revertOperations
-  }
+  return revertOperations
 }
 
 const PATCH_OPS = {
