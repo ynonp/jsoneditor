@@ -40,14 +40,6 @@
 
 /**
  * @typedef {{
- *   fromJSON: function (value: *, previousValue: *) : value
- *   clone: function (value: *, previousValue: *) : value
- *   toJSON: function (value: *) : value
- * }} JSONPatchOptions
- */
-
-/**
- * @typedef {{
  *   patch: JSONPatchDocument,
  *   revert: JSONPatchDocument,
  *   error: Error | null
