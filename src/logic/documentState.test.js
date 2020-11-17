@@ -4,6 +4,7 @@ import {
   ARRAY_SECTION_SIZE,
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
+  STATE_ID,
   STATE_PROPS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
@@ -27,29 +28,55 @@ describe('documentState', () => {
       return path.length <= 1
     }
 
+    function throwUndefinedId () {
+      throw new Error('Undefined id')
+    }
+
     const state = syncState(document, undefined, [], expand)
 
     const expectedState = {}
     expectedState[STATE_EXPANDED] = true
+    expectedState[STATE_ID] = state[STATE_ID] || throwUndefinedId()
     expectedState[STATE_PROPS] = [
-      { id: state[STATE_PROPS][0].id, key: 'array' },
-      { id: state[STATE_PROPS][1].id, key: 'object' },
-      { id: state[STATE_PROPS][2].id, key: 'value' }
+      { id: state[STATE_PROPS][0].id || throwUndefinedId(), key: 'array' },
+      { id: state[STATE_PROPS][1].id || throwUndefinedId(), key: 'object' },
+      { id: state[STATE_PROPS][2].id || throwUndefinedId(), key: 'value' }
     ]
-    expectedState.array = []
+    expectedState.array = [
+      {
+        [STATE_ID]: state.array[0][STATE_ID] || throwUndefinedId()
+      },
+      {
+        [STATE_ID]: state.array[1][STATE_ID] || throwUndefinedId()
+      },
+      {
+        [STATE_ID]: state.array[2][STATE_ID] || throwUndefinedId(),
+        [STATE_EXPANDED]: false,
+        [STATE_PROPS]: [
+          { id: state.array[2][STATE_PROPS][0].id || throwUndefinedId(), key: 'c' } // FIXME: props should not be created because node is not expanded
+        ]
+      },
+    ]
+    expectedState.array[STATE_ID] = state.array[STATE_ID] || throwUndefinedId()
     expectedState.array[STATE_EXPANDED] = true
     expectedState.array[STATE_VISIBLE_SECTIONS] = DEFAULT_VISIBLE_SECTIONS
-    expectedState.array[2] = {}
-    expectedState.array[2][STATE_EXPANDED] = false
-    expectedState.array[2][STATE_PROPS] = [
-      { id: state.array[2][STATE_PROPS][0].id, key: 'c' } // FIXME: props should not be created because node is not expanded
-    ]
-    expectedState.object = {}
-    expectedState.object[STATE_EXPANDED] = true
-    expectedState.object[STATE_PROPS] = [
-      { id: state.object[STATE_PROPS][0].id, key: 'a' },
-      { id: state.object[STATE_PROPS][1].id, key: 'b' }
-    ]
+    expectedState.object = {
+      [STATE_ID]: state.object[STATE_ID] || throwUndefinedId(),
+      [STATE_EXPANDED]: true,
+      [STATE_PROPS]: [
+        { id: state.object[STATE_PROPS][0].id || throwUndefinedId(), key: 'a' },
+        { id: state.object[STATE_PROPS][1].id || throwUndefinedId(), key: 'b' }
+      ],
+      a: {
+        [STATE_ID]: state.object.a[STATE_ID] || throwUndefinedId(),
+      },
+      b: {
+        [STATE_ID]: state.object.b[STATE_ID] || throwUndefinedId(),
+      }
+    }
+    expectedState.value = {
+      [STATE_ID]: state.value[STATE_ID] || throwUndefinedId()
+    }
 
     assert.deepStrictEqual(state, expectedState)
   })

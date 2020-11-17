@@ -224,6 +224,10 @@
     }
   }
 
+  // TODO: cleanup logging
+  $: debug('doc', doc)
+  $: debug('state', state)
+
   async function handleCut () {
     const clipboard = selectionToPartialJson(doc, selection)
     if (clipboard == null) {

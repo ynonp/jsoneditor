@@ -7,6 +7,7 @@
     faExclamationTriangle
   } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
+  import createDebug from 'debug'
   import { isEqual } from 'lodash-es'
   import { onDestroy, tick } from 'svelte'
   import Icon from 'svelte-awesome'
@@ -14,6 +15,7 @@
     ACTIVE_SEARCH_RESULT,
     INDENTATION_WIDTH,
     STATE_EXPANDED,
+    STATE_ID,
     STATE_PROPS,
     STATE_SEARCH_PROPERTY,
     STATE_SEARCH_VALUE,
@@ -47,6 +49,8 @@
   export let onUpdateKey
   export let onExpand
   export let onSelect
+
+  const debug = createDebug('jsoneditor:JSONNode')
 
   /** @type {function (path: Path, section: Section)} */
   export let onExpandSection
@@ -84,6 +88,7 @@
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
   onDestroy(() => {
+    debug('destroy', path)
     updateKey()
     updateValue()
   })
@@ -489,7 +494,7 @@
     {#if expanded}
       <div class="items">
         {#each visibleSections as visibleSection, sectionIndex (sectionIndex)}
-          {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (itemIndex)}
+            {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (state[itemIndex][STATE_ID])}
             <svelte:self
               key={visibleSection.start + itemIndex}
               value={item}

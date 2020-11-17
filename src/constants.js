@@ -1,4 +1,5 @@
 
+export const STATE_ID = Symbol('id')
 export const STATE_EXPANDED = Symbol('expanded')
 export const STATE_LIMIT = Symbol('limit')
 export const STATE_VISIBLE_SECTIONS = Symbol('visible sections')

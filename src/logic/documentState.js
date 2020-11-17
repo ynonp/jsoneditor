@@ -2,6 +2,7 @@ import { initial, isEqual, isNumber, last, uniqueId } from 'lodash-es'
 import {
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
+  STATE_ID,
   STATE_PROPS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
@@ -14,7 +15,7 @@ import {
   updateIn
 } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
-import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
+import { isObject } from '../utils/typeUtils.js'
 import {
   inVisibleSection,
   mergeSections,
@@ -37,9 +38,13 @@ export function syncState (doc, state, path, expand, forceRefresh = false) {
   // TODO: this function can be made way more efficient if we pass prevState:
   //  when immutable, we can simply be done already when the state === prevState
 
-  if (isObject(doc)) {
-    const updatedState = {}
+  const updatedState = Array.isArray(doc) ? [] : {}
 
+  updatedState[STATE_ID] = state
+    ? state[STATE_ID]
+    : uniqueId()
+
+  if (isObject(doc)) {
     updatedState[STATE_PROPS] = updateProps(doc, state && state[STATE_PROPS])
 
     updatedState[STATE_EXPANDED] = (state && !forceRefresh)
@@ -49,19 +54,11 @@ export function syncState (doc, state, path, expand, forceRefresh = false) {
     if (updatedState[STATE_EXPANDED]) {
       Object.keys(doc).forEach(key => {
         const childDocument = doc[key]
-        if (isObjectOrArray(childDocument)) {
-          const childState = state && state[key]
-          updatedState[key] = syncState(childDocument, childState, path.concat(key), expand, forceRefresh)
-        }
+        const childState = state && state[key]
+        updatedState[key] = syncState(childDocument, childState, path.concat(key), expand, forceRefresh)
       })
     }
-
-    return updatedState
-  }
-
-  if (Array.isArray(doc)) {
-    const updatedState = []
-
+  } else if (Array.isArray(doc)) {
     updatedState[STATE_EXPANDED] = (state && !forceRefresh)
       ? state[STATE_EXPANDED]
       : expand(path)
@@ -75,19 +72,16 @@ export function syncState (doc, state, path, expand, forceRefresh = false) {
       updatedState[STATE_VISIBLE_SECTIONS].forEach(({ start, end }) => {
         forEachIndex(start, Math.min(doc.length, end), index => {
           const childDocument = doc[index]
-          if (isObjectOrArray(childDocument)) {
-            const childState = state && state[index]
-            updatedState[index] = syncState(childDocument, childState, path.concat(index), expand, forceRefresh)
-          }
+          const childState = state && state[index]
+          updatedState[index] = syncState(childDocument, childState, path.concat(index), expand, forceRefresh)
         })
       })
     }
-
-    return updatedState
+  } else {
+    // primitive value (string, number, boolean, null)
   }
 
-  // primitive values have no state
-  return undefined
+  return updatedState
 }
 
 /**
