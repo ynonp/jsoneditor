@@ -320,7 +320,7 @@ describe('immutableJSONPatch', () => {
       obj: { a: 4 }
     })
     assert.deepStrictEqual(result.revert, [])
-    assert.deepStrictEqual(result.error.toString(), 'Error: Test failed, path not found')
+    assert.deepStrictEqual(result.error, 'Test failed, path not found')
   })
 
   it('jsonpatch test (fail: value not equal)', () => {
@@ -342,7 +342,7 @@ describe('immutableJSONPatch', () => {
       obj: { a: 4 }
     })
     assert.deepStrictEqual(result.revert, [])
-    assert.deepStrictEqual(result.error.toString(), 'Error: Test failed, value differs')
+    assert.deepStrictEqual(result.error, 'Test failed, value differs')
   })
 
   it('should apply options', () => {

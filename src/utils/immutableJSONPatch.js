@@ -15,70 +15,56 @@ const DEFAULT_OPTIONS = {
  * @param {JSON} json
  * @param {JSONPatchDocument} operations    Array with JSON patch actions
  * @param {JSONPatchOptions} [options]
- * @return {{json: JSON, revert: JSONPatchDocument, error: Error | null}}
+ * @return {{json: JSON, revert: JSONPatchDocument, error: string | null}}
  */
 export function immutableJSONPatch (json, operations, options = DEFAULT_OPTIONS) {
   let updatedJson = json
-  let revert = []
+  let reverts = []
 
   for (let i = 0; i < operations.length; i++) {
     const operation = operations[i]
-    const path = operation.path !== undefined ? parseJSONPointer(operation.path) : null
-    const from = operation.from !== undefined ? parseJSONPointer(operation.from) : null
+
+    const error = validateJSONPatchOperation(operation)
+    if (error) {
+      return { json, revert: [], error }
+    }
+
+    const path = operation.path !== undefined
+      ? resolvePathIndex(updatedJson, parseJSONPointer(operation.path))
+      : null
+
+    const from = operation.from !== undefined
+      ? parseJSONPointer(operation.from)
+      : null
 
     switch (operation.op) {
       case 'add': {
-        const result = add(updatedJson, path, operation.value, options)
-        updatedJson = result.json
-        revert = result.revert.concat(revert)
+        reverts.unshift(revertAdd(updatedJson, path, operation.value, options))
+        updatedJson = add(updatedJson, path, operation.value, options)
         break
       }
 
       case 'remove': {
-        const result = remove(updatedJson, path, options)
-        updatedJson = result.json
-        revert = result.revert.concat(revert)
-
+        reverts.unshift(revertRemove(updatedJson, path, options))
+        updatedJson = remove(updatedJson, path, options)
         break
       }
 
       case 'replace': {
-        const result = replace(updatedJson, path, operation.value, options)
-        updatedJson = result.json
-        revert = result.revert.concat(revert)
-
+        reverts.unshift(revertReplace(updatedJson, path, operation.value, options))
+        updatedJson = replace(updatedJson, path, operation.value, options)
         break
       }
 
       case 'copy': {
-        if (!operation.from) {
-          return {
-            json: updatedJson,
-            revert: [],
-            error: new Error('Property "from" expected in copy operation ' + JSON.stringify(operation))
-          }
-        }
-
-        const result = copy(updatedJson, path, from, options)
-        updatedJson = result.json
-        revert = result.revert.concat(revert)
-
+        reverts.unshift(revertCopy(updatedJson, path, from, options))
+        updatedJson = copy(updatedJson, path, from, options)
         break
       }
 
       case 'move': {
-        if (!operation.from) {
-          return {
-            json: updatedJson,
-            revert: [],
-            error: new Error('Property "from" expected in move operation ' + JSON.stringify(operation))
-          }
-        }
-
-        const result = move(updatedJson, path, from, options)
-        updatedJson = result.json
-        revert = result.revert.concat(revert)
-
+        reverts = revertMove(updatedJson, path, from, options).concat(reverts)
+        updatedJson = move(updatedJson, path, from, options)
         break
       }
 
@@ -97,7 +83,7 @@ export function immutableJSONPatch (json, operations, options = DEFAULT_OPTIONS)
         return {
           json,
           revert: [],
-          error: new Error('Unknown JSONPatch op ' + JSON.stringify(operation.op))
+          error: 'Unknown JSONPatch op ' + JSON.stringify(operation.op)
         }
       }
     }
@@ -105,7 +91,7 @@ export function immutableJSONPatch (json, operations, options = DEFAULT_OPTIONS)
 
   return {
     json: updatedJson,
-    revert,
+    revert: reverts,
     error: null
   }
 }
@@ -116,19 +102,29 @@ export function immutableJSONPatch (json, operations, options = DEFAULT_OPTIONS)
  * @param {Path} path
  * @param {JSON} value
  * @param {JSONPatchOptions} [options]
- * @return {{json: JSON, revert: JSONPatchDocument}}
+ * @return {JSON}
  */
 export function replace (json, path, value, options) {
   const oldValue = getIn(json, path)
   const newValue = options.fromJSON(value, oldValue)
 
+  return setIn(json, path, newValue)
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {JSON} value
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation}
+ */
+function revertReplace (json, path, value, options) {
+  const oldValue = getIn(json, path)
+
   return {
-    json: setIn(json, path, newValue),
-    revert: [{
-      op: 'replace',
-      path: compileJSONPointer(path),
-      value: oldValue
-    }]
+    op: 'replace',
+    path: compileJSONPointer(path),
+    value: options.toJSON(oldValue)
   }
 }
 
@@ -137,18 +133,25 @@ export function replace (json, path, value, options) {
  * @param {JSON} json
  * @param {Path} path
  * @param {JSONPatchOptions} [options]
- * @return {{json: JSON, revert: JSONPatchDocument}}
+ * @return {JSON}
  */
 export function remove (json, path, options) {
+  return deleteIn(json, path)
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation}
+ */
+function revertRemove (json, path, options) {
   const oldValue = getIn(json, path)
 
   return {
-    json: deleteIn(json, path),
-    revert: [{
-      op: 'add',
-      path: compileJSONPointer(path),
-      value: options.toJSON(oldValue)
-    }]
+    op: 'add',
+    path: compileJSONPointer(path),
+    value: options.toJSON(oldValue)
   }
 }
 
@@ -157,37 +160,41 @@ export function remove (json, path, options) {
  * @param {Path} path
  * @param {JSON} value
  * @param {JSONPatchOptions} [options]
- * @return {{json: JSON, revert: JSONPatchDocument}}
- * @private
+ * @return {JSON}
+ * @return {JSON}
  */
 export function add (json, path, value, options) {
-  const resolvedPath = resolvePathIndex(json, path)
-  const parentIsArray = isArrayItem(json, path)
-  const oldValue = parentIsArray
-    ? undefined
-    : getIn(json, resolvedPath)
-  const newValue = options.fromJSON(value, oldValue)
+  if (isArrayItem(json, path)) {
+    const newValue = options.fromJSON(value, undefined)
 
-  const updatedJson = parentIsArray
-    ? insertAt(json, resolvedPath, newValue)
-    : setIn(json, resolvedPath, newValue)
+    return insertAt(json, path, newValue)
+  } else {
+    const oldValue = getIn(json, path)
+    const newValue = options.fromJSON(value, oldValue)
 
-  if (!parentIsArray && existsIn(json, resolvedPath)) {
+    return setIn(json, path, newValue)
+  }
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {JSON} value
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation}
+ */
+function revertAdd (json, path, value, options) {
+  if (isArrayItem(json, path) || !existsIn(json, path)) {
     return {
-      json: updatedJson,
-      revert: [{
-        op: 'replace',
-        path: compileJSONPointer(resolvedPath),
-        value: options.toJSON(oldValue)
-      }]
+      op: 'remove',
+      path: compileJSONPointer(path)
     }
   } else {
+    const oldValue = getIn(json, path)
     return {
-      json: updatedJson,
-      revert: [{
-        op: 'remove',
-        path: compileJSONPointer(resolvedPath)
-      }]
+      op: 'replace',
+      path: compileJSONPointer(path),
+      value: options.toJSON(oldValue)
     }
   }
 }
@@ -198,38 +205,41 @@ export function add (json, path, value, options) {
  * @param {Path} path
  * @param {Path} from
  * @param {JSONPatchOptions} [options]
- * @return {{json: JSON, revert: JSONPatchDocument}}
- * @private
+ * @return {JSON}
  */
 export function copy (json, path, from, options) {
-  const resolvedPath = resolvePathIndex(json, path)
-  const parentIsArray = isArrayItem(json, path)
-  const oldValue = parentIsArray
-    ? undefined
-    : getIn(json, resolvedPath)
   const value = getIn(json, from)
-  const newValue = options.clone(value, oldValue)
 
-  const updatedJson = parentIsArray
-    ? insertAt(json, resolvedPath, newValue)
-    : setIn(json, resolvedPath, newValue)
+  if (isArrayItem(json, path)) {
+    const newValue = options.clone(value, undefined)
+    return insertAt(json, path, newValue)
+  } else {
+    const oldValue = getIn(json, path)
+    const value = getIn(json, from)
+    const newValue = options.clone(value, oldValue)
+    return setIn(json, path, newValue)
+  }
+}
 
-  if (!parentIsArray && existsIn(json, resolvedPath)) {
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {Path} from
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation}
+ */
+function revertCopy (json, path, from, options) {
+  if (isArrayItem(json, path) || !existsIn(json, path)) {
     return {
-      json: updatedJson,
-      revert: [{
-        op: 'replace',
-        path: compileJSONPointer(resolvedPath),
-        value: options.toJSON(oldValue)
-      }]
+      op: 'remove',
+      path: compileJSONPointer(path)
     }
   } else {
+    const oldValue = getIn(json, path)
     return {
-      json: updatedJson,
-      revert: [{
-        op: 'remove',
-        path: compileJSONPointer(resolvedPath)
-      }]
+      op: 'replace',
+      path: compileJSONPointer(path),
+      value: options.toJSON(oldValue)
     }
   }
 }
@@ -240,73 +250,73 @@ export function copy (json, path, from, options) {
  * @param {Path} path
  * @param {Path} from
  * @param {JSONPatchOptions} [options]
- * @return {{json: JSON, revert: JSONPatchDocument}}
- * @private
+ * @return {JSON}
  */
 export function move (json, path, from, options) {
-  const resolvedPath = resolvePathIndex(json, path)
-  const parentIsArray = isArrayItem(json, path)
-  const oldValue = getIn(json, path)
   const value = getIn(json, from)
-
-  // const removedJson = remove(json, from, options).json
   const removedJson = deleteIn(json, from)
-  const updatedJson = isArrayItem(json, path)
-    ? insertAt(removedJson, resolvedPath, value)
-    : setIn(removedJson, resolvedPath, value)
 
-  if (oldValue !== undefined && !parentIsArray) {
+  return isArrayItem(json, path)
+    ? insertAt(removedJson, path, value)
+    : setIn(removedJson, path, value)
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {Path} from
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation[]}
+ */
+function revertMove (json, path, from, options) {
+  const oldValue = getIn(json, path)
+
+  if (!isArrayItem(json, path) && oldValue !== undefined) {
     // replaces an existing value in an object
-    return {
-      json: updatedJson,
-      revert: [
-        {
-          op: 'move',
-          from: compileJSONPointer(resolvedPath),
-          path: compileJSONPointer(from)
-        },
-        {
-          op: 'add',
-          path: compileJSONPointer(resolvedPath),
-          value: options.toJSON(oldValue)
-        }
-      ]
-    }
+    return [
+      {
+        op: 'move',
+        from: compileJSONPointer(path),
+        path: compileJSONPointer(from)
+      },
+      {
+        op: 'add',
+        path: compileJSONPointer(path),
+        value: options.toJSON(oldValue)
+      }
+    ]
   } else {
-    return {
-      json: updatedJson,
-      revert: [
-        {
-          op: 'move',
-          from: compileJSONPointer(resolvedPath),
-          path: compileJSONPointer(from)
-        }
-      ]
-    }
+    return [
+      {
+        op: 'move',
+        from: compileJSONPointer(path),
+        path: compileJSONPointer(from)
+      }
+    ]
   }
 }
 
 /**
  * Test whether the data contains the provided value at the specified path.
- * Throws an error when the test fails.
+ * Returns an error message when the tests, returns null otherwise
  * @param {JSON} json
  * @param {Path} path
  * @param {JSON} value
  * @param {JSONPatchOptions} [options]
- * @return {null | Error} Returns an error when the tests, returns null otherwise
+ * @return {null | string}
  */
 export function test (json, path, value, options) {
   if (value === undefined) {
-    return new Error('Test failed, no value provided')
+    return 'Test failed, no value provided'
   }
 
   if (!existsIn(json, path)) {
-    return new Error('Test failed, path not found')
+    return 'Test failed, path not found'
   }
 
   const actualValue = options.toJSON(getIn(json, path))
   if (!isEqual(actualValue, value)) {
-    return new Error('Test failed, value differs')
+    return 'Test failed, value differs'
   }
 }
 
@@ -336,4 +346,30 @@ export function resolvePathIndex (json, path) {
   const parent = getIn(json, parentPath)
 
   return parentPath.concat(parent.length)
+}
+
+/**
+ * Validate a JSONPatch operation
+ * @param {JSONPatchOperation} operation
+ * @returns {null | string}
+ */
+export function validateJSONPatchOperation (operation) {
+  // TODO: write unit tests
+  const ops = ['add', 'remove', 'replace', 'copy', 'move', 'test']
+
+  if (!ops.includes(operation.op)) {
+    return 'Unknown JSONPatch op ' + JSON.stringify(operation.op)
+  }
+
+  if (typeof operation.path !== 'string') {
+    return 'Required property "path" missing or not a string in operation ' + JSON.stringify(operation)
+  }
+
+  if (operation.op === 'copy' || operation.op === 'move') {
+    if (typeof operation.from !== 'string') {
+      return 'Required property "from" missing or not a string in operation ' + JSON.stringify(operation)
+    }
+  }
+
+  return null
 }
