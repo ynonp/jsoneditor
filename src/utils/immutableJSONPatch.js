@@ -112,23 +112,6 @@ export function replace (json, path, value, options) {
 }
 
 /**
- * @param {JSON} json
- * @param {Path} path
- * @param {JSON} value
- * @param {JSONPatchOptions} [options]
- * @return {JSONPatchOperation}
- */
-function revertReplace (json, path, value, options) {
-  const oldValue = getIn(json, path)
-
-  return {
-    op: 'replace',
-    path: compileJSONPointer(path),
-    value: options.toJSON(oldValue)
-  }
-}
-
-/**
  * Remove an item or property
  * @param {JSON} json
  * @param {Path} path
@@ -137,22 +120,6 @@ function revertReplace (json, path, value, options) {
  */
 export function remove (json, path, options) {
   return deleteIn(json, path)
-}
-
-/**
- * @param {JSON} json
- * @param {Path} path
- * @param {JSONPatchOptions} [options]
- * @return {JSONPatchOperation}
- */
-function revertRemove (json, path, options) {
-  const oldValue = getIn(json, path)
-
-  return {
-    op: 'add',
-    path: compileJSONPointer(path),
-    value: options.toJSON(oldValue)
-  }
 }
 
 /**
@@ -177,29 +144,6 @@ export function add (json, path, value, options) {
 }
 
 /**
- * @param {JSON} json
- * @param {Path} path
- * @param {JSON} value
- * @param {JSONPatchOptions} [options]
- * @return {JSONPatchOperation}
- */
-function revertAdd (json, path, value, options) {
-  if (isArrayItem(json, path) || !existsIn(json, path)) {
-    return {
-      op: 'remove',
-      path: compileJSONPointer(path)
-    }
-  } else {
-    const oldValue = getIn(json, path)
-    return {
-      op: 'replace',
-      path: compileJSONPointer(path),
-      value: options.toJSON(oldValue)
-    }
-  }
-}
-
-/**
  * Copy a value
  * @param {JSON} json
  * @param {Path} path
@@ -212,35 +156,14 @@ export function copy (json, path, from, options) {
 
   if (isArrayItem(json, path)) {
     const newValue = options.clone(value, undefined)
+
     return insertAt(json, path, newValue)
   } else {
     const oldValue = getIn(json, path)
     const value = getIn(json, from)
     const newValue = options.clone(value, oldValue)
-    return setIn(json, path, newValue)
-  }
-}
 
-/**
- * @param {JSON} json
- * @param {Path} path
- * @param {Path} from
- * @param {JSONPatchOptions} [options]
- * @return {JSONPatchOperation}
- */
-function revertCopy (json, path, from, options) {
-  if (isArrayItem(json, path) || !existsIn(json, path)) {
-    return {
-      op: 'remove',
-      path: compileJSONPointer(path)
-    }
-  } else {
-    const oldValue = getIn(json, path)
-    return {
-      op: 'replace',
-      path: compileJSONPointer(path),
-      value: options.toJSON(oldValue)
-    }
+    return setIn(json, path, newValue)
   }
 }
 
@@ -256,44 +179,9 @@ export function move (json, path, from, options) {
   const value = getIn(json, from)
   const removedJson = deleteIn(json, from)
 
-  return isArrayItem(json, path)
+  return isArrayItem(removedJson, path)
     ? insertAt(removedJson, path, value)
     : setIn(removedJson, path, value)
-}
-
-/**
- * @param {JSON} json
- * @param {Path} path
- * @param {Path} from
- * @param {JSONPatchOptions} [options]
- * @return {JSONPatchOperation[]}
- */
-function revertMove (json, path, from, options) {
-  const oldValue = getIn(json, path)
-
-  if (!isArrayItem(json, path) && oldValue !== undefined) {
-    // replaces an existing value in an object
-    return [
-      {
-        op: 'move',
-        from: compileJSONPointer(path),
-        path: compileJSONPointer(from)
-      },
-      {
-        op: 'add',
-        path: compileJSONPointer(path),
-        value: options.toJSON(oldValue)
-      }
-    ]
-  } else {
-    return [
-      {
-        op: 'move',
-        from: compileJSONPointer(path),
-        path: compileJSONPointer(from)
-      }
-    ]
-  }
 }
 
 /**
@@ -318,6 +206,92 @@ export function test (json, path, value, options) {
   if (!isEqual(actualValue, value)) {
     return 'Test failed, value differs'
   }
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {JSON} value
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation}
+ */
+function revertReplace (json, path, value, options) {
+  const oldValue = getIn(json, path)
+
+  return {
+    op: 'replace',
+    path: compileJSONPointer(path),
+    value: options.toJSON(oldValue)
+  }
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation}
+ */
+function revertRemove (json, path, options) {
+  const oldValue = getIn(json, path)
+
+  return {
+    op: 'add',
+    path: compileJSONPointer(path),
+    value: options.toJSON(oldValue)
+  }
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {JSON} value
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation}
+ */
+function revertAdd (json, path, value, options) {
+  if (isArrayItem(json, path) || !existsIn(json, path)) {
+    return {
+      op: 'remove',
+      path: compileJSONPointer(path)
+    }
+  } else {
+    return revertReplace(json, path, value, options)
+  }
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {JSON} value
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation}
+ */
+function revertCopy (json, path, value, options) {
+  return revertAdd(json, path, value, options)
+}
+
+/**
+ * @param {JSON} json
+ * @param {Path} path
+ * @param {Path} from
+ * @param {JSONPatchOptions} [options]
+ * @return {JSONPatchOperation[]}
+ */
+function revertMove (json, path, from, options) {
+  const revert = [
+    {
+      op: 'move',
+      from: compileJSONPointer(path),
+      path: compileJSONPointer(from)
+    }
+  ]
+
+  if (!isArrayItem(json, path) && existsIn(json, path)) {
+    // the move replaces an existing value in an object
+    revert.push(revertRemove(json, path, options))
+  }
+
+  return revert
 }
 
 /**
