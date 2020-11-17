@@ -344,4 +344,39 @@ describe('immutableJSONPatch', () => {
     assert.deepStrictEqual(result.revert, [])
     assert.deepStrictEqual(result.error.toString(), 'Error: Test failed, value differs')
   })
+
+  it('should apply options', () => {
+    const json = {
+      arr: [1,2,3],
+      obj: {a : 2}
+    }
+
+    const patch = [
+      {op: 'add', path: '/obj/a', value: 4 }
+    ]
+    const result = immutableJSONPatch(json, patch, {
+      fromJSON: function (value, previousObject) {
+        return { value, previousObject }
+      },
+      toJSON: value => value
+    })
+    assert.deepStrictEqual(result.json, {
+      arr: [1,2,3],
+      obj: {a : { value: 4, previousObject: 2 }}
+    })
+
+    const patch2 = [
+      {op: 'add', path: '/obj/b', value: 4 }
+    ]
+    const result2 = immutableJSONPatch(json, patch2, {
+      fromJSON: function (value, previousObject) {
+        return { value, previousObject }
+      },
+      toJSON: value => value
+    })
+    assert.deepStrictEqual(result2.json, {
+      arr: [1,2,3],
+      obj: {a : 2, b: { value: 4, previousObject: undefined }}
+    })
+  })
 })
