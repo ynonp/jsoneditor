@@ -179,7 +179,7 @@
 
   export function set (newDocument) {
     doc = newDocument
-    state = syncState(doc, state, [], defaultExpand)
+    state = syncState(doc, undefined, [], defaultExpand)
     searchResult = undefined
     history.clear()
   }
