@@ -557,7 +557,7 @@
   function handleExpandSection (path, section) {
     debug('handleExpandSection', path, section)
 
-    state = expandSection(state, path, section)
+    state = expandSection(doc, state, path, section)
   }
 
   function handleKeyDown (event) {

@@ -156,7 +156,7 @@ describe('documentState', () => {
     // create a visible section from 200-300 (in addition to the visible section 0-100)
     const start = 200
     const end = 300
-    const state2 = expandSection(state1, ['array'], { start, end })
+    const state2 = expandSection(doc, state1, ['array'], { start, end })
     assert.deepStrictEqual(getVisiblePaths(doc, state2).map(compileJSONPointer), [
       '',
       '/array',

@@ -304,16 +304,20 @@ export function collapseSinglePath (doc, state, path) {
 
 /**
  * Expand a section of items in an array
+ * @param {JSON} doc
  * @param {JSON} state
  * @param {Path} path
  * @param {Section} section
  * @return {JSON} returns the updated state
  */
 // TODO: write unit test
-export function expandSection (state, path, section) {
-  return updateIn(state, path.concat(STATE_VISIBLE_SECTIONS), (sections = DEFAULT_VISIBLE_SECTIONS) => {
+export function expandSection (doc, state, path, section) {
+  const updatedState = updateIn(state, path.concat(STATE_VISIBLE_SECTIONS), (sections) => {
     return mergeSections(sections.concat(section))
   })
+
+  // instantiate all new expanded items
+  return syncState(doc, updatedState, path, () => false)
 }
 
 /**
