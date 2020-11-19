@@ -19,13 +19,14 @@ export function immutableJSONPatch (json, operations, options) {
 
     let operation = preprocessJSONPatchOperation(updatedJson, operations[i])
 
+    // TODO: test before
     if (options && options.before) {
       const result = options.before(updatedJson, operation)
-      if (result) {
-        if (result.json) {
+      if (result !== undefined) {
+        if (result.json !== undefined) {
           updatedJson = result.json
         }
-        if (result.operation) {
+        if (result.operation !== undefined) {
           operation = result.operation
         }
       }
@@ -41,8 +42,12 @@ export function immutableJSONPatch (json, operations, options) {
       throw new Error('Unknown JSONPatch operation ' + JSON.stringify(operation.op))
     }
 
+    // TODO: test after
     if (options && options.after) {
-      updatedJson = options.after(updatedJson, previousJson, operation)
+      const result = options.after(updatedJson, operation, previousJson)
+      if (result !== undefined) {
+        updatedJson = result
+      }
     }
   }
 

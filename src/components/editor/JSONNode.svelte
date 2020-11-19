@@ -88,7 +88,6 @@
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
   onDestroy(() => {
-    debug('destroy', path)
     updateKey()
     updateValue()
   })
@@ -114,6 +113,9 @@
       }
     })
   }
+
+  let newKey = key
+  let newValue = value
 
   let domKey
   let domValue
@@ -231,7 +233,6 @@
   }
 
   function updateKey () {
-    const newKey = getDomKey()
     if (key !== newKey) {
       // must be handled by the parent which has knowledge about the other keys
       const uniqueKey = onUpdateKey(key, newKey)
@@ -243,7 +244,7 @@
 
   function handleUpdateKey (oldKey, newKey) {
     const newKeyUnique = findUniqueName(newKey, value)
-    const nextKeys = getNextKeys(keys, key, false)
+    const nextKeys = getNextKeys(keys, oldKey, false)
 
     onPatch(rename(path, oldKey, newKeyUnique, nextKeys))
 
@@ -251,7 +252,7 @@
   }
 
   function handleKeyInput () {
-    const newKey = getDomKey()
+    newKey = getDomKey()
     if (newKey === '') {
       // immediately update to cleanup any left over <br/>
       setDomKey('')
@@ -284,7 +285,6 @@
   }
 
   function updateValue () {
-    const newValue = getDomValue()
     if (newValue !== value) {
       onPatch([{
         op: 'replace',
@@ -295,7 +295,7 @@
   }
 
   function handleValueInput () {
-    const newValue = getDomValue()
+    newValue = getDomValue()
     if (newValue === '') {
       // immediately update to cleanup any left over <br/>
       setDomValue('')

@@ -42,6 +42,7 @@
 		<button id="loadLargeJson">load large json</button>
 		<button id="clearJson">clear json</button>
 		<button id="patchJson">patch json</button>
+		<button id="moveJson">move json</button>
 		<input id="loadFile" type="file">
 	</p>
 	<p>
@@ -146,6 +147,7 @@
 			// console.log(`large json stringified size: ${filesize(stringifiedSize)}`)
 
 			testEditor.set(largeJson)
+			window.largeJson = largeJson // for debugging
 		}
 
 		document.getElementById('clearJson').onclick = function handleClearJson() {
@@ -155,13 +157,23 @@
 		document.getElementById('patchJson').onclick = function handleClearJson() {
 			const operations = [{
 				op: 'replace', 
-				path: '/object/c',
-				value: 'd2'
+				path: '/object/nested/name',
+				value: 'Item 2 (updated!)'
 			}]
 
 			testEditor.patch(operations)
 		}
-		
+
+		document.getElementById('moveJson').onclick = function handleClearJson() {
+			const operations = [{
+				op: 'move',
+				from: '/object/a',
+				path: '/a'
+			}]
+
+			testEditor.patch(operations)
+		}
+
 		document.getElementById('loadFile').onchange = function loadFile(event) {
 			console.log('loadFile', event.target.files)
 

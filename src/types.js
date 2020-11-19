@@ -58,7 +58,7 @@
 /**
  * @typedef {{
  *   before?: function (json: JSON, operation: PreprocessedJSONPatchOperation) : { json?: JSON, operation?: PreprocessedJSONPatchOperation } | undefined,
- *   after?: function (json: JSON, previousJson: JSON, operation: PreprocessedJSONPatchOperation) : JSON
+ *   after?: function (json: JSON, operation: PreprocessedJSONPatchOperation, previousJson: JSON) : JSON
  * }} JSONPatchOptions
  */
 

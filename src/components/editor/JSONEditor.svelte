@@ -13,9 +13,9 @@
     STATE_EXPANDED
   } from '../../constants.js'
   import {
+    documentStatePatch,
     expandPath,
     expandSection,
-    patchKeys,
     syncState
   } from '../../logic/documentState.js'
   import { createHistory } from '../../logic/history.js'
@@ -47,7 +47,10 @@
   } from '../../logic/selection.js'
   import { mapValidationErrors } from '../../logic/validation.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
-  import { immutableJSONPatch, revertJSONPatch } from '../../utils/immutableJSONPatch'
+  import {
+    immutableJSONPatch,
+    revertJSONPatch
+  } from '../../utils/immutableJSONPatch'
   import {
     compileJSONPointer,
     parseJSONPointer
@@ -198,9 +201,7 @@
 
     const undo = revertJSONPatch(doc, operations)
     doc = immutableJSONPatch(doc, operations)
-    state = immutableJSONPatch(state, operations)
-    // TODO: only apply operations to state for relevant operations: move, copy, delete? Figure out
-    state = patchKeys(state, operations) // TODO: shouldn't this be syncState?
+    state = documentStatePatch(state, operations)
 
     if (newSelection) {
       selection = newSelection
@@ -510,10 +511,11 @@
   /**
    * Toggle expanded state of a node
    * @param {Path} path
-   * @param {boolean} expanded
-   * @param {boolean} [recursive=false]
+   * @param {boolean} expanded  True to expand, false to collapse
+   * @param {boolean} [recursive=false]  Only applicable when expanding
    */
   function handleExpand (path, expanded, recursive = false) {
+    // TODO: move this function into documentState.js
     if (recursive) {
       state = updateIn(state, path, (childState) => {
         return syncState(getIn(doc, path), childState, [], () => expanded, true)
@@ -617,8 +619,6 @@
         : getInitialSelection(doc, state)
       debug('selection', selection)
     }
-
-    // TODO: implement Shift+Arrows to select multiple entries
 
     if (combo === 'Enter' && selection) {
       // when the selection consists of one Array item, change selection to editing its value

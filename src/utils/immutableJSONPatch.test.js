@@ -35,7 +35,7 @@ describe('immutableJSONPatch', () => {
     assert.strictEqual(updatedJson.arr, json.arr)
   })
 
-  it('jsonpatch add: insert in matrix', () => {
+  it('jsonpatch add: insert in array', () => {
     const json = {
       arr: [1, 2, 3],
       obj: { a: 2 }
@@ -58,7 +58,7 @@ describe('immutableJSONPatch', () => {
     assert.strictEqual(updatedJson.obj, json.obj)
   })
 
-  it('jsonpatch add: append to matrix', () => {
+  it('jsonpatch add: append to array', () => {
     const json = {
       arr: [1, 2, 3],
       obj: { a: 2 }
@@ -352,39 +352,5 @@ describe('immutableJSONPatch', () => {
       new Error('Test failed, value differs (path: "/obj")'))
   })
 
-  // TODO
-  it.skip('should apply options', () => {
-    const json = {
-      arr: [1,2,3],
-      obj: {a : 2}
-    }
-
-    const patch = [
-      {op: 'add', path: '/obj/a', value: 4 }
-    ]
-    const result = immutableJSONPatch(json, patch, {
-      fromJSON: function (value, previousObject) {
-        return { value, previousObject }
-      },
-      toJSON: value => value
-    })
-    assert.deepStrictEqual(updatedJson, {
-      arr: [1,2,3],
-      obj: {a : { value: 4, previousObject: 2 }}
-    })
-
-    const patch2 = [
-      {op: 'add', path: '/obj/b', value: 4 }
-    ]
-    const result2 = immutableJSONPatch(json, patch2, {
-      fromJSON: function (value, previousObject) {
-        return { value, previousObject }
-      },
-      toJSON: value => value
-    })
-    assert.deepStrictEqual(result2.json, {
-      arr: [1,2,3],
-      obj: {a : 2, b: { value: 4, previousObject: undefined }}
-    })
-  })
+  // TODO: write unit tests for the before and after callbacks
 })

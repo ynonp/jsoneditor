@@ -185,8 +185,8 @@ export function replace (json, paths, values, nextKeys) { // TODO: find a better
  * a unique property name for the duplicated node in case of duplicating
  * and object property
  *
- * @param {JSON} json
  * @param {JSON} doc
+ * @param {JSON} state
  * @param {Path[]} paths
  * @return {JSONPatchDocument}
  */
@@ -195,8 +195,6 @@ export function duplicate (doc, state, paths) {
   const lastPath = last(paths)
   const parentPath = initial(lastPath)
   const beforeKey = last(lastPath)
-  const props = getIn(state, parentPath.concat(STATE_KEYS))
-  const nextKeys = getNextKeys(props, beforeKey, false)
   const parent = getIn(doc, parentPath)
 
   if (Array.isArray(parent)) {
@@ -209,13 +207,12 @@ export function duplicate (doc, state, paths) {
         op: 'copy',
         from: compileJSONPointer(path),
         path: compileJSONPointer(parentPath.concat(index + offset))
-      })),
-
-      // move down operations
-      // move all lower down keys so the renamed key will maintain it's position
-      ...nextKeys.map(key => moveDown(parentPath, key))
+      }))
     ]
   } else { // 'object'
+    const keys = getIn(state, parentPath.concat(STATE_KEYS))
+    const nextKeys = getNextKeys(keys, beforeKey, false)
+
     return [
       // copy operations
       ...paths.map(path => {
@@ -240,8 +237,8 @@ export function insert (doc, state, selection, values) {
   if (selection.beforePath) {
     const parentPath = initial(selection.beforePath)
     const beforeKey = last(selection.beforePath)
-    const props = getIn(state, parentPath.concat(STATE_KEYS))
-    const nextKeys = getNextKeys(props, beforeKey, true)
+    const keys = getIn(state, parentPath.concat(STATE_KEYS)) || [] // in case of an array, STATE_KEYS is undefined TODO: refactor insertBefore to get next keys itself when needed
+    const nextKeys = getNextKeys(keys, beforeKey, true)
     const operations = insertBefore(doc, selection.beforePath, values, nextKeys)
     // TODO: move calculation of nextKeys inside insertBefore?
 
@@ -254,8 +251,8 @@ export function insert (doc, state, selection, values) {
     const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
     const parentPath = initial(lastPath)
     const beforeKey = last(lastPath)
-    const props = getIn(state, parentPath.concat(STATE_KEYS))
-    const nextKeys = getNextKeys(props, beforeKey, true)
+    const keys = getIn(state, parentPath.concat(STATE_KEYS)) || [] // in case of an array, STATE_KEYS is undefined TODO: refactor replace to get next keys itself when needed
+    const nextKeys = getNextKeys(keys, beforeKey, false)
     const operations = replace(doc, selection.paths, values, nextKeys)
     // TODO: move calculation of nextKeys inside replace?
 
@@ -372,13 +369,12 @@ export function createPasteOperations (doc, state, selection, clipboardData) {
       const newSelection = createSelectionFromOperations(operations)
 
       return { operations, newSelection }
-
     } else {
       // rename key
       const path = initial(selection.keyPath)
       const oldKey = last(selection.keyPath)
-      const props = getIn(state, path.concat(STATE_KEYS))
-      const nextKeys = getNextKeys(props, oldKey, false)
+      const keys = getIn(state, path.concat(STATE_KEYS))
+      const nextKeys = getNextKeys(keys, oldKey, false)
       const newKey = String(clipboard)
       const newKeyUnique = findUniqueName(newKey, getIn(doc, path))
       const operations = rename(path, oldKey, newKeyUnique, nextKeys)
