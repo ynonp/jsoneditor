@@ -365,59 +365,48 @@ export function documentStatePatch (state, operations) {
     // TODO: when path or from is not existing in updatedState, expand that now so we can handle it
 
     if (op === 'add' || op === 'copy') {
-      const keys = getIn(state, parentPath.concat([STATE_KEYS]))
+      const keys = getKeys(state, parentPath)
       if (keys) {
         // this is a property inside an object
         // add the key to STATE_KEYS if needed
         const key = last(path)
         if (!keys.includes(key)) {
-          updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS]), keys.concat(key))
+          updatedState = appendToKeys(updatedState, parentPath, key)
         }
       }
     }
 
     if (op === 'move') {
       const parentPath = initial(path)
-      const keys = getIn(updatedState, parentPath.concat([STATE_KEYS]))
+      const keys = getKeys(updatedState, parentPath)
       const oldKey = last(from)
       const newKey = last(path)
 
       if (isEqual(initial(from), initial(path))) {
         // move inside the same object
         if (keys) {
-          const oldIndex = keys.indexOf(oldKey)
-
           if (oldKey !== newKey) {
             // A key is renamed
 
             // in case the new key is different but will replace an existing key, remove the existing key
-            const newIndex = keys.indexOf(newKey)
-            if (newIndex !== -1) {
-              const updatedKeys = deleteIn(keys, [newIndex])
-              updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS]), updatedKeys)
-            }
+            updatedState = removeFromKeys(updatedState, parentPath, newKey)
 
             // Replace the key in the object's STATE_KEYS so it maintains its index
-            updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS, oldIndex]), newKey)
+            updatedState = replaceInKeys(updatedState, parentPath, oldKey, newKey)
           } else {
             // key is not renamed but moved -> move it to the end of the keys
-            const oldKey = keys[oldIndex]
-            const updatedKeys = deleteIn(keys, [oldIndex]).concat(oldKey)
-
-            updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS]), updatedKeys)
+            updatedState = removeFromKeys(updatedState, parentPath, newKey)
+            updatedState = appendToKeys(updatedState, parentPath, newKey)
           }
         }
       } else {
         // move from one object/array to an other -> remove old key, add new key
-        const fromKeys = getIn(updatedState, initial(from).concat([STATE_KEYS]))
+        const fromKeys = getKeys(updatedState, initial(from))
         if (fromKeys) {
-          const updatedKeys = fromKeys.filter(key => key !== oldKey)
-          updatedState = setIn(updatedState, initial(from).concat([STATE_KEYS]), updatedKeys)
+          updatedState = removeFromKeys(updatedState, initial(from), oldKey)
         }
-
         if (keys) {
-          const updatedKeys = keys.concat([newKey])
-          updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS]), updatedKeys)
+          updatedState = appendToKeys(updatedState, initial(from), newKey)
         }
       }
 
@@ -428,13 +417,11 @@ export function documentStatePatch (state, operations) {
 
     if (op === 'remove') {
       const parentPath = initial(path)
-      const keys = getIn(updatedState, parentPath.concat([STATE_KEYS]))
+      const keys = getKeys(updatedState, parentPath)
       if (keys) {
         // remove old key
         const oldKey = last(path)
-        const updatedKeys = keys.filter(key => key !== oldKey)
-
-        updatedState = setIn(updatedState, parentPath.concat([STATE_KEYS]), updatedKeys)
+        updatedState = removeFromKeys(updatedState, parentPath, oldKey)
       }
     }
 
@@ -460,6 +447,66 @@ export function documentStatePatch (state, operations) {
   }
 
   return immutableJSONPatch(state, operations, { before, after })
+}
+
+/**
+ * @param {JSON} state
+ * @param {Path} path
+ * @return {string[]}
+ */
+export function getKeys (state, path) {
+  return getIn(state, path.concat([STATE_KEYS]))
+}
+
+/**
+ * @param {JSON} state
+ * @param {Path} path
+ * @param {string} key
+ * @return {JSON} Returns the updated state
+ */
+export function removeFromKeys (state, path, key) {
+  return updateIn(state, path.concat([STATE_KEYS]), keys => {
+    const index = keys.indexOf(key)
+    if (index === -1) {
+      return keys
+    }
+
+    const updatedKeys = keys.slice(0)
+    updatedKeys.splice(index, 1)
+
+    return updatedKeys
+  })
+}
+
+/**
+ * @param {JSON} state
+ * @param {Path} path
+ * @param {string} oldKey
+ * @param {string} newKey
+ * @return {JSON} Returns the updated state
+ */
+export function replaceInKeys (state, path, oldKey, newKey) {
+  return updateIn(state, path.concat([STATE_KEYS]), keys => {
+    const index = keys.indexOf(oldKey)
+    if (index === -1) {
+      return keys
+    }
+
+    const updatedKeys = keys.slice(0)
+    updatedKeys.splice(index, 1, newKey)
+
+    return updatedKeys
+  })
+}
+
+/**
+ * @param {JSON} state
+ * @param {Path} path
+ * @param {string} key
+ * @return {JSON} Returns the updated state
+ */
+export function appendToKeys (state, path, key) {
+  return updateIn(state, path.concat([STATE_KEYS]), keys => keys.concat(key))
 }
 
 export function getNextKeys (keys, key, includeKey = false) {
