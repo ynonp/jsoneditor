@@ -256,7 +256,7 @@ function revertMove (json, { path, from }) {
  * @param {Path} path
  * @returns {boolean}
  */
-function isArrayItem(json, path) {
+function isArrayItem (json, path) {
   const parent = getIn(json, initial(path))
 
   return Array.isArray(parent)

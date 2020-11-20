@@ -40,7 +40,7 @@ describe('operations', () => {
     })
   })
 
-  it ('should parse partial JSON', () => {
+  it('should parse partial JSON', () => {
     assert.deepStrictEqual(parsePartialJson('"hello world"'), 'hello world')
     assert.deepStrictEqual(parsePartialJson('null'), null)
     assert.deepStrictEqual(parsePartialJson('42'), 42)

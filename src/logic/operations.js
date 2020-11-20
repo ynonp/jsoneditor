@@ -1,10 +1,9 @@
 import { cloneDeepWith, first, initial, isEmpty, last, pickBy } from 'lodash-es'
-import { STATE_KEYS } from '../constants.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { findUniqueName } from '../utils/stringUtils.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
-import { getNextKeys } from './documentState.js'
+import { getKeys, getNextKeys } from './documentState.js'
 import {
   createSelection,
   createSelectionFromOperations,
@@ -18,17 +17,16 @@ import {
  * a unique property name for the inserted node in case of duplicating
  * and object property
  *
- * @param {JSON} json
+ * @param {JSON} doc
+ * @param {JSON} state
  * @param {Path} path
  * @param {Array.<{key?: string, value: JSON}>} values
- * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
- *                              these keys will be moved down, so the renamed
- *                              key will maintain it's position above these keys
  * @return {JSONPatchDocument}
  */
-export function insertBefore (json, path, values, nextKeys) { // TODO: find a better name and define datastructure for values
+// TODO: write tests
+export function insertBefore (doc, state, path, values) { // TODO: find a better name and define datastructure for values
   const parentPath = initial(path)
-  const parent = getIn(json, parentPath)
+  const parent = getIn(doc, parentPath)
 
   if (Array.isArray(parent)) {
     const offset = parseInt(last(path), 10)
@@ -38,6 +36,10 @@ export function insertBefore (json, path, values, nextKeys) { // TODO: find a be
       value: entry.value
     }))
   } else { // 'object'
+    const afterKey = last(path)
+    const keys = getKeys(state, parentPath)
+    const nextKeys = getNextKeys(keys, afterKey, true)
+
     return [
       // insert new values
       ...values.map(entry => {
@@ -95,14 +97,14 @@ export function append (json, path, values) { // TODO: find a better name and de
  * Not applicable to arrays
  *
  * @param {Path} parentPath
+ * @param {string[]} keys
  * @param {string} oldKey
  * @param {string} newKey
- * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
- *                              these keys will be moved down, so the renamed
- *                              key will maintain it's position above these keys
  * @returns {JSONPatchDocument}
  */
-export function rename (parentPath, oldKey, newKey, nextKeys) {
+export function rename (parentPath, keys, oldKey, newKey) {
+  const nextKeys = getNextKeys(keys, oldKey, false)
+
   return [
     // rename a key
     {
@@ -123,18 +125,16 @@ export function rename (parentPath, oldKey, newKey, nextKeys) {
  * a unique property name for the inserted node in case of duplicating
  * and object property
  *
- * @param {JSON} json
+ * @param {JSON} doc
+ * @param {JSON} state
  * @param {Path[]} paths
  * @param {Array.<{key?: string, value: JSON}>} values
- * @param {string[]} nextKeys   A list with all keys *after* the renamed key,
- *                              these keys will be moved down, so the renamed
- *                              key will maintain it's position above these keys
  * @return {JSONPatchDocument}
  */
-export function replace (json, paths, values, nextKeys) { // TODO: find a better name and define datastructure for values
+export function replace (doc, state, paths, values) { // TODO: find a better name and define datastructure for values
   const firstPath = first(paths)
   const parentPath = initial(firstPath)
-  const parent = getIn(json, parentPath)
+  const parent = getIn(doc, parentPath)
 
   if (Array.isArray(parent)) {
     const firstPath = first(paths)
@@ -154,6 +154,11 @@ export function replace (json, paths, values, nextKeys) { // TODO: find a better
   } else { // parent is Object
     // if we're going to replace an existing object with key "a" with a new
     // key "a", we must not create a new unique name "a (copy)".
+    const lastPath = last(paths)
+    const parentPath = initial(lastPath)
+    const beforeKey = last(lastPath)
+    const keys = getKeys(state, parentPath)
+    const nextKeys = getNextKeys(keys, beforeKey, false)
     const removeKeys = new Set(paths.map(path => last(path)))
     const parentWithoutRemovedKeys = pickBy(parent, (value, key) => !removeKeys.has(key))
 
@@ -210,7 +215,7 @@ export function duplicate (doc, state, paths) {
       }))
     ]
   } else { // 'object'
-    const keys = getIn(state, parentPath.concat(STATE_KEYS))
+    const keys = getKeys(state, parentPath)
     const nextKeys = getNextKeys(keys, beforeKey, false)
 
     return [
@@ -235,28 +240,11 @@ export function duplicate (doc, state, paths) {
 
 export function insert (doc, state, selection, values) {
   if (selection.beforePath) {
-    const parentPath = initial(selection.beforePath)
-    const beforeKey = last(selection.beforePath)
-    const keys = getIn(state, parentPath.concat(STATE_KEYS)) || [] // in case of an array, STATE_KEYS is undefined TODO: refactor insertBefore to get next keys itself when needed
-    const nextKeys = getNextKeys(keys, beforeKey, true)
-    const operations = insertBefore(doc, selection.beforePath, values, nextKeys)
-    // TODO: move calculation of nextKeys inside insertBefore?
-
-    return operations
+    return insertBefore(doc, state, selection.beforePath, values)
   } else if (selection.appendPath) {
-    const operations = append(doc, selection.appendPath, values)
-
-    return operations
+    return append(doc, selection.appendPath, values)
   } else if (selection.paths) {
-    const lastPath = last(selection.paths) // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
-    const parentPath = initial(lastPath)
-    const beforeKey = last(lastPath)
-    const keys = getIn(state, parentPath.concat(STATE_KEYS)) || [] // in case of an array, STATE_KEYS is undefined TODO: refactor replace to get next keys itself when needed
-    const nextKeys = getNextKeys(keys, beforeKey, false)
-    const operations = replace(doc, selection.paths, values, nextKeys)
-    // TODO: move calculation of nextKeys inside replace?
-
-    return operations
+    return replace(doc, state, selection.paths, values)
   } else {
     // TODO: implement support for inserting in value or keyPath and valuePath?
     throw new Error('Cannot insert: unsupported type of selection')
@@ -280,15 +268,13 @@ export function createNewValue (doc, selection, type) {
 
       if (Array.isArray(parent) && !isEmpty(parent)) {
         const jsonExample = first(parent)
-        const structure = cloneDeepWith(jsonExample, (value) => {
+        return cloneDeepWith(jsonExample, (value) => {
           return Array.isArray(value)
             ? []
             : isObject(value)
               ? undefined // leave object as is, will recurse into it
               : ''
         })
-
-        return structure
       } else {
         // no example structure
         return ''
@@ -373,7 +359,7 @@ export function createPasteOperations (doc, state, selection, clipboardData) {
       // rename key
       const path = initial(selection.keyPath)
       const oldKey = last(selection.keyPath)
-      const keys = getIn(state, path.concat(STATE_KEYS))
+      const keys = getKeys(state, path)
       const nextKeys = getNextKeys(keys, oldKey, false)
       const newKey = String(clipboard)
       const newKeyUnique = findUniqueName(newKey, getIn(doc, path))

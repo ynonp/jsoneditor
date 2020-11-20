@@ -752,6 +752,7 @@
       searchResult={searchResult && searchResult.itemsWithActive}
       validationErrors={validationErrors}
       onPatch={handlePatch}
+      onInsert={handleInsert}
       onUpdateKey={handleUpdateKey}
       onExpand={handleExpand}
       onSelect={handleSelect}

@@ -1,0 +1,23 @@
+@import '../../styles.scss';
+
+.insert-menu {
+  background: lighten($theme-color, 25%);
+  font-family: $font-family;
+  font-size: $font-size-small;
+
+  line-height: $line-height + 2px;
+  min-width: 16px;
+  word-break: normal;
+  padding: 0 $input-padding;
+
+  .insert-button {
+    background: $theme-color;
+
+    font-family: $font-family-mono;
+    font-size: $font-size-mono;
+
+    &:hover {
+      background: $theme-color-light;
+    }
+  }
+}

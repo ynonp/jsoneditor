@@ -9,7 +9,6 @@ import {
 } from '../constants.js'
 import { forEachIndex } from '../utils/arrayUtils.js'
 import {
-  deleteIn,
   existsIn,
   getIn,
   setIn,
@@ -166,14 +165,14 @@ export function expandSinglePath (doc, state, path) {
  * @param {JSON} state
  * @param {function (index: number)} callback
  */
-export function forEachVisibleIndex(doc, state, callback) {
+export function forEachVisibleIndex (doc, state, callback) {
   state[STATE_VISIBLE_SECTIONS].forEach(({ start, end }) => {
     forEachIndex(start, Math.min(doc.length, end), callback)
   })
 }
 
 // TODO: write unit tests
-export function forEachKey(state, callback) {
+export function forEachKey (state, callback) {
   state[STATE_KEYS].forEach(key => callback(key))
 }
 
@@ -235,7 +234,7 @@ export function ensureItemIsVisible (state, path, index) {
 }
 
 // TODO: write unit tests
-export function expandRecursively(doc, state, path) {
+export function expandRecursively (doc, state, path) {
   const childDoc = getIn(doc, path)
 
   return updateIn(state, path, childState => {
@@ -243,7 +242,7 @@ export function expandRecursively(doc, state, path) {
   })
 }
 
-function _expandRecursively(doc, state) {
+function _expandRecursively (doc, state) {
   if (isObject(doc)) {
     let updatedState = expandSinglePath(doc, state, [])
 

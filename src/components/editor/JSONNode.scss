@@ -27,58 +27,6 @@
     position: relative;
   }
 
-  .before-node-selector,
-  .append-node-selector {
-    position: absolute;
-    left: 0;
-    right: $input-padding;
-    height: $selector-height;
-    box-sizing: border-box;
-    padding-left: $indentation-width;
-    z-index: 1;
-
-    .selector {
-      margin-top: $selector-height / 2;
-    }
-
-    &:hover {
-      .selector {
-        border: 1px dashed $light-gray;
-      }
-    }
-
-    &.selected {
-      .selector {
-        border: 1px dashed $gray;
-      }
-    }
-  }
-
-  // selector must not be visible whilst dragging (mouse down)
-  // FIXME: should not be visible when mouse is down during dragging
-  &:active {
-    .before-node-selector,
-    .append-node-selector {
-      &:not(.selected) {
-        .selector {
-          border: none;
-        }
-      }
-    }
-  }
-
-  .before-node-selector {
-    top: -$selector-height/2 - 1px;
-  }
-
-  .append-node-selector {
-    bottom: -$selector-height/2 - 1px;
-
-    .selector {
-      margin-top: $selector-height / 2 - 2px;
-    }
-  }
-
   .header {
     position: relative;
 
@@ -108,8 +56,28 @@
   }
 
   .footer {
-    display: inline-block;
+    display: inline-flex;
     padding-left: $line-height + $input-padding; // must be the same as the width of the expand button
+  }
+
+  .insert-button {
+    visibility: hidden;
+
+    &.inside {
+      display: inline-block;
+    }
+
+    &.after {
+      vertical-align: bottom;
+      line-height: $line-height;
+    }
+  }
+
+  &:hover > .contents > .insert-button:not(.selected),
+  .header-outer:hover > .header > .meta > .meta-inner .insert-button:not(.selected),
+  .footer-outer:hover > .footer > .insert-button:not(.selected),
+  .footer-outer:hover > .footer .insert-button {
+    visibility: visible;
   }
 }
 
@@ -270,17 +238,17 @@ div.empty {
 
   // value selected
   &.selected-value {
-    > .header > .meta,
-    > .footer,
+    > .header-outer > .header > .meta,
+    > .footer-outer > .footer,
     > .contents > .value,
     > .contents .contents,
     .props .contents,
-    .props .header,
-    .props .footer,
+    .props .header-outer .header,
+    .props .footer-outer .footer,
     .props .expand,
     .items .contents,
-    .items .header,
-    .items .footer,
+    .items .header-outer .header,
+    .items .footer-outer .footer,
     .items .expand {
       background-color: $selection-background;
       color: $selection-color;

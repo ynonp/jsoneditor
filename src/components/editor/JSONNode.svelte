@@ -7,8 +7,9 @@
     faExclamationTriangle
   } from '@fortawesome/free-solid-svg-icons'
   import classnames from 'classnames'
-  import createDebug from 'debug'
-  import { isEqual } from 'lodash-es'
+  import InsertMenu from './InsertMenu.svelte'
+  import InsertMenuButton from './InsertMenuButton.svelte'
+  import { isEqual, isEmpty, first } from 'lodash-es'
   import { onDestroy, tick } from 'svelte'
   import Icon from 'svelte-awesome'
   import {
@@ -22,7 +23,6 @@
     STATE_VISIBLE_SECTIONS,
     VALIDATION_ERROR
   } from '../../constants.js'
-  import { getNextKeys } from '../../logic/documentState.js'
   import { rename } from '../../logic/operations.js'
   import {
     getPlainText,
@@ -34,7 +34,12 @@
   } from '../../utils/domUtils.js'
   import { compileJSONPointer } from '../../utils/jsonPointer'
   import { findUniqueName } from '../../utils/stringUtils.js'
-  import { isUrl, stringConvert, valueType } from '../../utils/typeUtils'
+  import {
+    isUrl,
+    stringConvert,
+    valueType,
+    isObject
+  } from '../../utils/typeUtils'
   import CollapsedItems from './CollapsedItems.svelte'
   import { singleton } from './singleton.js'
 
@@ -46,11 +51,10 @@
   export let searchResult
   export let validationErrors
   export let onPatch
+  export let onInsert
   export let onUpdateKey
   export let onExpand
   export let onSelect
-
-  const debug = createDebug('jsoneditor:JSONNode')
 
   /** @type {function (path: Path, section: Section)} */
   export let onExpandSection
@@ -233,7 +237,7 @@
   }
 
   function updateKey () {
-    if (key !== newKey) {
+    if (type === 'object' && key !== newKey) {
       // must be handled by the parent which has knowledge about the other keys
       const uniqueKey = onUpdateKey(key, newKey)
       if (uniqueKey !== newKey) {
@@ -244,9 +248,8 @@
 
   function handleUpdateKey (oldKey, newKey) {
     const newKeyUnique = findUniqueName(newKey, value)
-    const nextKeys = getNextKeys(keys, oldKey, false)
 
-    onPatch(rename(path, oldKey, newKeyUnique, nextKeys))
+    onPatch(rename(path, keys, oldKey, newKeyUnique))
 
     return newKeyUnique
   }
@@ -355,10 +358,6 @@
       onSelect({ keyPath: path })
     } else if (event.target === domValue) {
       onSelect({ valuePath: path })
-    } else if (isChildOfAttribute(event.target, 'data-type', 'before-node-selector')) {
-      onSelect({ beforePath: path })
-    } else if (isChildOfAttribute(event.target, 'data-type', 'append-node-selector')) {
-      onSelect({ appendPath: path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
       onSelect({ valuePath: path })
     } else {
@@ -419,6 +418,54 @@
     event.stopPropagation()
     hovered = false
   }
+  
+  function handleInsertInside () {
+    console.log('handleInsertInside', path)
+    if (type === 'array') {
+      if (value.length > 0) {
+        // insert before the first item
+        console.log('BEFORE', path)
+        onSelect({ beforePath: path.concat([0]) })
+      } else {
+        // empty array -> append to the array
+        onSelect({ appendPath: path })
+      }
+    } else {
+      const keys = state[STATE_KEYS]
+      if (!isEmpty(keys)) {
+        // insert before the first key
+        const firstKey = first(keys)
+        onSelect({ beforePath: path.concat([firstKey]) })
+      } else {
+        // empty object -> append to the object
+        onSelect({ appendPath: path })
+      }
+    }
+  }
+
+  function handleInsertAfter (keyOrIndex) {
+    if (type === 'array') {
+      // +1 because we want to insert *after* the current item,
+      // which is *before* the next item
+
+      if (keyOrIndex < value.length - 1) {
+        onSelect({ beforePath: path.concat(keyOrIndex + 1) })
+      } else {
+        onSelect({ appendPath: path })
+      }
+    } else {
+      // find the next key, so we can insert before this next key
+      const keys = state[STATE_KEYS]
+      const index = keys.indexOf(keyOrIndex)
+      const nextKey = keys[index + 1]
+
+      if (typeof nextKey === 'string') {
+        onSelect({ beforePath: path.concat(nextKey) })
+      } else {
+        onSelect({ appendPath: path })
+      }
+    }
+  }
 
   $: indentationStyle = getIndentationStyle(path.length)
 </script>
@@ -436,58 +483,66 @@
   on:mouseover={handleMouseOver}
   on:mouseout={handleMouseOut}
 >
-  <div
-    data-type="before-node-selector"
-    class="before-node-selector"
-    class:selected={selectedBefore}
-    style={indentationStyle}
-  >
-    <div class="selector"></div>
-  </div>
+  {#if selectedBefore}
+    <div class="insert-menu before" style={indentationStyle} >
+      <InsertMenu showStructure={isObject(value)} onInsert={onInsert} />
+    </div>
+  {/if}
   {#if type === 'array'}
-    <div class='header' style={indentationStyle} >
-      <button
-        class='expand'
-        on:click={toggleExpand}
-        title='Expand or collapse this array (Ctrl+Click to expand/collapse recursively)'
-      >
-        {#if expanded}
-          <Icon data={faCaretDown} />
-        {:else}
-          <Icon data={faCaretRight} />
-        {/if}
-      </button>
-      {#if typeof key === 'string'}
-        <div
-          class={keyClass}
-          contenteditable={editKey}
-          spellcheck="false"
-          on:input={handleKeyInput}
-          on:dblclick={handleKeyDoubleClick}
-          on:keydown={handleKeyKeyDown}
-          bind:this={domKey}
-        ></div>
-        <div class="separator">:</div>
-      {/if}
-      <div class="meta" data-type="selectable-value">
-        <div class="meta-inner">
+    <div class='header-outer' style={indentationStyle} >
+      <div class='header'>
+        <button
+          class='expand'
+          on:click={toggleExpand}
+          title='Expand or collapse this array (Ctrl+Click to expand/collapse recursively)'
+        >
           {#if expanded}
-            <div class="bracket expanded">[</div>
+            <Icon data={faCaretDown} />
           {:else}
-            <div class="bracket">[</div>
-            <button class="tag" on:click={handleExpand}>{value.length} items</button>
-            <div class="bracket">]</div>
-            {#if validationError}
-              <!-- FIXME: implement proper tooltip -->
-              <button
-                class='validation-error'
-                title={validationError.isChildError ? 'Contains invalid items' : validationError.message}
-                on:click={handleExpand}
-              >
-                <Icon data={faExclamationTriangle} />
-              </button>
-            {/if}
+            <Icon data={faCaretRight} />
           {/if}
+        </button>
+        {#if typeof key === 'string'}
+          <div
+            class={keyClass}
+            contenteditable={editKey}
+            spellcheck="false"
+            on:input={handleKeyInput}
+            on:dblclick={handleKeyDoubleClick}
+            on:keydown={handleKeyKeyDown}
+            bind:this={domKey}
+          ></div>
+          <div class="separator">:</div>
+        {/if}
+        <div class="meta" data-type="selectable-value">
+          <div class="meta-inner">
+            {#if expanded}
+              <div class="bracket expanded">
+                [
+                <div class="insert-button inside">
+                  <InsertMenuButton
+                    keyOrIndex={key}
+                    onClick={handleInsertInside}
+                  />
+                </div>
+              </div>
+            {:else}
+              <div class="bracket">[</div>
+              <button class="tag" on:click={handleExpand}>{value.length} items</button>
+              <div class="bracket">]</div>
+              <slot name="insert-after" />
+              {#if validationError}
+                <!-- FIXME: implement proper tooltip -->
+                <button
+                  class='validation-error'
+                  title={validationError.isChildError ? 'Contains invalid items' : validationError.message}
+                  on:click={handleExpand}
+                >
+                  <Icon data={faExclamationTriangle} />
+                </button>
+              {/if}
+            {/if}
+          </div>
         </div>
       </div>
     </div>
@@ -503,12 +558,20 @@
               searchResult={searchResult ? searchResult[visibleSection.start + itemIndex] : undefined}
               validationErrors={validationErrors ? validationErrors[visibleSection.start + itemIndex] : undefined}
               onPatch={onPatch}
+              onInsert={onInsert}
               onUpdateKey={handleUpdateKey}
               onExpand={onExpand}
               onSelect={onSelect}
               onExpandSection={onExpandSection}
               selection={selection}
-            />
+            >
+              <div slot="insert-after" class="insert-button after">
+                <InsertMenuButton
+                  keyOrIndex={visibleSection.start + itemIndex}
+                  onClick={handleInsertAfter}
+                />
+              </div>
+            </svelte:self>
           {/each}
           {#if visibleSection.end < value.length}
             <CollapsedItems
@@ -520,63 +583,74 @@
             />
           {/if}
         {/each}
-        <div
-          data-type="append-node-selector"
-          class="append-node-selector"
-          class:selected={selectedAppend}
-          style={getIndentationStyle(path.length + 1)}
-        >
-          <div class="selector"></div>
-        </div>
+        {#if selectedAppend}
+          <div class="insert-menu append" style={getIndentationStyle(path.length + 1)} >
+            <InsertMenu showStructure={false} onInsert={onInsert} />
+          </div>
+        {/if}
       </div>
-      <div data-type="selectable-value" class="footer" style={indentationStyle} >
-        <span class="bracket">]</span>
+      <div data-type="selectable-value" class="footer-outer" style={indentationStyle} >
+        <div class="footer">
+          <span class="bracket">]</span>
+          <slot name="insert-after" />
+        </div>
       </div>
     {/if}
   {:else if type === 'object'}
-    <div class="header" style={indentationStyle} >
-      <button
-        class='expand'
-        on:click={toggleExpand}
-        title='Expand or collapse this object (Ctrl+Click to expand/collapse recursively)'
-      >
-        {#if expanded}
-          <Icon data={faCaretDown} />
-        {:else}
-          <Icon data={faCaretRight} />
-        {/if}
-      </button>
-      {#if typeof key === 'string'}
-        <div
-          class={keyClass}
-          contenteditable={editKey}
-          spellcheck="false"
-          on:input={handleKeyInput}
-          on:dblclick={handleKeyDoubleClick}
-          on:keydown={handleKeyKeyDown}
-          bind:this={domKey}
-        ></div>
-        <span class="separator">:</span>
-      {/if}
-      <div class="meta" data-type="selectable-value" >
-        <div class="meta-inner">
+    <div class='header-outer' style={indentationStyle} >
+      <div class="header">
+        <button
+          class='expand'
+          on:click={toggleExpand}
+          title='Expand or collapse this object (Ctrl+Click to expand/collapse recursively)'
+        >
           {#if expanded}
-            <span class="bracket expanded">&#123;</span>
+            <Icon data={faCaretDown} />
           {:else}
-            <span class="bracket"> &#123;</span>
-            <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
-            <span class="bracket">&rbrace;</span>
-            {#if validationError}
-              <!-- FIXME: implement proper tooltip -->
-              <button
-                class='validation-error'
-                title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
-                on:click={handleExpand}
-              >
-                <Icon data={faExclamationTriangle} />
-              </button>
-            {/if}
+            <Icon data={faCaretRight} />
           {/if}
+        </button>
+        {#if typeof key === 'string'}
+          <div
+            class={keyClass}
+            contenteditable={editKey}
+            spellcheck="false"
+            on:input={handleKeyInput}
+            on:dblclick={handleKeyDoubleClick}
+            on:keydown={handleKeyKeyDown}
+            bind:this={domKey}
+          ></div>
+          <div class="separator">:</div>
+        {/if}
+        <div class="meta" data-type="selectable-value" >
+          <div class="meta-inner">
+            {#if expanded}
+              <div class="bracket expanded">
+                &lbrace;
+                <div class="insert-button inside">
+                  <InsertMenuButton
+                    keyOrIndex={key}
+                    onClick={handleInsertInside}
+                  />
+                </div>
+              </div>
+            {:else}
+              <div class="bracket"> &lbrace;</div>
+              <button class="tag" on:click={handleExpand}>{Object.keys(value).length} props</button>
+              <div class="bracket">&rbrace;</div>
+              <slot name="insert-after" />
+              {#if validationError}
+                <!-- FIXME: implement proper tooltip -->
+                <button
+                  class='validation-error'
+                  title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
+                  on:click={handleExpand}
+                >
+                  <Icon data={faExclamationTriangle} />
+                </button>
+              {/if}
+            {/if}
+          </div>
         </div>
       </div>
     </div>
@@ -591,24 +665,32 @@
             searchResult={searchResult ? searchResult[key] : undefined}
             validationErrors={validationErrors ? validationErrors[key] : undefined}
             onPatch={onPatch}
+            onInsert={onInsert}
             onUpdateKey={handleUpdateKey}
             onExpand={onExpand}
             onSelect={onSelect}
             onExpandSection={onExpandSection}
             selection={selection}
-          />
+          >
+            <div slot="insert-after" class="insert-button after">
+              <InsertMenuButton
+                keyOrIndex={key}
+                onClick={handleInsertAfter}
+              />
+            </div>
+          </svelte:self>
         {/each}
-        <div
-          data-type="append-node-selector"
-          class="append-node-selector"
-          class:selected={selectedAppend}
-          style={getIndentationStyle(path.length + 1)}
-        >
-          <div class="selector"></div>
-        </div>
+        {#if selectedAppend}
+          <div class="insert-menu append" style={getIndentationStyle(path.length + 1)} >
+            <InsertMenu showStructure={false} onInsert={onInsert} />
+          </div>
+        {/if}
       </div>
-      <div data-type="selectable-value" class="footer" style={indentationStyle} >
-        <span class="bracket">&rbrace;</span>
+      <div data-type="selectable-value" class="footer-outer" style={indentationStyle} >
+        <div class="footer">
+          <div class="bracket">&rbrace;</div>
+          <slot name="insert-after" />
+        </div>
       </div>
     {/if}
   {:else}
@@ -623,7 +705,7 @@
           on:keydown={handleKeyKeyDown}
           bind:this={domKey}
         ></div>
-        <span class="separator">:</span>
+        <div class="separator">:</div>
       {/if}
       <div
         class={valueClass}
@@ -636,6 +718,7 @@
         bind:this={domValue}
         title={valueIsUrl ? 'Ctrl+Click or Ctrl+Enter to open url in new window' : null}
       ></div>
+      <slot name="insert-after" />
       {#if validationError}
         <!-- FIXME: implement proper tooltip -->
         <button class='validation-error' title={validationError.message}>
