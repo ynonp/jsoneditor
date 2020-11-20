@@ -1,10 +1,15 @@
 <svelte:options immutable={true} />
 
 <script>
+  import { getContext } from 'svelte'
   import Icon from 'svelte-awesome'
   import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus, faTimes, faFilter, faSortAmountDownAlt } from '@fortawesome/free-solid-svg-icons'
+  import { SIMPLE_MODAL_OPTIONS } from '../../constants.js'
+  import CopyPasteModal from '../modals/CopyPasteModal.svelte'
   import SearchBox from './SearchBox.svelte'
   import DropdownMenu from '../controls/DropdownMenu.svelte'
+
+  const { open } = getContext('simple-modal')
 
   export let searchText
   export let searchResult
@@ -15,7 +20,6 @@
 
   export let onCut
   export let onCopy
-  export let onPaste
   export let onRemove
   export let onDuplicate
   export let onInsert
@@ -45,6 +49,16 @@
 
   function handleInsertStructure () {
     onInsert('structure')
+  }
+
+  function handlePasteFromMenu () {
+    open(CopyPasteModal, {}, {
+      ...SIMPLE_MODAL_OPTIONS,
+      styleWindow: {
+        ...SIMPLE_MODAL_OPTIONS.styleWindow,
+        width: '450px'
+      }
+    })
   }
 
   /** @type {MenuDropdownItem[]} */
@@ -97,7 +111,7 @@
   </button>
   <button
     class="button paste"
-    on:click={onPaste}
+    on:click={handlePasteFromMenu}
     disabled={!hasClipboardContents}
     title="Paste (Ctrl+V)"
   >

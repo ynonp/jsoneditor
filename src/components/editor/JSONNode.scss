@@ -27,6 +27,11 @@
     position: relative;
   }
 
+  .header-outer,
+  .footer-outer {
+    display: flex;
+  }
+
   .header {
     position: relative;
 
@@ -36,6 +41,10 @@
         justify-content: center;
       }
     }
+  }
+
+  .contents-outer {
+    display: flex;
   }
 
   .header,
@@ -52,7 +61,6 @@
 
   .contents {
     padding-left: $line-height ; // must be the same as the width of the expand button
-    padding-right: 5px;
   }
 
   .footer {
@@ -62,6 +70,7 @@
 
   .insert-button {
     visibility: hidden;
+    padding-left: $padding / 2;
 
     &.inside {
       display: inline-block;
@@ -73,11 +82,18 @@
     }
   }
 
-  &:hover > .contents > .insert-button:not(.selected),
-  .header-outer:hover > .header > .meta > .meta-inner .insert-button:not(.selected),
-  .footer-outer:hover > .footer > .insert-button:not(.selected),
-  .footer-outer:hover > .footer .insert-button {
+  &:hover > .contents-outer .insert-button:not(.selected),
+  .header-outer:hover > .insert-button:not(.selected),
+  .footer-outer:hover .insert-button:not(.selected) {
     visibility: visible;
+  }
+
+  .insert-menu {
+    background: $theme-color;
+
+    width: 100%;
+    max-width: 250px;
+    height: 6px;
   }
 }
 
@@ -118,7 +134,7 @@
   padding: 0 2px;
 
   &.expanded {
-    padding-right: $padding * 2;
+    padding-right: $padding;
   }
 }
 
@@ -229,8 +245,8 @@ div.empty {
 
   // key selected
   &.selected-key {
-    > .contents > .key,
-    > .header > .key {
+    > .contents-outer > .contents > .key,
+    > .header-outer > .header > .key {
       background-color: $selection-background;
       color: $selection-color;
     }
@@ -240,8 +256,8 @@ div.empty {
   &.selected-value {
     > .header-outer > .header > .meta,
     > .footer-outer > .footer,
-    > .contents > .value,
-    > .contents .contents,
+    > .contents-outer > .contents > .value,
+    > .contents-outer > .contents .contents,
     .props .contents,
     .props .header-outer .header,
     .props .footer-outer .footer,

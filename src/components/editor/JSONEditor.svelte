@@ -283,16 +283,6 @@
     }
   }
 
-  function handlePasteFromMenu () {
-    open(CopyPasteModal, {}, {
-      ...SIMPLE_MODAL_OPTIONS,
-      styleWindow: {
-        ...SIMPLE_MODAL_OPTIONS.styleWindow,
-        width: '450px'
-      }
-    })
-  }
-
   function handleRemove () {
     if (!selection || !selection.paths) {
       return
@@ -723,7 +713,6 @@
     
     onCut={handleCut}
     onCopy={handleCopy}
-    onPaste={handlePasteFromMenu}
     onRemove={handleRemove}
     onDuplicate={handleDuplicate}
     onInsert={handleInsert}
