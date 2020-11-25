@@ -43,6 +43,7 @@
     getSelectionUp,
     isSelectionInsidePath,
     removeEditModeFromSelection,
+    SELECTION_TYPE,
     selectionToPartialJson
   } from '../../logic/selection.js'
   import { mapValidationErrors } from '../../logic/validation.js'
@@ -57,7 +58,6 @@
   } from '../../utils/jsonPointer.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
   import { isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
-  import CopyPasteModal from '../modals/CopyPasteModal.svelte'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
   import JSONNode from './JSONNode.svelte'
@@ -65,7 +65,7 @@
 
   // TODO: document how to enable debugging in the readme: localStorage.debug="jsoneditor:*", then reload
   const debug = createDebug('jsoneditor:TreeMode')
-  
+
   const { open } = getContext('simple-modal')
   const sortModalId = uniqueId()
   const transformModalId = uniqueId()
@@ -284,7 +284,7 @@
   }
 
   function handleRemove () {
-    if (!selection || !selection.paths) {
+    if (!selection || selection.type !== SELECTION_TYPE.MULTI) {
       return
     }
 
@@ -297,7 +297,7 @@
   }
 
   function handleDuplicate () {
-    if (!selection || !selection.paths) {
+    if (!selection || selection.type !== SELECTION_TYPE.MULTI) {
       return
     }
 
@@ -613,16 +613,16 @@
     if (combo === 'Enter' && selection) {
       // when the selection consists of one Array item, change selection to editing its value
       // TODO: this is a bit hacky
-      if (selection.paths && selection.paths.length === 1) {
+      if (selection.type === SELECTION_TYPE.MULTI && selection.paths.length === 1) {
         const path = selection.focusPath
         const parent = getIn(doc, initial(path))
         if (Array.isArray(parent)) {
           // change into selection of the value
-          selection = createSelection(doc, state, { valuePath: path })
+          selection = createSelection(doc, state, { type: SELECTION_TYPE.VALUE, path })
         }
       }
 
-      if (selection.keyPath) {
+      if (selection.type === SELECTION_TYPE.KEY) {
         // go to key edit mode
         event.preventDefault()
         selection = {
@@ -631,13 +631,13 @@
         }
       }
 
-      if (selection.valuePath) {
+      if (selection.type === SELECTION_TYPE.VALUE) {
         event.preventDefault()
 
-        const value = getIn(doc, selection.valuePath)
+        const value = getIn(doc, selection.path)
         if (isObjectOrArray(value)) {
           // expand object/array
-          handleExpand(selection.valuePath, true)
+          handleExpand(selection.path, true)
         } else {
           // go to value edit mode
           selection = {
@@ -648,8 +648,8 @@
       }
     }
 
-    if (combo === 'Ctrl+Enter' && selection && selection.valuePath) {
-      const value = getIn(doc, selection.valuePath)
+    if (combo === 'Ctrl+Enter' && selection && selection.type === SELECTION_TYPE.VALUE) {
+      const value = getIn(doc, selection.path)
 
       if (isUrl(value)) {
         // open url in new page

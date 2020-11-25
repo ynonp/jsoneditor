@@ -1,5 +1,6 @@
 import assert from 'assert'
 import { createNewValue, parsePartialJson } from './operations.js'
+import { SELECTION_TYPE } from './selection.js'
 
 describe('operations', () => {
   describe('createNewValue', () => {
@@ -16,7 +17,7 @@ describe('operations', () => {
     })
 
     it('should create a simple value via type "structure"', () => {
-      assert.deepStrictEqual(createNewValue([1, 2, 3], { paths: [[0]] }, 'structure'), '')
+      assert.deepStrictEqual(createNewValue([1, 2, 3], { type: SELECTION_TYPE.MULTI, paths: [[0]] }, 'structure'), '')
     })
 
     it('should create a nested object via type "structure"', () => {
@@ -30,7 +31,7 @@ describe('operations', () => {
         }
       ]
 
-      assert.deepStrictEqual(createNewValue(doc, { paths: [[0]] }, 'structure'), {
+      assert.deepStrictEqual(createNewValue(doc, { type: SELECTION_TYPE.MULTI, paths: [[0]] }, 'structure'), {
         a: '',
         b: {
           c: ''

@@ -7,7 +7,8 @@ import { getKeys, getNextKeys } from './documentState.js'
 import {
   createSelection,
   createSelectionFromOperations,
-  getParentPath
+  getParentPath,
+  SELECTION_TYPE
 } from './selection.js'
 
 /**
@@ -239,14 +240,14 @@ export function duplicate (doc, state, paths) {
 }
 
 export function insert (doc, state, selection, values) {
-  if (selection.beforePath) {
-    return insertBefore(doc, state, selection.beforePath, values)
-  } else if (selection.appendPath) {
-    return append(doc, selection.appendPath, values)
-  } else if (selection.paths) {
+  if (selection.type === SELECTION_TYPE.BEFORE) {
+    return insertBefore(doc, state, selection.path, values)
+  } else if (selection.type === SELECTION_TYPE.APPEND) {
+    return append(doc, selection.path, values)
+  } else if (selection.type === SELECTION_TYPE.MULTI) {
     return replace(doc, state, selection.paths, values)
   } else {
-    // TODO: implement support for inserting in value or keyPath and valuePath?
+    // TODO: implement support for inserting in value or key
     throw new Error('Cannot insert: unsupported type of selection')
   }
 }
@@ -336,18 +337,18 @@ function moveDown (parentPath, key) {
 export function createPasteOperations (doc, state, selection, clipboardData) {
   const clipboard = parsePartialJson(clipboardData)
 
-  if (selection.valuePath) {
+  if (selection.type === SELECTION_TYPE.VALUE) {
     // replace selected value
     const operations = [
       {
         op: 'replace',
-        path: compileJSONPointer(selection.valuePath),
+        path: compileJSONPointer(selection.path),
         value: clipboard
       }
     ]
 
     return { operations, newSelection: selection }
-  } else if (selection.keyPath) {
+  } else if (selection.type === SELECTION_TYPE.KEY) {
     if (isObjectOrArray(clipboard)) {
       // replace current entry, not just the key
       const values = clipboardToValues(clipboard)
@@ -357,14 +358,14 @@ export function createPasteOperations (doc, state, selection, clipboardData) {
       return { operations, newSelection }
     } else {
       // rename key
-      const path = initial(selection.keyPath)
-      const oldKey = last(selection.keyPath)
+      const path = initial(selection.path)
+      const oldKey = last(selection.path)
       const keys = getKeys(state, path)
       const nextKeys = getNextKeys(keys, oldKey, false)
       const newKey = String(clipboard)
       const newKeyUnique = findUniqueName(newKey, getIn(doc, path))
       const operations = rename(path, oldKey, newKeyUnique, nextKeys)
-      const newSelection = createSelection(doc, state, { keyPath: path.concat(newKeyUnique) })
+      const newSelection = createSelection(doc, state, { type: SELECTION_TYPE.KEY, path: path.concat(newKeyUnique) })
 
       return { operations, newSelection }
     }

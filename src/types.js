@@ -64,6 +64,7 @@
 
 /**
  * @typedef {{
+ *   type: 'multi',
  *   paths: Path[],
  *   anchorPath: Path,
  *   focusPath: Path,
@@ -72,19 +73,19 @@
  */
 
 /**
- * @typedef {{beforePath: Path, anchorPath: Path, focusPath: Path}} BeforeSelection
+ * @typedef {{type: 'before', path: Path, anchorPath: Path, focusPath: Path}} BeforeSelection
  */
 
 /**
- * @typedef {{appendPath: Path, anchorPath: Path, focusPath: Path}} AppendSelection
+ * @typedef {{type: 'append', path: Path, anchorPath: Path, focusPath: Path}} AppendSelection
  */
 
 /**
- * @typedef {{keyPath: Path, anchorPath: Path, focusPath: Path, edit?: boolean}} KeySelection
+ * @typedef {{type: 'key', path: Path, anchorPath: Path, focusPath: Path, edit?: boolean}} KeySelection
  */
 
 /**
- * @typedef {{valuePath: Path, anchorPath: Path, focusPath: Path, edit?: boolean}} ValueSelection
+ * @typedef {{type: 'value', path: Path, anchorPath: Path, focusPath: Path, edit?: boolean}} ValueSelection
  */
 
 /**
@@ -92,23 +93,23 @@
  */
 
 /**
- * @typedef {{beforePath: Path}} BeforeSelectionSchema
+ * @typedef {{type: 'before', path: Path}} BeforeSelectionSchema
  */
 
 /**
- * @typedef {{appendPath: Path}} AppendSelectionSchema
+ * @typedef {{type: 'append', path: Path}} AppendSelectionSchema
  */
 
 /**
- * @typedef {{keyPath: Path, edit?: boolean, next?: boolean}} KeySelectionSchema
+ * @typedef {{type: 'key', path: Path, edit?: boolean, next?: boolean}} KeySelectionSchema
  */
 
 /**
- * @typedef {{valuePath: Path, edit?: boolean, next?: boolean}} ValueSelectionSchema
+ * @typedef {{type: 'value', path: Path, edit?: boolean, next?: boolean}} ValueSelectionSchema
  */
 
 /**
- * @typedef {{anchorPath: Path, focusPath: Path}} MultiSelectionSchema
+ * @typedef {{type: 'multi', anchorPath: Path, focusPath: Path}} MultiSelectionSchema
  */
 
 /**

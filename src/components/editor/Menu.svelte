@@ -1,13 +1,26 @@
 <svelte:options immutable={true} />
 
 <script>
+  import {
+    faClone,
+    faCopy,
+    faCut,
+    faFilter,
+    faPaste,
+    faPlus,
+    faRedo,
+    faSearch,
+    faSortAmountDownAlt,
+    faTimes,
+    faUndo
+  } from '@fortawesome/free-solid-svg-icons'
   import { getContext } from 'svelte'
   import Icon from 'svelte-awesome'
-  import { faCut, faClone, faCopy, faPaste, faSearch, faUndo, faRedo, faPlus, faTimes, faFilter, faSortAmountDownAlt } from '@fortawesome/free-solid-svg-icons'
   import { SIMPLE_MODAL_OPTIONS } from '../../constants.js'
+  import { SELECTION_TYPE } from '../../logic/selection.js'
+  import DropdownMenu from '../controls/DropdownMenu.svelte'
   import CopyPasteModal from '../modals/CopyPasteModal.svelte'
   import SearchBox from './SearchBox.svelte'
-  import DropdownMenu from '../controls/DropdownMenu.svelte'
 
   const { open } = getContext('simple-modal')
 
@@ -33,9 +46,9 @@
   export let onPreviousSearchResult
 
   $: hasSelection = selection != null
-  $: hasSelectionContents = selection != null && selection.paths != null
+  $: hasSelectionContents = selection != null && selection.type === SELECTION_TYPE.MULTI
   $: hasSelectionWithoutContents = (selection != null &&
-    (selection.beforePath != null || selection.appendPath != null))
+    (selection.type === SELECTION_TYPE.BEFORE || selection.type === 'after'))
   $: hasClipboardContents = selection != null
 
   function handleToggleSearch () {

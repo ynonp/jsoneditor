@@ -22,6 +22,7 @@
     VALIDATION_ERROR
   } from '../../constants.js'
   import { rename } from '../../logic/operations.js'
+  import { SELECTION_TYPE } from '../../logic/selection.js'
   import {
     getPlainText,
     isChildOfAttribute,
@@ -60,20 +61,20 @@
     ? selection.pathsMap[compileJSONPointer(path)] === true
     : false
 
-  $: selectedBefore = (selection && selection.beforePath)
-    ? isEqual(selection.beforePath, path)
+  $: selectedBefore = (selection && selection.type === SELECTION_TYPE.BEFORE)
+    ? isEqual(selection.path, path)
     : false
 
-  $: selectedAppend = (selection && selection.appendPath)
-    ? isEqual(selection.appendPath, path)
+  $: selectedAppend = (selection && selection.type === SELECTION_TYPE.APPEND)
+    ? isEqual(selection.path, path)
     : false
 
-  $: selectedKey = (selection && selection.keyPath)
-    ? isEqual(selection.keyPath, path)
+  $: selectedKey = (selection && selection.type === SELECTION_TYPE.KEY)
+    ? isEqual(selection.path, path)
     : false
 
-  $: selectedValue = (selection && selection.valuePath)
-    ? isEqual(selection.valuePath, path)
+  $: selectedValue = (selection && selection.type === SELECTION_TYPE.VALUE)
+    ? isEqual(selection.path, path)
     : false
 
   $: editKey = selectedKey && selection && selection.edit === true
@@ -201,7 +202,7 @@
   function getValueClass (value, searchResult) {
     const type = valueType(value)
 
-    return classnames('value', type, {
+    return classnames(SELECTION_TYPE.VALUE, type, {
       search: searchResult && searchResult[STATE_SEARCH_VALUE],
       active: searchResult && searchResult[STATE_SEARCH_VALUE] === ACTIVE_SEARCH_RESULT,
       url: isUrl(value),
@@ -262,7 +263,7 @@
     if (event.key === 'Escape') {
       // cancel changes
       setDomKey(key)
-      onSelect({ keyPath: path })
+      onSelect({ type: SELECTION_TYPE.KEY, path })
     }
 
     if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
@@ -270,14 +271,14 @@
 
       // we apply selection on next tick, since the actual path will change
       await tick()
-      onSelect({ keyPath: path, next: true })
+      onSelect({ type: SELECTION_TYPE.KEY, path, next: true })
     }
   }
 
   function handleKeyDoubleClick (event) {
     if (!editKey) {
       event.preventDefault()
-      onSelect({ keyPath: path, edit: true })
+      onSelect({ type: SELECTION_TYPE.KEY, path, edit: true })
     }
   }
 
@@ -302,7 +303,7 @@
   function handleValueDoubleClick (event) {
     if (!editValue) {
       event.preventDefault()
-      onSelect({ valuePath: path, edit: true })
+      onSelect({ type: SELECTION_TYPE.VALUE, path, edit: true })
     }
   }
 
@@ -321,14 +322,14 @@
     if (event.key === 'Escape') {
       // cancel changes
       setDomValue(value)
-      onSelect({ valuePath: path })
+      onSelect({ type: SELECTION_TYPE.VALUE, path })
     }
 
     if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
       // apply changes
       updateValue()
 
-      onSelect({ valuePath: path, next: true })
+      onSelect({ type: SELECTION_TYPE.VALUE, path, next: true })
     }
   }
 
@@ -349,11 +350,11 @@
         focusPath: path
       })
     } else if (event.target === domKey) {
-      onSelect({ keyPath: path })
+      onSelect({ type: SELECTION_TYPE.KEY, path })
     } else if (event.target === domValue) {
-      onSelect({ valuePath: path })
+      onSelect({ type: SELECTION_TYPE.VALUE, path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
-      onSelect({ valuePath: path })
+      onSelect({ type: SELECTION_TYPE.VALUE, path })
     } else {
       onSelect(null)
     }
@@ -419,20 +420,20 @@
       if (value.length > 0) {
         // insert before the first item
         console.log('BEFORE', path)
-        onSelect({ beforePath: path.concat([0]) })
+        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([0]) })
       } else {
         // empty array -> append to the array
-        onSelect({ appendPath: path })
+        onSelect({ type: SELECTION_TYPE.APPEND, path })
       }
     } else {
       const keys = state[STATE_KEYS]
       if (!isEmpty(keys)) {
         // insert before the first key
         const firstKey = first(keys)
-        onSelect({ beforePath: path.concat([firstKey]) })
+        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([firstKey]) })
       } else {
         // empty object -> append to the object
-        onSelect({ appendPath: path })
+        onSelect({ type: SELECTION_TYPE.APPEND, path })
       }
     }
   }
@@ -443,9 +444,9 @@
       // which is *before* the next item
 
       if (keyOrIndex < value.length - 1) {
-        onSelect({ beforePath: path.concat(keyOrIndex + 1) })
+        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat(keyOrIndex + 1) })
       } else {
-        onSelect({ appendPath: path })
+        onSelect({ type: SELECTION_TYPE.APPEND, path })
       }
     } else {
       // find the next key, so we can insert before this next key
@@ -454,9 +455,9 @@
       const nextKey = keys[index + 1]
 
       if (typeof nextKey === 'string') {
-        onSelect({ beforePath: path.concat(nextKey) })
+        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat(nextKey) })
       } else {
-        onSelect({ appendPath: path })
+        onSelect({ type: SELECTION_TYPE.APPEND, path })
       }
     }
   }
