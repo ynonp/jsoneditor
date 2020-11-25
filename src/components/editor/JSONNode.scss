@@ -70,14 +70,16 @@
 
   .insert-button {
     visibility: hidden;
-    padding-left: $padding / 2;
+    padding: 0 $padding / 2;
 
     &.inside {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
     }
 
     &.after {
-      vertical-align: bottom;
+      display: flex;
+      align-items: end;
       line-height: $line-height;
     }
   }
