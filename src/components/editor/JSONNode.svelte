@@ -354,7 +354,10 @@
       onSelect({ type: SELECTION_TYPE.VALUE, path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
       onSelect({ type: SELECTION_TYPE.VALUE, path })
-    } else if (isChildOfAttribute(event.target, 'data-type', 'insert-button')) {
+    } else if (
+      isChildOfAttribute(event.target, 'data-type', 'insert-button-area') ||
+      isChildOfAttribute(event.target, 'data-type', 'insert-area')
+    ) {
       // do nothing: event already handled by event listener on the element itself
     } else {
       onSelect(null)
@@ -480,9 +483,11 @@
   on:mouseout={handleMouseOut}
 >
   {#if selectedBefore}
-    <div class="insert-menu before" style={indentationStyle} >
-      <div class="insert-menu"></div>
-    </div>
+    <div
+      class="insert-area before"
+      data-type="insert-area"
+      style={indentationStyle}
+    ></div>
   {/if}
   {#if type === 'array'}
     <div class='header-outer' style={indentationStyle} >
@@ -526,11 +531,11 @@
       </div>
       {#if expanded}
         <div
-          class="insert-button inside"
-          data-type="insert-button"
+          class="insert-button-area inside"
+          data-type="insert-button-area"
           on:mousedown|preventDefault={() => handleInsertInside(key)}
         >
-          <button class="insert-menu-button">&#8617;</button>
+          <button class="insert-button">&#8617;</button>
         </div>
       {:else}
         {#if validationError}
@@ -567,11 +572,11 @@
             >
               <div
                 slot="insert-after"
-                class="insert-button after"
-                data-type="insert-button"
+                class="insert-button-area after"
+                data-type="insert-button-area"
                 on:mousedown|preventDefault={() => handleInsertAfter(visibleSection.start + itemIndex)}
               >
-                <button class="insert-menu-button">&#8617;</button>
+                <button class="insert-button">&#8617;</button>
               </div>
             </svelte:self>
           {/each}
@@ -586,9 +591,11 @@
           {/if}
         {/each}
         {#if selectedAppend}
-          <div class="insert-menu append" style={getIndentationStyle(path.length + 1)} >
-            <div class="insert-menu"></div>
-          </div>
+          <div
+            class="insert-area append"
+            data-type="insert-area"
+            style={getIndentationStyle(path.length + 1)}
+          ></div>
         {/if}
       </div>
       <div class="footer-outer" style={indentationStyle} >
@@ -640,11 +647,11 @@
       </div>
       {#if expanded}
         <div
-          class="insert-button inside"
-          data-type="insert-button"
+          class="insert-button-area inside"
+          data-type="insert-button-area"
           on:mousedown|preventDefault={() => handleInsertInside(key)}
         >
-          <button class="insert-menu-button">&#8617;</button>
+          <button class="insert-button">&#8617;</button>
         </div>
       {:else}
         {#if validationError}
@@ -680,18 +687,20 @@
           >
             <div
               slot="insert-after"
-              class="insert-button after"
-              data-type="insert-button"
+              class="insert-button-area after"
+              data-type="insert-button-area"
               on:mousedown|preventDefault={() => handleInsertAfter(key)}
             >
-              <button class="insert-menu-button">&#8617;</button>
+              <button class="insert-button">&#8617;</button>
             </div>
           </svelte:self>
         {/each}
         {#if selectedAppend}
-          <div class="insert-menu append" style={getIndentationStyle(path.length + 1)} >
-            <div class="insert-menu"></div>
-          </div>
+          <div
+            class="insert-area append"
+            data-type="insert-area"
+            style={getIndentationStyle(path.length + 1)}
+          ></div>
         {/if}
       </div>
       <div class="footer-outer" style={indentationStyle} >

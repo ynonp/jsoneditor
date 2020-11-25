@@ -68,7 +68,7 @@
     padding-left: $line-height + $input-padding; // must be the same as the width of the expand button
   }
 
-  .insert-button {
+  .insert-button-area {
     visibility: hidden;
     padding: 0 $padding / 2;
     flex: 1; // must fill all left over space at the right side of the editor, so you can click there
@@ -85,13 +85,13 @@
     }
   }
 
-  &:hover > .contents-outer .insert-button:not(.selected),
-  .header-outer:hover > .insert-button:not(.selected),
-  .footer-outer:hover .insert-button:not(.selected) {
+  &:hover > .contents-outer .insert-button-area:not(.selected),
+  .header-outer:hover > .insert-button-area:not(.selected),
+  .footer-outer:hover .insert-button-area:not(.selected) {
     visibility: visible;
   }
 
-  .insert-menu {
+  .insert-area {
     background: $theme-color;
 
     width: 100%;
@@ -142,7 +142,7 @@
 }
 
 .tag,
-.insert-menu-button {
+.insert-button {
   border: none;
   font-size: $font-size-small;
   font-family: $font-family;
@@ -163,7 +163,7 @@
   margin: 2px;
 }
 
-.insert-menu-button {
+.insert-button {
   padding: 0 4px;
   margin: 0;
   line-height: $line-height;
