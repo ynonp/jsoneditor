@@ -71,6 +71,7 @@
   .insert-button {
     visibility: hidden;
     padding: 0 $padding / 2;
+    flex: 1; // must fill all left over space at the right side of the editor, so you can click there
 
     &.inside {
       display: inline-flex;
@@ -140,22 +141,32 @@
   }
 }
 
-.tag {
-  vertical-align: top;
+.tag,
+.insert-menu-button {
   border: none;
   font-size: $font-size-small;
   font-family: $font-family;
   color: white;
   background: $light-gray;
   border-radius: 2px;
-  padding: 0 4px 1px;
-  margin: 2px;
   cursor: pointer;
   position: relative;
 
   &:hover {
     background: lighten($light-gray, 5%);
   }
+}
+
+.tag {
+  vertical-align: top;
+  padding: 0 4px 1px;
+  margin: 2px;
+}
+
+.insert-menu-button {
+  padding: 0 4px;
+  margin: 0;
+  line-height: $line-height;
 }
 
 .value {

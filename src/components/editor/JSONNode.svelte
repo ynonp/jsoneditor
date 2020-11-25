@@ -35,7 +35,6 @@
   import { findUniqueName } from '../../utils/stringUtils.js'
   import { isUrl, stringConvert, valueType } from '../../utils/typeUtils'
   import CollapsedItems from './CollapsedItems.svelte'
-  import InsertMenuButton from './InsertMenuButton.svelte'
   import { singleton } from './singleton.js'
 
   // eslint-disable-next-line no-undef-init
@@ -355,6 +354,8 @@
       onSelect({ type: SELECTION_TYPE.VALUE, path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
       onSelect({ type: SELECTION_TYPE.VALUE, path })
+    } else if (isChildOfAttribute(event.target, 'data-type', 'insert-button')) {
+      // do nothing: event already handled by event listener on the element itself
     } else {
       onSelect(null)
     }
@@ -524,11 +525,12 @@
         </div>
       </div>
       {#if expanded}
-        <div class="insert-button inside">
-          <InsertMenuButton
-            keyOrIndex={key}
-            onClick={handleInsertInside}
-          />
+        <div
+          class="insert-button inside"
+          data-type="insert-button"
+          on:mousedown|preventDefault={() => handleInsertInside(key)}
+        >
+          <button class="insert-menu-button">&#8617;</button>
         </div>
       {:else}
         {#if validationError}
@@ -563,11 +565,13 @@
               onExpandSection={onExpandSection}
               selection={selection}
             >
-              <div slot="insert-after" class="insert-button after">
-                <InsertMenuButton
-                  keyOrIndex={visibleSection.start + itemIndex}
-                  onClick={handleInsertAfter}
-                />
+              <div
+                slot="insert-after"
+                class="insert-button after"
+                data-type="insert-button"
+                on:mousedown|preventDefault={() => handleInsertAfter(visibleSection.start + itemIndex)}
+              >
+                <button class="insert-menu-button">&#8617;</button>
               </div>
             </svelte:self>
           {/each}
@@ -635,11 +639,12 @@
         </div>
       </div>
       {#if expanded}
-        <div class="insert-button inside">
-          <InsertMenuButton
-            keyOrIndex={key}
-            onClick={handleInsertInside}
-          />
+        <div
+          class="insert-button inside"
+          data-type="insert-button"
+          on:mousedown|preventDefault={() => handleInsertInside(key)}
+        >
+          <button class="insert-menu-button">&#8617;</button>
         </div>
       {:else}
         {#if validationError}
@@ -673,11 +678,13 @@
             onExpandSection={onExpandSection}
             selection={selection}
           >
-            <div slot="insert-after" class="insert-button after">
-              <InsertMenuButton
-                keyOrIndex={key}
-                onClick={handleInsertAfter}
-              />
+            <div
+              slot="insert-after"
+              class="insert-button after"
+              data-type="insert-button"
+              on:mousedown|preventDefault={() => handleInsertAfter(key)}
+            >
+              <button class="insert-menu-button">&#8617;</button>
             </div>
           </svelte:self>
         {/each}
