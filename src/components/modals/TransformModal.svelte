@@ -112,6 +112,10 @@
     // not stored inside a stateId
     transformModalState.showWizard = showWizard
   }
+
+  function focus (element) {
+    element.focus()
+  }
 </script>
 
 <div class="jsoneditor-modal transform">
@@ -166,7 +170,8 @@
     <div class="actions">
       <button 
         class="primary"
-        on:click={handleTransform} 
+        on:click={handleTransform}
+        use:focus
         disabled={previewHasError}
       >
         Transform

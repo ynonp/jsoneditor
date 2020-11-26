@@ -82,6 +82,10 @@
 
     close()
   }
+
+  function focus (element) {
+    element.focus()
+  }
 </script>
 
 <div class="jsoneditor-modal sort">
@@ -110,8 +114,8 @@
             <th>Property</th>
             <td>
               <Select 
-                items={properties} 
-                bind:selectedValue={selectedProperty} 
+                items={properties}
+                bind:selectedValue={selectedProperty}
               />
             </td>
           </tr>
@@ -133,7 +137,8 @@
     <div class="actions">
       <button 
         class="primary" 
-        on:click={handleSort} 
+        on:click={handleSort}
+        use:focus
         disabled={jsonIsArray ? !selectedProperty : false}
       >
         Sort

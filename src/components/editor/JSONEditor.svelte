@@ -244,7 +244,7 @@
 
     const operations = removeAll(selection.paths)
     handlePatch(operations)
-    selection = null
+    selection = null // FIXME: change selection into in before/append
   }
 
   async function handleCopy () {
@@ -293,7 +293,7 @@
     const operations = removeAll(selection.paths)
     handlePatch(operations)
 
-    selection = null
+    selection = null // FIXME: change selection into before/append
   }
 
   function handleDuplicate () {
@@ -673,6 +673,7 @@
     if (combo === 'Escape' && selection) {
       event.preventDefault()
       selection = null
+      debug('deselect')
     }
 
     if (combo === 'Ctrl+F' || combo === 'Command+F') {
