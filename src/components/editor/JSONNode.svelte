@@ -37,6 +37,7 @@
   import { isUrl, stringConvert, valueType } from '../../utils/typeUtils'
   import CollapsedItems from './CollapsedItems.svelte'
   import { singleton } from './singleton.js'
+  import Sveltip from 'sveltip'
 
   // eslint-disable-next-line no-undef-init
   export let key = undefined // only applicable for object properties
@@ -541,14 +542,14 @@
         </div>
       {:else}
         {#if validationError}
-          <!-- FIXME: implement proper tooltip -->
-          <button
-            class='validation-error'
-            title={validationError.isChildError ? 'Contains invalid items' : validationError.message}
-            on:click={handleExpand}
-          >
-            <Icon data={faExclamationTriangle} />
-          </button>
+          <Sveltip dark text={validationError.isChildError ? 'Contains invalid items' : validationError.message} top >
+            <button
+              class='validation-error'
+              on:click={handleExpand}
+            >
+              <Icon data={faExclamationTriangle} />
+            </button>
+          </Sveltip>
         {/if}
         <slot name="insert-after" />
       {/if}
@@ -658,14 +659,14 @@
         </div>
       {:else}
         {#if validationError}
-          <!-- FIXME: implement proper tooltip -->
-          <button
-            class='validation-error'
-            title={validationError.isChildError ? 'Contains invalid properties' : validationError.message}
-            on:click={handleExpand}
-          >
-            <Icon data={faExclamationTriangle} />
-          </button>
+          <Sveltip dark text={validationError.isChildError ? 'Contains invalid properties' : validationError.message} top >
+            <button
+              class='validation-error'
+              on:click={handleExpand}
+            >
+              <Icon data={faExclamationTriangle} />
+            </button>
+          </Sveltip>
         {/if}
         <slot name="insert-after" />
       {/if}
@@ -742,10 +743,11 @@
         ></div>
       </div>
       {#if validationError}
-        <!-- FIXME: implement proper tooltip -->
-        <button class='validation-error' title={validationError.message}>
-          <Icon data={faExclamationTriangle} />
-        </button>
+        <Sveltip dark text={validationError.message} top >
+          <button class='validation-error'>
+            <Icon data={faExclamationTriangle} />
+          </button>
+        </Sveltip>
       {/if}
       <slot name="insert-after" />
     </div>

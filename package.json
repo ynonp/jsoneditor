@@ -26,7 +26,8 @@
     "natural-compare-lite": "1.4.0",
     "svelte-awesome": "2.3.0",
     "svelte-select": "3.14.1",
-    "svelte-simple-modal": "0.6.1"
+    "svelte-simple-modal": "0.6.1",
+    "sveltip": "0.0.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "16.0.0",
