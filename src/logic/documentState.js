@@ -1,5 +1,5 @@
 import createDebug from 'debug'
-import { initial, isEqual, isNumber, last, uniqueId } from 'lodash-es'
+import { initial, isEmpty, isEqual, isNumber, last, uniqueId } from 'lodash-es'
 import {
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
@@ -16,7 +16,7 @@ import {
 } from '../utils/immutabilityHelpers.js'
 import { immutableJSONPatch } from '../utils/immutableJSONPatch.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
-import { isObject } from '../utils/typeUtils.js'
+import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import {
   inVisibleSection,
   mergeSections,
@@ -464,6 +464,16 @@ export function getKeys (state, path) {
 /**
  * @param {JSON} state
  * @param {Path} path
+ * @return {boolean}
+ */
+// TODO: write unit tests
+export function isExpanded (state, path) {
+  return getIn(state, path.concat([STATE_EXPANDED])) === true
+}
+
+/**
+ * @param {JSON} state
+ * @param {Path} path
  * @param {string} key
  * @return {JSON} Returns the updated state
  */
@@ -595,12 +605,75 @@ export function getPreviousVisiblePath (doc, state, path) {
  */
 // TODO: write tests for getNextVisiblePath
 export function getNextVisiblePath (doc, state, path, after = false) {
-  const visiblePaths = getVisiblePaths(doc, state)
+  const preprocessedState = (after && isObjectOrArray(getIn(doc, path)))
+    ? setIn(state, path.concat(STATE_EXPANDED), false, true)
+    : state
+
+  const visiblePaths = getVisiblePaths(doc, preprocessedState)
   const visiblePathPointers = visiblePaths.map(compileJSONPointer)
   const index = visiblePathPointers.indexOf(compileJSONPointer(path))
 
   if (index !== -1 && index < visiblePaths.length - 1) {
     return visiblePaths[index + 1]
+  }
+
+  return null
+}
+
+/**
+ * Test whether the given path is the last property or array of an object or array.
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Path} path
+ * @return {boolean}
+ */
+// TODO: write tests for isLastChild
+export function isLastChild (doc, state, path) {
+  if (isEmpty(path)) {
+    // root selected
+    return false
+  }
+
+  const parentPath = initial(path)
+  const parent = getIn(doc, parentPath)
+
+  if (Array.isArray(parent)) {
+    const index = last(path)
+    return (index === parent.length - 1)
+  } else if (isObject(parent)) {
+    // note that when the path is not expanded in state, STATE_KEYS does not exist.
+    // in that case we temporarily create state for it
+    const key = last(path)
+    const keys = getKeys(state, parentPath) || createState(parent)[STATE_KEYS]
+    return (key === last(keys))
+  } else {
+    // this cannot occur in practice
+    return false
+  }
+}
+
+/**
+ * Get the path of the last child of a parent
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Path} parentPath
+ * @return {Path | null}
+ */
+// TODO: write unit tests
+export function getLastChildPath(doc, state, parentPath) {
+  const parent = getIn(doc, parentPath)
+
+  if (Array.isArray(parent)) {
+    if (!isEmpty(parent)) {
+      const index = parent.length - 1
+      return parentPath.concat([index])
+    }
+  } else if (isObject(parent)) { // object
+    const keys = getKeys(state, parentPath)
+    if (!isEmpty(keys)) {
+      const key = last(keys)
+      return parentPath.concat([key])
+    }
   }
 
   return null

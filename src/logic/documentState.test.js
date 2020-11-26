@@ -17,13 +17,14 @@ import {
   expandSection,
   expandSinglePath,
   getVisiblePaths,
+  isLastChild,
   syncKeys,
   syncState
 } from './documentState.js'
 
 describe('documentState', () => {
   it('syncState', () => {
-    const document = {
+    const doc = {
       array: [1, 2, { c: 6 }],
       object: { a: 4, b: 5 },
       value: 'hello'
@@ -37,7 +38,7 @@ describe('documentState', () => {
       throw new Error('Undefined id')
     }
 
-    const state = syncState(document, undefined, [], expand)
+    const state = syncState(doc, undefined, [], expand)
 
     const expectedState = {}
     expectedState[STATE_EXPANDED] = true
@@ -321,6 +322,31 @@ describe('documentState', () => {
 
       const collapsedState = collapseSinglePath(doc, state, [])
       assert.deepStrictEqual(collapsedState, state)
+    })
+  })
+
+  describe('isLastChild', () => {
+    const doc = {
+      array: [1, 2, { c: 6 }],
+      object: { a: 4, b: 5 },
+      value: 'hello'
+    }
+    const state = syncState(doc, undefined, [], () => false)
+
+    it ('should check whether root object is last child', () => {
+      assert.strictEqual(isLastChild(doc, state, []), false)
+    })
+
+    it ('should check whether an object key is the last child', () => {
+      assert.strictEqual(isLastChild(doc, state, ['object']), false)
+      assert.strictEqual(isLastChild(doc, state, ['value']), true)
+      assert.strictEqual(isLastChild(doc, state, ['object', 'a']), false)
+      assert.strictEqual(isLastChild(doc, state, ['object', 'b']), true)
+    })
+
+    it ('should check whether an array item is the last child', () => {
+      assert.strictEqual(isLastChild(doc, state, ['array', 1]), false)
+      assert.strictEqual(isLastChild(doc, state, ['array', 2]), true)
     })
   })
 

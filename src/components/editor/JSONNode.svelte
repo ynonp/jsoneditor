@@ -487,6 +487,7 @@
       class="insert-area before"
       data-type="insert-area"
       style={indentationStyle}
+      title="Insert or paste contents, or start typing to create a new value"
     ></div>
   {/if}
   {#if type === 'array'}
@@ -595,6 +596,7 @@
             class="insert-area append"
             data-type="insert-area"
             style={getIndentationStyle(path.length + 1)}
+            title="Insert or paste contents, or start typing to create a new value"
           ></div>
         {/if}
       </div>
@@ -700,6 +702,7 @@
             class="insert-area append"
             data-type="insert-area"
             style={getIndentationStyle(path.length + 1)}
+            title="Insert or paste contents, or start typing to create a new value"
           ></div>
         {/if}
       </div>
