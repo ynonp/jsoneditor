@@ -42,7 +42,11 @@ table.transform-wizard {
           &.pick-fields {
             flex: 1;
           }
-        }  
+        }
+
+        :global(.selectContainer input) {
+          box-sizing: border-box;
+        }
 
         .filter-value {
           flex: 4;
