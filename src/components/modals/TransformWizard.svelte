@@ -5,7 +5,7 @@
   import { getNestedPaths } from '../../utils/arrayUtils.js'
   import { stringifyPath } from '../../utils/pathUtils.js'
   import { createQuery } from '../../logic/jsCreateQuery.js'
-  import { isEqual } from 'lodash-es'
+  import { isEmpty, isEqual } from 'lodash-es'
 
   export let json
   export let onQuery
@@ -36,7 +36,9 @@
   function pathToOption (path) {
     return {
       value: path,
-      label: stringifyPath(path)
+      label: isEmpty(path)
+        ? '(whole item)'
+        : stringifyPath(path)
     }
   }
 

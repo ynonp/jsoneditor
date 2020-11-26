@@ -1,6 +1,7 @@
 <svelte:options immutable={true} />
 
 <script>
+  import { isEmpty } from 'lodash-es'
   import { getContext } from 'svelte'
   import Select from 'svelte-select'
   import Header from './Header.svelte'
@@ -46,7 +47,9 @@
   function pathToOption (path) {
     return {
       value: path,
-      label: stringifyPath(path)
+      label: isEmpty(path)
+        ? '(whole item)'
+        : stringifyPath(path)
     }
   }
 
