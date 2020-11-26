@@ -19,7 +19,6 @@
   
   .contents {
     padding: 20px;
-    overflow: hidden;
 
     .actions {
       display: flex;
@@ -43,7 +42,6 @@
 :global(.bg .window) {
   max-width: 80%;
   margin: 4rem auto 2rem auto;
-  overflow: auto;
 }
 
 :global(.bg .content) {

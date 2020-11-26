@@ -420,6 +420,10 @@
       styleWindow: {
         ...SIMPLE_MODAL_OPTIONS.styleWindow,
         width: '600px'
+      },
+      styleContent: {
+        overflow: 'auto', // TODO: would be more neat if the header is fixed instead of scrolls along
+        padding: 0
       }
     })
   }
