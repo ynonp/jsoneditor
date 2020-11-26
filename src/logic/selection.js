@@ -245,6 +245,16 @@ export function getSelectionDown (doc, state, selection, keepAnchorPath = false)
     })
   }
 
+  if (selection.type === SELECTION_TYPE.APPEND) {
+    const nextPath = getNextVisiblePath(doc, state, selection.focusPath, true)
+    return {
+      type: SELECTION_TYPE.VALUE,
+      path: nextPath,
+      anchorPath: nextPath,
+      focusPath: nextPath
+    }
+  }
+
   // multi selection with one entry
   return createSelection(doc, state, {
     type: SELECTION_TYPE.MULTI,
