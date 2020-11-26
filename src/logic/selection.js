@@ -131,6 +131,7 @@ export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
   if (keepAnchorPath) {
     // multi selection
     return createSelection(doc, state, {
+      type: SELECTION_TYPE.MULTI,
       anchorPath: selection.anchorPath,
       focusPath: previousPath
     })
@@ -441,7 +442,10 @@ export function createSelectionFromOperations (operations) {
     })
     .map(operation => parseJSONPointer(operation.path))
 
+  // TODO: make this function robust against operations which do not have consecutive paths
+
   return {
+    type: SELECTION_TYPE.MULTI,
     paths,
     anchorPath: first(paths),
     focusPath: last(paths),
