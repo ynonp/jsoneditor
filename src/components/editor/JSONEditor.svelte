@@ -43,6 +43,7 @@
     getSelectionUp,
     isSelectionInsidePath,
     removeEditModeFromSelection,
+    selectAll,
     SELECTION_TYPE,
     selectionToPartialJson
   } from '../../logic/selection.js'
@@ -579,6 +580,10 @@
     if (combo === 'Insert' || combo === 'Insert') {
       event.preventDefault()
       handleInsert('structure')
+    }
+    if (combo === 'Ctrl+A' || combo === 'Command+A') {
+      event.preventDefault()
+      selection = selectAll()
     }
 
     if (combo === 'Up' || combo === 'Shift+Up') {

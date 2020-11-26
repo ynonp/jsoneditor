@@ -644,3 +644,17 @@ export function selectionToPartialJson (doc, selection, indentation = 2) {
 
   return null
 }
+
+/**
+ * Create a selection which selects the whole document
+ * @returns {Selection}
+ */
+// TODO: write tests
+export function selectAll () {
+  return {
+    type: SELECTION_TYPE.VALUE,
+    path: [],
+    anchorPath: [],
+    focusPath: []
+  }
+}
