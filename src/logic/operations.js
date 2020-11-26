@@ -370,8 +370,11 @@ export function createPasteOperations (doc, state, selection, clipboardData) {
       return { operations, newSelection }
     }
   } else {
-    const values = clipboardToValues(clipboard)
-    console.log('values', { values, clipboard }) // FIXME: cleanup
+    const clipboardContainsObjectOrArray = clipboardData.match(/^\s*[{[]/)
+    const values = clipboardContainsObjectOrArray
+      ? [{ key: 'New Item', value: clipboard }]
+      : clipboardToValues(clipboard)
+
     const operations = insert(doc, state, selection, values)
     const newSelection = createSelectionFromOperations(operations)
 
