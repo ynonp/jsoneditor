@@ -16,13 +16,7 @@ export function createQuery (json, queryOptions) {
   }
 
   if (sort) {
-    // Empty field array means that the field itself is selected.
-    // For example when we have an array containing numbers.
-    if (sort.field.length > 0) {
-      queryParts.push(`  data = _.orderBy(data, ${JSON.stringify(sort.field)}, '${sort.direction}')\n`)
-    } else {
-      queryParts.push(`  data = _.sortBy(data, '${sort.direction}')\n`)
-    }
+    queryParts.push(`  data = _.orderBy(data, ${JSON.stringify(sort.field)}, '${sort.direction}')\n`)
   }
 
   if (projection) {
