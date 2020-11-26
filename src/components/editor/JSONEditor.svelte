@@ -323,7 +323,7 @@
     const value = createNewValue(doc, selection, type)
     const values = [
       {
-        key: 'new',
+        key: '',
         value
       }
     ]
