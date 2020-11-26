@@ -33,12 +33,12 @@
   // showWizard is not stored inside a stateId
   let showWizard = transformModalState.showWizard !== false
   
-  let filterField = state.filterField
-  let filterRelation = state.filterRelation
-  let filterValue = state.filterValue
-  let sortField = state.sortField
-  let sortDirection = state.sortDirection
-  let pickFields = state.pickFields
+  let filterField = state.filterField || null
+  let filterRelation = state.filterRelation || null
+  let filterValue = state.filterValue || null
+  let sortField = state.sortField || null
+  let sortDirection = state.sortDirection || null
+  let pickFields = state.pickFields || null
 
   function evalTransform (json, query) {
     // FIXME: replace unsafe new Function with a JS based query language

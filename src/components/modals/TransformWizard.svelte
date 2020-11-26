@@ -21,7 +21,11 @@
   // options
   $: jsonIsArray = Array.isArray(json)
   $: paths = jsonIsArray ? getNestedPaths(json) : undefined
+  $: pathsIncludingObjects = jsonIsArray ? getNestedPaths(json, true) : undefined
   $: fieldOptions = paths ? paths.map(pathToOption) : undefined
+  $: pickFieldOptions = pathsIncludingObjects
+    ? pathsIncludingObjects.map(pathToOption)
+    : undefined
 
   const filterRelationOptions = ['==', '!=', '<', '<=', '>', '>='].map(relation => ({
     value: relation,
@@ -123,9 +127,9 @@
       <div class='horizontal'>
         <Select
           containerClasses='pick-fields'
-          items={fieldOptions}
+          items={pickFieldOptions}
           isMulti
-          bind:selectedValue={pickFields} 
+          bind:selectedValue={pickFields}
         />
       </div>
     </td>
