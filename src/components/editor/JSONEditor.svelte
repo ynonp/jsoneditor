@@ -648,6 +648,15 @@
       }
     }
 
+    if (combo === 'Shift+[' && selection && (selection.type === SELECTION_TYPE.BEFORE || selection.type === SELECTION_TYPE.APPEND)) {
+      // key Shift+[ is the { character
+      handleInsert('object')
+    }
+
+    if (combo === '[' && selection && (selection.type === SELECTION_TYPE.BEFORE || selection.type === SELECTION_TYPE.APPEND)) {
+      handleInsert('array')
+    }
+
     if (combo === 'Ctrl+Enter' && selection && selection.type === SELECTION_TYPE.VALUE) {
       const value = getIn(doc, selection.path)
 

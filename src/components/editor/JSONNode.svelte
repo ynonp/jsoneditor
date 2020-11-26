@@ -19,7 +19,8 @@
     STATE_SEARCH_PROPERTY,
     STATE_SEARCH_VALUE,
     STATE_VISIBLE_SECTIONS,
-    VALIDATION_ERROR
+    VALIDATION_ERROR,
+    INSERT_EXPLANATION
   } from '../../constants.js'
   import { rename } from '../../logic/operations.js'
   import { SELECTION_TYPE } from '../../logic/selection.js'
@@ -487,7 +488,7 @@
       class="insert-area before"
       data-type="insert-area"
       style={indentationStyle}
-      title="Insert or paste contents, or start typing to create a new value"
+      title={INSERT_EXPLANATION}
     ></div>
   {/if}
   {#if type === 'array'}
@@ -596,7 +597,7 @@
             class="insert-area append"
             data-type="insert-area"
             style={getIndentationStyle(path.length + 1)}
-            title="Insert or paste contents, or start typing to create a new value"
+            title={INSERT_EXPLANATION}
           ></div>
         {/if}
       </div>
@@ -702,7 +703,7 @@
             class="insert-area append"
             data-type="insert-area"
             style={getIndentationStyle(path.length + 1)}
-            title="Insert or paste contents, or start typing to create a new value"
+            title={INSERT_EXPLANATION}
           ></div>
         {/if}
       </div>

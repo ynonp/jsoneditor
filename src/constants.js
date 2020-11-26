@@ -36,3 +36,8 @@ export const SIMPLE_MODAL_OPTIONS = {
     overflow: 'visible' // needed for select box dropdowns which are larger than the modal
   }
 }
+
+export const INSERT_EXPLANATION = 'Insert or paste contents, ' +
+  'enter [ insert a new array, ' +
+  'enter { to insert a new object, ' +
+  'or start typing to insert a new value'
