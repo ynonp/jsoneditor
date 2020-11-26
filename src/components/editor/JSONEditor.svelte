@@ -657,12 +657,12 @@
       }
     }
 
-    if (combo === 'Shift+[' && selection && (selection.type === SELECTION_TYPE.BEFORE || selection.type === SELECTION_TYPE.APPEND)) {
+    if (combo === 'Shift+[' && selection) {
       // key Shift+[ is the { character
       handleInsert('object')
     }
 
-    if (combo === '[' && selection && (selection.type === SELECTION_TYPE.BEFORE || selection.type === SELECTION_TYPE.APPEND)) {
+    if (combo === '[' && selection) {
       handleInsert('array')
     }
 
