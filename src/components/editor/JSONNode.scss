@@ -134,9 +134,14 @@
 
 .meta,
 .separator,
+.index,
 .bracket {
   vertical-align: top;
   color: $gray;
+}
+
+.index {
+  padding: 0 $padding / 2;
 }
 
 .bracket {
@@ -251,6 +256,10 @@ div.empty {
     .footer {
       background-color: $selection-background;
       color: $selection-color;
+    }
+
+    .index {
+      color: lighten($selection-background, 15%);
     }
 
     .value {

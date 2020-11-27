@@ -41,6 +41,7 @@
 
   // eslint-disable-next-line no-undef-init
   export let key = undefined // only applicable for object properties
+  export let index = undefined // only applicable for item index
   export let value
   export let path
   export let state
@@ -356,6 +357,8 @@
       onSelect({ type: SELECTION_TYPE.VALUE, path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
       onSelect({ type: SELECTION_TYPE.VALUE, path })
+    } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-item')) {
+      onSelect({ type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path })
     } else if (
       isChildOfAttribute(event.target, 'data-type', 'insert-button-area') ||
       isChildOfAttribute(event.target, 'data-type', 'insert-area')
@@ -516,6 +519,10 @@
           ></div>
           <div class="separator">:</div>
         {/if}
+        {#if typeof index === 'number'}
+          <div class="index" data-type="selectable-item">{index}</div>
+          <div class="separator">:</div>
+        {/if}
         <div class="meta">
           <div class="meta-inner" data-type="selectable-value">
             {#if expanded}
@@ -555,9 +562,10 @@
     {#if expanded}
       <div class="items">
         {#each visibleSections as visibleSection, sectionIndex (sectionIndex)}
-            {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (state[itemIndex][STATE_ID])}
+            {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (state[visibleSection.start + itemIndex][STATE_ID])}
             <svelte:self
               key={visibleSection.start + itemIndex}
+              index={visibleSection.start + itemIndex}
               value={item}
               path={path.concat(visibleSection.start + itemIndex)}
               state={state[visibleSection.start + itemIndex]}
@@ -631,6 +639,10 @@
             on:keydown={handleKeyKeyDown}
             bind:this={domKey}
           ></div>
+          <div class="separator">:</div>
+        {/if}
+        {#if typeof index === 'number'}
+          <div class="index" data-type="selectable-item">{index}</div>
           <div class="separator">:</div>
         {/if}
         <div class="meta" data-type="selectable-value" >
@@ -726,6 +738,10 @@
             on:keydown={handleKeyKeyDown}
             bind:this={domKey}
           ></div>
+          <div class="separator">:</div>
+        {/if}
+        {#if typeof index === 'number'}
+          <div class="index" data-type="selectable-item">{index}</div>
           <div class="separator">:</div>
         {/if}
         <div

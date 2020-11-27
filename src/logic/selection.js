@@ -320,6 +320,12 @@ export function getSelectionLeft (doc, state, selection, keepAnchorPath = false)
       type: SELECTION_TYPE.KEY,
       path: selection.focusPath
     })
+  } else {
+    return createSelection(doc, state, {
+      type: SELECTION_TYPE.MULTI,
+      anchorPath: selection.focusPath,
+      focusPath: selection.focusPath
+    })
   }
 
   return null

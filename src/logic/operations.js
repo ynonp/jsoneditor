@@ -424,13 +424,25 @@ export function createRemoveOperations (doc, state, selection) {
 
   const lastPath = last(selection.paths)
   const parentPath = initial(lastPath)
-  const nextPath = getNextVisiblePath(doc, state, lastPath, true)
-  const nextIsSibling = isEqual(initial(nextPath), parentPath)
-  const newSelection = nextIsSibling
-    ? createSelection(doc, state, { type: SELECTION_TYPE.BEFORE, path: nextPath })
-    : createSelection(doc, state, { type: SELECTION_TYPE.APPEND, path: parentPath })
+  const parent = getIn(doc, parentPath)
 
-  return { operations, newSelection }
+  if (Array.isArray(parent)) {
+    const firstPath = first(selection.paths)
+    const firstIndex = last(firstPath)
+    const newSelection = firstIndex < parent.length - selection.paths.length - 1
+      ? createSelection(doc, state, { type: SELECTION_TYPE.BEFORE, path: parentPath.concat([firstIndex]) })
+      : createSelection(doc, state, { type: SELECTION_TYPE.APPEND, path: parentPath })
+
+    return { operations, newSelection }
+  } else { // parent is object
+    const nextPath = getNextVisiblePath(doc, state, lastPath, true)
+    const nextIsSibling = isEqual(initial(nextPath), parentPath)
+    const newSelection = nextIsSibling
+      ? createSelection(doc, state, { type: SELECTION_TYPE.BEFORE, path: nextPath })
+      : createSelection(doc, state, { type: SELECTION_TYPE.APPEND, path: parentPath })
+
+    return { operations, newSelection }
+  }
 }
 
 /**
