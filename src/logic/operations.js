@@ -1,9 +1,18 @@
-import { cloneDeepWith, first, initial, isEmpty, last, pickBy } from 'lodash-es'
+import {
+  cloneDeepWith,
+  first,
+  initial,
+  isEmpty,
+  isEqual,
+  last,
+  pickBy
+} from 'lodash-es'
+import { doc } from '../components/editor/JSONEditor.svelte'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { findUniqueName } from '../utils/stringUtils.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
-import { getKeys, getNextKeys } from './documentState.js'
+import { getKeys, getNextKeys, getNextVisiblePath } from './documentState.js'
 import {
   createSelection,
   createSelectionFromOperations,
@@ -401,6 +410,27 @@ function clipboardToValues (clipboard) {
       { key: 'New Item', value: clipboard }
     ]
   }
+}
+
+/**
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Selection} selection
+ * @returns {{newSelection: Selection, operations: JSONPatchDocument}}
+ */
+// TODO: write unit tests
+export function createRemoveOperations (doc, state, selection) {
+  const operations = removeAll(selection.paths)
+
+  const lastPath = last(selection.paths)
+  const parentPath = initial(lastPath)
+  const nextPath = getNextVisiblePath(doc, state, lastPath, true)
+  const nextIsSibling = isEqual(initial(nextPath), parentPath)
+  const newSelection = nextIsSibling
+    ? createSelection(doc, state, { type: SELECTION_TYPE.BEFORE, path: nextPath })
+    : createSelection(doc, state, { type: SELECTION_TYPE.APPEND, path: parentPath })
+
+  return { operations, newSelection }
 }
 
 /**

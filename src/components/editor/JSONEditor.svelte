@@ -22,9 +22,9 @@
   import {
     createNewValue,
     createPasteOperations,
+    createRemoveOperations,
     duplicate,
-    insert,
-    removeAll
+    insert
   } from '../../logic/operations.js'
   import {
     searchAsync,
@@ -296,9 +296,8 @@
       console.error(err)
     }
 
-    const operations = removeAll(selection.paths)
-    handlePatch(operations)
-    selection = null // FIXME: change selection into in before/append
+    const { operations, newSelection } = createRemoveOperations(doc, state, selection)
+    handlePatch(operations, newSelection)
   }
 
   async function handleCopy () {
@@ -342,12 +341,11 @@
       return
     }
 
-    debug('remove', { selection })
+    const { operations, newSelection } = createRemoveOperations(doc, state, selection)
 
-    const operations = removeAll(selection.paths)
-    handlePatch(operations)
+    debug('remove', { operations, selection, newSelection })
 
-    selection = null // FIXME: change selection into before/append
+    handlePatch(operations, newSelection)
   }
 
   function handleDuplicate () {
@@ -614,11 +612,7 @@
     }
 
     // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
-    setTimeout(() => {
-      if (!activeElementIsChildOf(domJsonEditor)) {
-        domHiddenInput.focus()
-      }
-    })
+    setTimeout(() => domHiddenInput.focus())
   }
 
   function handleExpandSection (path, section) {
