@@ -244,3 +244,12 @@ export function setCursorToEnd (element) {
 export function getWindow (element) {
   return element.ownerDocument.defaultView;
 }
+
+/**
+ * @param {HTMLElement} element
+ * @return {boolean}
+ */
+export function activeElementIsChildOf (element) {
+  const window = getWindow(element)
+  return isChildOf(window.document.activeElement, e => e === element)
+}

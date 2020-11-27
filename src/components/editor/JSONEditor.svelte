@@ -3,7 +3,7 @@
 <script>
   import createDebug from 'debug'
   import { initial, throttle, uniqueId } from 'lodash-es'
-  import { onMount, onDestroy, getContext, tick } from 'svelte'
+  import { getContext, onDestroy, onMount, tick } from 'svelte'
   import jump from '../../assets/jump.js/src/jump.js'
   import {
     MAX_SEARCH_RESULTS,
@@ -48,7 +48,11 @@
     selectionToPartialJson
   } from '../../logic/selection.js'
   import { mapValidationErrors } from '../../logic/validation.js'
-  import { getWindow, isChildOf } from '../../utils/domUtils.js'
+  import {
+    activeElementIsChildOf,
+    getWindow,
+    isChildOfNodeName
+  } from '../../utils/domUtils.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
   import {
     immutableJSONPatch,
@@ -99,8 +103,7 @@
   let blurTimeoutHandle
 
   function handleFocusIn () {
-    const window = getWindow(domJsonEditor)
-    const newFocus = isChildOf(window.document.activeElement, element => domJsonEditor === element)
+    const newFocus = activeElementIsChildOf(domJsonEditor)
 
     if (focus !== newFocus) {
       debug(newFocus ? 'focus' : 'blur')
@@ -407,6 +410,8 @@
     debug('undo', { item, doc, state, selection })
 
     emitOnChange()
+
+    domHiddenInput.focus()
   }
 
   function handleRedo () {
@@ -426,6 +431,8 @@
     debug('redo', { item, doc, state, selection })
 
     emitOnChange()
+
+    domHiddenInput.focus()
   }
 
   function handleSort () {
@@ -445,6 +452,8 @@
         ...SIMPLE_MODAL_OPTIONS.styleWindow,
         width: '400px'
       }
+    }, {
+      onClose: () => domHiddenInput.focus()
     })
   }
 
@@ -476,6 +485,8 @@
         overflow: 'auto', // TODO: would be more neat if the header is fixed instead of scrolls along
         padding: 0
       }
+    }, {
+      onClose: () => domHiddenInput.focus()
     })
   }
 
@@ -581,6 +592,13 @@
         debug('deselect')
       }
     }
+
+    // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
+    setTimeout(() => {
+      if (!activeElementIsChildOf(domJsonEditor)) {
+        domHiddenInput.focus()
+      }
+    })
   }
 
   /**
@@ -596,7 +614,11 @@
     }
 
     // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
-    setTimeout(() => domHiddenInput.focus())
+    setTimeout(() => {
+      if (!activeElementIsChildOf(domJsonEditor)) {
+        domHiddenInput.focus()
+      }
+    })
   }
 
   function handleExpandSection (path, section) {
@@ -768,11 +790,22 @@
       }
     }
   }
+
+  function handleMouseDown (event) {
+    event.preventDefault() // prevent losing focus
+
+    setTimeout(() => {
+      if (!focus && !isChildOfNodeName(event.target, 'BUTTON')) {
+        domHiddenInput.focus()
+      }
+    })
+  }
 </script>
 
 <div
   class="jsoneditor"
   on:keydown={handleKeyDown}
+  on:mousedown={handleMouseDown}
   bind:this={domJsonEditor}
   class:focus
 >

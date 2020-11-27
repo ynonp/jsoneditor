@@ -45,6 +45,9 @@
   export let onNextSearchResult
   export let onPreviousSearchResult
 
+  let domPasteFromMenu
+  let domSearch
+
   $: hasSelection = selection != null
   $: hasSelectionContents = selection != null && selection.type === SELECTION_TYPE.MULTI
   $: hasSelectionWithoutContents = (selection != null &&
@@ -58,6 +61,7 @@
   function clearSearchResult () {
     showSearch = false
     onSearchText('')
+    domSearch.focus()
   }
 
   function handleInsertStructure () {
@@ -71,6 +75,8 @@
         ...SIMPLE_MODAL_OPTIONS.styleWindow,
         width: '450px'
       }
+    }, {
+      onClose: () => domPasteFromMenu.focus()
     })
   }
 
@@ -124,6 +130,7 @@
   </button>
   <button
     class="button paste"
+    bind:this={domPasteFromMenu}
     on:click={handlePasteFromMenu}
     disabled={!hasClipboardContents}
     title="Paste (Ctrl+V)"
@@ -184,6 +191,7 @@
 
   <button
     class="button search"
+    bind:this={domSearch}
     on:click={handleToggleSearch}
     title="Search (Ctrl+F)"
   >
