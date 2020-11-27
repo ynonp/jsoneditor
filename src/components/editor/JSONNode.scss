@@ -307,6 +307,8 @@ div.empty {
     outline: 2px solid $darkblue; // TODO: border should be displayed on top of light gray highlight background when hovering sibling above or below
     background: $theme-color;
     color: $selection-color !important;
+    position: relative;
+    z-index: 1; // must be on top of hovering the entry below it
   }
 }
 
