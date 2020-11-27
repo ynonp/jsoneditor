@@ -7,7 +7,6 @@ import {
   last,
   pickBy
 } from 'lodash-es'
-import { doc } from '../components/editor/JSONEditor.svelte'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { findUniqueName } from '../utils/stringUtils.js'

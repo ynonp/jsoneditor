@@ -3,16 +3,17 @@ import { escapeHTML, unescapeHTML } from './domUtils.js'
 
 describe('domUtils', () => {
   it('escapeHTML', () => {
-    assert.strictEqual(escapeHTML('   hello  '), '\u00A0\u00A0 hello \u00A0')
-    assert.strictEqual(escapeHTML('\u00A0 hello'), '\u00A0 hello')
+    assert.strictEqual(escapeHTML('   hello  '), '&nbsp;&nbsp; hello &nbsp;')
+    assert.strictEqual(escapeHTML('&nbsp; hello'), '&amp;nbsp; hello')
     assert.strictEqual(escapeHTML('hello\nworld'), 'hello\\nworld')
+    assert.strictEqual(escapeHTML('<script>'), '&lt;script&gt;')
 
     // TODO: test escapeHTML more thoroughly
   })
 
   it('unescapeHTML', () => {
-    assert.strictEqual(unescapeHTML(' \u00A0 hello \u00A0'), '   hello  ')
-    assert.strictEqual(unescapeHTML('\u00A0 hello'), '  hello')
+    assert.strictEqual(unescapeHTML(' &nbsp; hello &nbsp;'), '   hello  ')
+    assert.strictEqual(unescapeHTML('&nbsp; hello'), '  hello')
 
     assert.strictEqual(unescapeHTML('hello\\nworld'), 'hello\nworld')
 

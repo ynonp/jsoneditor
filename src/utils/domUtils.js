@@ -20,42 +20,23 @@ export function setPlainText (element, text) {
 /**
  * escape a text, such that it can be displayed safely in an HTML element
  * @param {string} text
- * @param {boolean} [escapeUnicode=false]
  * @return {string} escapedText
  */
-export function escapeHTML (text, escapeUnicode = false) {
+export function escapeHTML (text) {
   if (typeof text !== 'string') {
     return String(text)
   } else {
     let htmlEscaped = String(text)
-    if (escapeUnicode === true) {
-      // FIXME: should not unescape the just created non-breaking spaces \u00A0 ?
-      htmlEscaped = escapeUnicodeChars(htmlEscaped)
-    }
-
-    htmlEscaped = htmlEscaped
-      .replace(/ {2}/g, ' \u00A0') // replace double space with an nbsp and space
-      .replace(/^ /, '\u00A0') // space at start
-      .replace(/ $/, '\u00A0') // space at end
+      .replace(/&/g, '&amp;') // must be replaced first!
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/ {2}/g, ' &nbsp;') // replace double space with an nbsp and space
+      .replace(/^ /, '&nbsp;') // space at start
+      .replace(/ $/, '&nbsp;') // space at end
 
     const json = JSON.stringify(htmlEscaped)
     return json.substring(1, json.length - 1) // remove enclosing double quotes
   }
-}
-
-/**
- * Escape unicode characters.
- * For example input '\u2661' (length 1) will output '\\u2661' (length 5).
- * @param {string} text
- * @return {string}
- */
-export function escapeUnicodeChars (text) {
-  // see https://www.wikiwand.com/en/UTF-16
-  // note: we leave surrogate pairs as two individual chars,
-  // as JSON doesn't interpret them as a single unicode char.
-  return text.replace(/[\u007F-\uFFFF]/g, function (c) {
-    return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4)
-  })
 }
 
 /**
@@ -67,7 +48,7 @@ export function unescapeHTML (escapedText) {
   const json = '"' + escapeJSON(escapedText) + '"'
   const htmlEscaped = JSON.parse(json) // TODO: replace with a JSON.parse which does do linting and give an informative error
 
-  return htmlEscaped.replace(/\u00A0/g, ' ') // nbsp character
+  return htmlEscaped.replace(/&nbsp;/g, ' ') // non breaking space character
 }
 
 /**
