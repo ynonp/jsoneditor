@@ -3,7 +3,7 @@
 <script>
   import createDebug from 'debug'
   import { initial, throttle, uniqueId } from 'lodash-es'
-  import { getContext, tick } from 'svelte'
+  import { onMount, onDestroy, getContext, tick } from 'svelte'
   import jump from '../../assets/jump.js/src/jump.js'
   import {
     MAX_SEARCH_RESULTS,
@@ -48,6 +48,7 @@
     selectionToPartialJson
   } from '../../logic/selection.js'
   import { mapValidationErrors } from '../../logic/validation.js'
+  import { getWindow, isChildOf } from '../../utils/domUtils.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
   import {
     immutableJSONPatch,
@@ -73,9 +74,58 @@
 
   let divContents
   let domHiddenInput
+  let domJsonEditor
+  let focus = false
 
   export let validate = null
   export let onChangeJson = () => {}
+  export let onFocus = () => {}
+  export let onBlur = () => {}
+
+  onMount (() => {
+    debug('register global focus listeners')
+    const window = getWindow(domJsonEditor)
+    window.addEventListener('focusin', handleFocusIn, true)
+    window.addEventListener('focusout', handleFocusOut, true)
+  })
+
+  onDestroy (() => {
+    debug('unregister global focus listeners')
+    const window = getWindow(domJsonEditor)
+    window.removeEventListener('focusin', handleFocusIn, true)
+    window.removeEventListener('focusout', handleFocusOut, true)
+  })
+
+  let blurTimeoutHandle
+
+  function handleFocusIn () {
+    const window = getWindow(domJsonEditor)
+    const newFocus = isChildOf(window.document.activeElement, element => domJsonEditor === element)
+
+    if (focus !== newFocus) {
+      debug(newFocus ? 'focus' : 'blur')
+      onFocus()
+    }
+
+    if (newFocus) {
+      clearTimeout(blurTimeoutHandle)
+    }
+    focus = newFocus
+  }
+
+  function handleFocusOut () {
+    if (focus) {
+      // We set focus to false after timeout. Often, you get a blur and directly
+      // another focus when moving focus from one button to another.
+      // The focusIn handler will cancel any pending blur timer in those cases
+      clearTimeout(blurTimeoutHandle)
+      blurTimeoutHandle = setTimeout(() => {
+        debug('blur')
+        focus = false
+        onBlur()
+      })
+    }
+  }
 
   export function setValidator (newValidate) {
     validate = newValidate
@@ -720,7 +770,12 @@
   }
 </script>
 
-<div class="jsoneditor" on:keydown={handleKeyDown}>
+<div
+  class="jsoneditor"
+  on:keydown={handleKeyDown}
+  bind:this={domJsonEditor}
+  class:focus
+>
   <Menu 
     historyState={historyState}
     searchText={searchText}

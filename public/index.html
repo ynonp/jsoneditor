@@ -98,6 +98,8 @@
 			target: document.getElementById('testEditorContainer'),
 			doc,
 			onChangeJson: doc => console.log('onChangeJson', doc),
+			onFocus: () => console.log('got focus...'),
+			onBlur: () => console.log('lost focus...'),
 			validate: doc => {
 				if (
 					doc && typeof doc === 'object' && 

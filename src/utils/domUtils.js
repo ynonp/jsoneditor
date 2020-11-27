@@ -234,3 +234,13 @@ export function setCursorToEnd (element) {
   selection.removeAllRanges()
   selection.addRange(range)
 }
+
+/**
+ * Gets a DOM element's Window.  This is normally just the global `window`
+ * variable, but if we opened a child window, it may be different.
+ * @param {HTMLElement} element
+ * @return {Window}
+ */
+export function getWindow (element) {
+  return element.ownerDocument.defaultView;
+}

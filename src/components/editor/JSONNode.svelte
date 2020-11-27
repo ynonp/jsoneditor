@@ -421,11 +421,9 @@
   }
   
   function handleInsertInside () {
-    console.log('handleInsertInside', path)
     if (type === 'array') {
       if (value.length > 0) {
         // insert before the first item
-        console.log('BEFORE', path)
         onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([0]) })
       } else {
         // empty array -> append to the array
