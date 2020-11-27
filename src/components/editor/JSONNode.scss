@@ -92,11 +92,17 @@
   }
 
   .insert-area {
+    $height: 4px;
+
+    position: relative;
     background: $theme-color;
 
     width: 100%;
     max-width: 250px;
-    height: 6px;
+    height: $height;
+    margin-top: -$height/2;
+    margin-bottom: -$height/2;
+    z-index: 1;
   }
 }
 
