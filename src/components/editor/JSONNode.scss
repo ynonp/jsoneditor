@@ -137,7 +137,7 @@
 .index,
 .bracket {
   vertical-align: top;
-  color: $gray;
+  color: $meta-color;
 }
 
 .index {
@@ -189,7 +189,7 @@
   &.object,
   &.array {
     min-width: 16px;
-    color: $gray;
+    color: $meta-color;
   }
 
   &.number {
@@ -250,16 +250,16 @@ div.empty {
     .header,
     .contents,
     .meta,
-    .bracket,
-    .separator,
     .expand,
     .footer {
       background-color: $selection-background;
       color: $selection-color;
     }
 
+    .bracket,
+    .separator,
     .index {
-      color: lighten($selection-background, 15%);
+      color: $meta-color-selected;
     }
 
     .value {
@@ -301,8 +301,10 @@ div.empty {
         color: $selection-color;
       }
 
-      .bracket {
-        color: $selection-color;
+      .index,
+      .bracket,
+      .separator {
+        color: $meta-color-selected;
       }
 
       .tag {
