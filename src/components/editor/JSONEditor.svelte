@@ -57,7 +57,7 @@
   import {
     immutableJSONPatch,
     revertJSONPatch
-  } from '../../utils/immutableJSONPatch'
+  } from 'immutable-json-patch'
   import {
     compileJSONPointer,
     parseJSONPointer

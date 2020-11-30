@@ -14,7 +14,7 @@ import {
   setIn,
   updateIn
 } from '../utils/immutabilityHelpers.js'
-import { immutableJSONPatch } from '../utils/immutableJSONPatch.js'
+import { immutableJSONPatch } from 'immutable-json-patch'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import {
