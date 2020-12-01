@@ -1,0 +1,40 @@
+@import '../../styles.scss';
+
+// for key and value
+div.editable-div {
+  line-height: $line-height;
+  min-width: 16px;
+  word-break: normal;
+  padding: 0 $input-padding;
+  outline: none;
+  border-radius: 1px;
+  vertical-align: top;
+
+  &[contenteditable="true"] {
+    outline: 2px solid $darkblue; // TODO: border should be displayed on top of light gray highlight background when hovering sibling above or below
+    background: $theme-color;
+    color: $selection-color !important;
+    position: relative;
+    z-index: 1; // must be on top of hovering the entry below it
+  }
+
+  &.search {
+    background-color: $highlight-color;
+
+    &.active {
+      background-color: $highlight-active-color;
+    }
+  }
+}
+
+div.empty {
+  &:not(:focus) {
+    outline: 1px dotted lightgray;
+    -moz-outline-radius: 2px;
+  }
+
+  &::after {
+    pointer-events: none;
+    color: lightgray;
+  }
+}

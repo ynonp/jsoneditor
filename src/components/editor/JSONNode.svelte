@@ -6,38 +6,32 @@
     faCaretRight,
     faExclamationTriangle
   } from '@fortawesome/free-solid-svg-icons'
-  import classnames from 'classnames'
   import { first, isEmpty, isEqual } from 'lodash-es'
-  import { onDestroy, tick } from 'svelte'
   import Icon from 'svelte-awesome'
+  import Sveltip from 'sveltip'
   import {
-    ACTIVE_SEARCH_RESULT,
     INDENTATION_WIDTH,
+    INSERT_EXPLANATION,
     STATE_EXPANDED,
     STATE_ID,
     STATE_KEYS,
-    STATE_SEARCH_PROPERTY,
-    STATE_SEARCH_VALUE,
     STATE_VISIBLE_SECTIONS,
-    VALIDATION_ERROR,
-    INSERT_EXPLANATION
+    VALIDATION_ERROR
   } from '../../constants.js'
   import { rename } from '../../logic/operations.js'
   import { SELECTION_TYPE } from '../../logic/selection.js'
   import {
-    getPlainText,
     isChildOfAttribute,
     isChildOfNodeName,
-    isContentEditableDiv,
-    setCursorToEnd,
-    setPlainText
+    isContentEditableDiv
   } from '../../utils/domUtils.js'
   import { compileJSONPointer } from '../../utils/jsonPointer'
   import { findUniqueName } from '../../utils/stringUtils.js'
-  import { isUrl, stringConvert, valueType } from '../../utils/typeUtils'
+  import { valueType } from '../../utils/typeUtils'
   import CollapsedItems from './CollapsedItems.svelte'
+  import JSONKey from './JSONKey.svelte'
+  import JSONValue from './JSONValue.svelte'
   import { singleton } from './singleton.js'
-  import Sveltip from 'sveltip'
 
   // eslint-disable-next-line no-undef-init
   export let key = undefined // only applicable for object properties
@@ -58,7 +52,7 @@
 
   export let selection
 
-  // FIXME: this is not efficient. Create a nested object with the selection and pass that
+  // TODO: this is not efficient. Create a nested object with the selection and pass that
   $: selected = (selection && selection.pathsMap)
     ? selection.pathsMap[compileJSONPointer(path)] === true
     : false
@@ -88,162 +82,28 @@
   $: keys = state[STATE_KEYS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
-  onDestroy(() => {
-    updateKey()
-    updateValue()
-  })
-
-  function focusKey () {
-    hovered = false
-
-    // TODO: this timeout is ugly
-    setTimeout(() => {
-      if (domKey) {
-        setCursorToEnd(domKey)
-      }
-    })
-  }
-
-  function focusValue () {
-    hovered = false
-
-    // TODO: this timeout is ugly
-    setTimeout(() => {
-      if (domValue) {
-        setCursorToEnd(domValue)
-      }
-    })
-  }
-
-  let newKey = key
-  let newValue = value
-
-  let domKey
-  let domValue
   let hovered = false
 
   $: type = valueType(value)
-  $: valueIsUrl = isUrl(value)
 
-  let keyClass
-  $: keyClass = getKeyClass(key, searchResult)
-
-  let valueClass
-  $: valueClass = getValueClass(value, searchResult)
-
-  $: if (editKey === true) {
-    // edit changed to true -> set focus to end of input
-    focusKey()
-  }
-
-  $: if (editValue === true) {
-    focusValue()
-  }
-
-  $: if (domKey) {
-    setDomKeyIfNotEditing(key)
-  }
-
-  $: if (domValue) {
-    setDomValueIfNotEditing(value)
-  }
-
-  $: if (editKey === false) {
-    updateKey()
-  }
-
-  $: if (editValue === false) {
-    updateValue()
-  }
-
-  function getDomKey () {
-    if (!domKey) {
-      return key
-    }
-
-    return getPlainText(domKey)
-  }
-
-  function setDomKeyIfNotEditing (updatedKey) {
-    if (editKey === false) {
-      setDomKey(updatedKey)
-    }
-  }
-
-  function setDomValueIfNotEditing (updatedValue) {
-    if (editValue === false) {
-      setDomValue(updatedValue)
-    }
-  }
-
-  function setDomKey (updatedKey) {
-    if (domKey) {
-      setPlainText(domKey, updatedKey)
-    }
-  }
-
-  function setDomValue (updatedValue) {
-    if (domValue) {
-      setPlainText(domValue, updatedValue)
-    }
-  }
-
-  function getDomValue () {
-    if (!domValue) {
-      return value
-    }
-
-    const valueText = getPlainText(domValue)
-    return stringConvert(valueText) // TODO: implement support for type "string"
-  }
-
-  function getIndentationStyle (level) {
+  function getIndentationStyle(level) {
     return `margin-left: ${level * INDENTATION_WIDTH}px`
   }
 
-  function getValueClass (value, searchResult) {
-    const type = valueType(value)
-
-    return classnames(SELECTION_TYPE.VALUE, type, {
-      search: searchResult && searchResult[STATE_SEARCH_VALUE],
-      active: searchResult && searchResult[STATE_SEARCH_VALUE] === ACTIVE_SEARCH_RESULT,
-      url: isUrl(value),
-      empty: typeof value === 'string' && value.length === 0
-    })
-  }
-
-  function getKeyClass (key, searchResult) {
-    return classnames('key', {
-      search: searchResult && searchResult[STATE_SEARCH_PROPERTY],
-      active: searchResult && searchResult[STATE_SEARCH_PROPERTY] === ACTIVE_SEARCH_RESULT,
-      empty: key === ''
-    })
-  }
-
-  function toggleExpand (event) {
+  function toggleExpand(event) {
     event.stopPropagation()
 
     const recursive = event.ctrlKey
     onExpand(path, !expanded, recursive)
   }
 
-  function handleExpand (event) {
+  function handleExpand(event) {
     event.stopPropagation()
 
     onExpand(path, true)
   }
 
-  function updateKey () {
-    if (type === 'object' && key !== newKey) {
-      // must be handled by the parent which has knowledge about the other keys
-      const uniqueKey = onUpdateKey(key, newKey)
-      if (uniqueKey !== newKey) {
-        setDomKey(uniqueKey)
-      }
-    }
-  }
-
-  function handleUpdateKey (oldKey, newKey) {
+  function handleUpdateKey(oldKey, newKey) {
     const newKeyUnique = findUniqueName(newKey, value)
 
     onPatch(rename(path, keys, oldKey, newKeyUnique))
@@ -251,91 +111,7 @@
     return newKeyUnique
   }
 
-  function handleKeyInput () {
-    newKey = getDomKey()
-    if (newKey === '') {
-      // immediately update to cleanup any left over <br/>
-      setDomKey('')
-    }
-  }
-
-  async function handleKeyKeyDown (event) {
-    event.stopPropagation()
-
-    if (event.key === 'Escape') {
-      // cancel changes
-      setDomKey(key)
-      onSelect({ type: SELECTION_TYPE.KEY, path })
-    }
-
-    if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-      updateKey()
-
-      // we apply selection on next tick, since the actual path will change
-      await tick()
-      onSelect({ type: SELECTION_TYPE.KEY, path, next: true })
-    }
-  }
-
-  function handleKeyDoubleClick (event) {
-    if (!editKey) {
-      event.preventDefault()
-      onSelect({ type: SELECTION_TYPE.KEY, path, edit: true })
-    }
-  }
-
-  function updateValue () {
-    if (newValue !== value) {
-      onPatch([{
-        op: 'replace',
-        path: compileJSONPointer(path),
-        value: newValue
-      }])
-    }
-  }
-
-  function handleValueInput () {
-    newValue = getDomValue()
-    if (newValue === '') {
-      // immediately update to cleanup any left over <br/>
-      setDomValue('')
-    }
-  }
-
-  function handleValueDoubleClick (event) {
-    if (!editValue) {
-      event.preventDefault()
-      onSelect({ type: SELECTION_TYPE.VALUE, path, edit: true })
-    }
-  }
-
-  function handleValueClick (event) {
-    if (valueIsUrl && event.ctrlKey) {
-      event.preventDefault()
-      event.stopPropagation()
-
-      window.open(value, '_blank')
-    }
-  }
-
-  function handleValueKeyDown (event) {
-    event.stopPropagation()
-
-    if (event.key === 'Escape') {
-      // cancel changes
-      setDomValue(value)
-      onSelect({ type: SELECTION_TYPE.VALUE, path })
-    }
-
-    if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-      // apply changes
-      updateValue()
-
-      onSelect({ type: SELECTION_TYPE.VALUE, path, next: true })
-    }
-  }
-
-  function handleMouseDown (event) {
+  function handleMouseDown(event) {
     // check if the mouse down is not happening in the key or value input fields or on a button
     if (isContentEditableDiv(event.target) || isChildOfNodeName(event.target, 'BUTTON')) {
       return
@@ -351,19 +127,16 @@
         anchorPath: selection.anchorPath,
         focusPath: path
       })
-    } else if (event.target === domKey) {
-      onSelect({ type: SELECTION_TYPE.KEY, path })
-    } else if (event.target === domValue) {
-      onSelect({ type: SELECTION_TYPE.VALUE, path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
-      onSelect({ type: SELECTION_TYPE.VALUE, path })
+      onSelect({type: SELECTION_TYPE.VALUE, path})
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-item')) {
-      onSelect({ type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path })
+      onSelect({type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path})
     } else if (
       isChildOfAttribute(event.target, 'data-type', 'insert-button-area') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-area')
+      isChildOfAttribute(event.target, 'data-type', 'insert-area') ||
+      isChildOfAttribute(event.target, 'data-type', 'editable-div')
     ) {
-      // do nothing: event already handled by event listener on the element itself
+      // do nothing: event already handled by event listener on the element or component itself
     } else {
       onSelect(null)
     }
@@ -376,7 +149,7 @@
     document.addEventListener('mouseup', handleMouseUp)
   }
 
-  function handleMouseMove (event) {
+  function handleMouseMove(event) {
     if (singleton.mousedown) {
       event.preventDefault()
       event.stopPropagation()
@@ -400,7 +173,7 @@
     }
   }
 
-  function handleMouseUp (event) {
+  function handleMouseUp(event) {
     if (singleton.mousedown) {
       event.stopPropagation()
 
@@ -410,50 +183,50 @@
     document.removeEventListener('mouseup', handleMouseUp)
   }
 
-  function handleMouseOver (event) {
+  function handleMouseOver(event) {
     event.stopPropagation()
-
-    if (!editKey && !editValue) {
-      hovered = true
-    }
+    hovered = true
   }
 
-  function handleMouseOut (event) {
+  function handleMouseOut(event) {
     event.stopPropagation()
     hovered = false
   }
-  
-  function handleInsertInside () {
+
+  function handleInsertInside() {
     if (type === 'array') {
       if (value.length > 0) {
         // insert before the first item
-        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([0]) })
+        onSelect({type: SELECTION_TYPE.BEFORE, path: path.concat([0])})
       } else {
         // empty array -> append to the array
-        onSelect({ type: SELECTION_TYPE.APPEND, path })
+        onSelect({type: SELECTION_TYPE.APPEND, path})
       }
     } else {
       const keys = state[STATE_KEYS]
       if (!isEmpty(keys)) {
         // insert before the first key
         const firstKey = first(keys)
-        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([firstKey]) })
+        onSelect({type: SELECTION_TYPE.BEFORE, path: path.concat([firstKey])})
       } else {
         // empty object -> append to the object
-        onSelect({ type: SELECTION_TYPE.APPEND, path })
+        onSelect({type: SELECTION_TYPE.APPEND, path})
       }
     }
   }
 
-  function handleInsertAfter (keyOrIndex) {
+  function handleInsertAfter(keyOrIndex) {
     if (type === 'array') {
       // +1 because we want to insert *after* the current item,
       // which is *before* the next item
 
       if (keyOrIndex < value.length - 1) {
-        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat(keyOrIndex + 1) })
+        onSelect({
+          type: SELECTION_TYPE.BEFORE,
+          path: path.concat(keyOrIndex + 1)
+        })
       } else {
-        onSelect({ type: SELECTION_TYPE.APPEND, path })
+        onSelect({type: SELECTION_TYPE.APPEND, path})
       }
     } else {
       // find the next key, so we can insert before this next key
@@ -462,9 +235,9 @@
       const nextKey = keys[index + 1]
 
       if (typeof nextKey === 'string') {
-        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat(nextKey) })
+        onSelect({type: SELECTION_TYPE.BEFORE, path: path.concat(nextKey)})
       } else {
-        onSelect({ type: SELECTION_TYPE.APPEND, path })
+        onSelect({type: SELECTION_TYPE.APPEND, path})
       }
     }
   }
@@ -508,15 +281,15 @@
           {/if}
         </button>
         {#if typeof key === 'string'}
-          <div
-            class={keyClass}
-            contenteditable={editKey}
-            spellcheck="false"
-            on:input={handleKeyInput}
-            on:dblclick={handleKeyDoubleClick}
-            on:keydown={handleKeyKeyDown}
-            bind:this={domKey}
-          ></div>
+          <JSONKey
+            path={path}
+            key={key}
+            editKey={editKey}
+            onUpdateKey={onUpdateKey}
+            selection={selection}
+            onSelect={onSelect}
+            searchResult={searchResult}
+          />
           <div class="separator">:</div>
         {/if}
         {#if typeof index === 'number'}
@@ -630,15 +403,15 @@
           {/if}
         </button>
         {#if typeof key === 'string'}
-          <div
-            class={keyClass}
-            contenteditable={editKey}
-            spellcheck="false"
-            on:input={handleKeyInput}
-            on:dblclick={handleKeyDoubleClick}
-            on:keydown={handleKeyKeyDown}
-            bind:this={domKey}
-          ></div>
+          <JSONKey
+            path={path}
+            key={key}
+            editKey={editKey}
+            onUpdateKey={onUpdateKey}
+            selection={selection}
+            onSelect={onSelect}
+            searchResult={searchResult}
+          />
           <div class="separator">:</div>
         {/if}
         {#if typeof index === 'number'}
@@ -729,32 +502,30 @@
     <div class="contents-outer" style={indentationStyle} >
       <div class="contents" >
         {#if typeof key === 'string'}
-          <div
-            class={keyClass}
-            contenteditable={editKey}
-            spellcheck="false"
-            on:input={handleKeyInput}
-            on:dblclick={handleKeyDoubleClick}
-            on:keydown={handleKeyKeyDown}
-            bind:this={domKey}
-          ></div>
+          <JSONKey
+            path={path}
+            key={key}
+            editKey={editKey}
+            onUpdateKey={onUpdateKey}
+            selection={selection}
+            onSelect={onSelect}
+            searchResult={searchResult}
+          />
           <div class="separator">:</div>
         {/if}
         {#if typeof index === 'number'}
           <div class="index" data-type="selectable-item">{index}</div>
           <div class="separator">:</div>
         {/if}
-        <div
-          class={valueClass}
-          contenteditable={editValue}
-          spellcheck="false"
-          on:input={handleValueInput}
-          on:click={handleValueClick}
-          on:dblclick={handleValueDoubleClick}
-          on:keydown={handleValueKeyDown}
-          bind:this={domValue}
-          title={valueIsUrl ? 'Ctrl+Click or Ctrl+Enter to open url in new window' : null}
-        ></div>
+        <JSONValue
+          path={path}
+          value={value}
+          editValue={editValue}
+          onPatch={onPatch}
+          selection={selection}
+          onSelect={onSelect}
+          searchResult={searchResult}
+        />
       </div>
       {#if validationError}
         <Sveltip dark text={validationError.message} top >

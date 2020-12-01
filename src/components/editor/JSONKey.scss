@@ -1,0 +1,6 @@
+@import '../../styles.scss';
+@import './shared.scss';
+
+div.empty.key::after {
+  content: 'key';
+}
