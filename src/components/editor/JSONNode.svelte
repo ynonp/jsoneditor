@@ -6,7 +6,7 @@
     faCaretRight,
     faExclamationTriangle
   } from '@fortawesome/free-solid-svg-icons'
-  import { first, isEmpty, isEqual } from 'lodash-es'
+  import { first, isEmpty, isEqual, last } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import Sveltip from 'sveltip'
   import {
@@ -34,7 +34,6 @@
   import { singleton } from './singleton.js'
 
   // eslint-disable-next-line no-undef-init
-  export let key = undefined // only applicable for object properties
   export let value
   export let path
   export let state
@@ -318,7 +317,6 @@
         {#each visibleSections as visibleSection, sectionIndex (sectionIndex)}
           {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (state[visibleSection.start + itemIndex][STATE_ID])}
             <svelte:self
-              key={visibleSection.start + itemIndex}
               value={item}
               path={path.concat(visibleSection.start + itemIndex)}
               state={state[visibleSection.start + itemIndex]}
@@ -404,7 +402,7 @@
         <div
           class="insert-button-area inside"
           data-type="insert-button-area"
-          on:mousedown|preventDefault={() => handleInsertInside(key)}
+          on:mousedown|preventDefault={() => handleInsertInside(last(path))}
         >
           <button class="insert-button">&#8617;</button>
         </div>
@@ -426,7 +424,6 @@
       <div class="props">
         {#each keys as key (state[key][STATE_ID])}
           <svelte:self
-            key={key}
             value={value[key]}
             path={path.concat(key)}
             state={state[key]}
