@@ -1,14 +1,9 @@
 <svelte:options immutable={true} />
 
 <script>
-  import {
-    faCaretDown,
-    faCaretRight,
-    faExclamationTriangle
-  } from '@fortawesome/free-solid-svg-icons'
+  import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
   import { first, isEmpty, isEqual, last } from 'lodash-es'
   import Icon from 'svelte-awesome'
-  import Sveltip from 'sveltip'
   import {
     INDENTATION_WIDTH,
     INSERT_EXPLANATION,
@@ -32,6 +27,7 @@
   import JSONKey from './JSONKey.svelte'
   import JSONValue from './JSONValue.svelte'
   import { singleton } from './singleton.js'
+  import ValidationError from './ValidationError.svelte'
 
   // eslint-disable-next-line no-undef-init
   export let value
@@ -300,14 +296,7 @@
         </div>
       {:else}
         {#if validationError}
-          <Sveltip dark text={validationError.isChildError ? 'Contains invalid items' : validationError.message} top >
-            <button
-              class='validation-error'
-              on:click={handleExpand}
-            >
-              <Icon data={faExclamationTriangle} />
-            </button>
-          </Sveltip>
+          <ValidationError validationError={validationError} onExpand={handleExpand} />
         {/if}
         <slot name="insert-after" />
       {/if}
@@ -408,14 +397,7 @@
         </div>
       {:else}
         {#if validationError}
-          <Sveltip dark text={validationError.isChildError ? 'Contains invalid properties' : validationError.message} top >
-            <button
-              class='validation-error'
-              on:click={handleExpand}
-            >
-              <Icon data={faExclamationTriangle} />
-            </button>
-          </Sveltip>
+          <ValidationError validationError={validationError} onExpand={handleExpand} />
         {/if}
         <slot name="insert-after" />
       {/if}
@@ -486,11 +468,7 @@
         />
       </div>
       {#if validationError}
-        <Sveltip dark text={validationError.message} top >
-          <button class='validation-error'>
-            <Icon data={faExclamationTriangle} />
-          </button>
-        </Sveltip>
+        <ValidationError validationError={validationError} onExpand={handleExpand} />
       {/if}
       <slot name="insert-after" />
     </div>
