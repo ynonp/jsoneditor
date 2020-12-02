@@ -107,6 +107,7 @@
 }
 
 .expand {
+  display: table-cell;
   position: relative;
   top: 2px;
   width: $line-height;
@@ -169,6 +170,10 @@
   line-height: $line-height;
 }
 
+.identifier {
+  vertical-align: top;
+}
+
 // TODO: simplify the CSS needed to correctly highlight the selection
 .json-node {
   // entry selected
@@ -199,8 +204,8 @@
 
   // key selected
   &.selected-key {
-    > .contents-outer > .contents > :global(.key),
-    > .header-outer > .header > :global(.key) {
+    > .contents-outer > .contents > :global(.identifier) > :global(.key),
+    > .header-outer > .header > :global(.identifier) > :global(.key) {
       background-color: $selection-background;
       color: $selection-color;
     }

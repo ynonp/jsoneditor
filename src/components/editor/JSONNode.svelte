@@ -35,7 +35,6 @@
 
   // eslint-disable-next-line no-undef-init
   export let key = undefined // only applicable for object properties
-  export let index = undefined // only applicable for item index
   export let value
   export let path
   export let state
@@ -43,7 +42,6 @@
   export let validationErrors
   export let onPatch
   export let onInsert
-  export let onUpdateKey
   export let onExpand
   export let onSelect
 
@@ -72,9 +70,6 @@
   $: selectedValue = (selection && selection.type === SELECTION_TYPE.VALUE)
     ? isEqual(selection.path, path)
     : false
-
-  $: editKey = selectedKey && selection && selection.edit === true
-  $: editValue = selectedValue && selection && selection.edit === true
 
   $: expanded = state[STATE_EXPANDED]
   $: expanded = state[STATE_EXPANDED]
@@ -280,22 +275,8 @@
             <Icon data={faCaretRight} />
           {/if}
         </button>
-        {#if typeof key === 'string'}
-          <JSONKey
-            path={path}
-            key={key}
-            editKey={editKey}
-            onUpdateKey={onUpdateKey}
-            selection={selection}
-            onSelect={onSelect}
-            searchResult={searchResult}
-          />
-          <div class="separator">:</div>
-        {/if}
-        {#if typeof index === 'number'}
-          <div class="index" data-type="selectable-item">{index}</div>
-          <div class="separator">:</div>
-        {/if}
+        <slot name="identifier" />
+        <div class="separator">:</div>
         <div class="meta">
           <div class="meta-inner" data-type="selectable-value">
             {#if expanded}
@@ -335,10 +316,9 @@
     {#if expanded}
       <div class="items">
         {#each visibleSections as visibleSection, sectionIndex (sectionIndex)}
-            {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (state[visibleSection.start + itemIndex][STATE_ID])}
+          {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (state[visibleSection.start + itemIndex][STATE_ID])}
             <svelte:self
               key={visibleSection.start + itemIndex}
-              index={visibleSection.start + itemIndex}
               value={item}
               path={path.concat(visibleSection.start + itemIndex)}
               state={state[visibleSection.start + itemIndex]}
@@ -346,13 +326,15 @@
               validationErrors={validationErrors ? validationErrors[visibleSection.start + itemIndex] : undefined}
               onPatch={onPatch}
               onInsert={onInsert}
-              onUpdateKey={handleUpdateKey}
               onExpand={onExpand}
               onSelect={onSelect}
               onExpandSection={onExpandSection}
               selection={selection}
             >
-              <div
+              <div slot="identifier" class="identifier">
+               <div class="index" data-type="selectable-item">{visibleSection.start + itemIndex}</div
+               >
+              </div><div
                 slot="insert-after"
                 class="insert-button-area after"
                 data-type="insert-button-area"
@@ -402,22 +384,8 @@
             <Icon data={faCaretRight} />
           {/if}
         </button>
-        {#if typeof key === 'string'}
-          <JSONKey
-            path={path}
-            key={key}
-            editKey={editKey}
-            onUpdateKey={onUpdateKey}
-            selection={selection}
-            onSelect={onSelect}
-            searchResult={searchResult}
-          />
-          <div class="separator">:</div>
-        {/if}
-        {#if typeof index === 'number'}
-          <div class="index" data-type="selectable-item">{index}</div>
-          <div class="separator">:</div>
-        {/if}
+        <slot name="identifier" />
+        <div class="separator">:</div>
         <div class="meta" data-type="selectable-value" >
           <div class="meta-inner">
             {#if expanded}
@@ -466,13 +434,21 @@
             validationErrors={validationErrors ? validationErrors[key] : undefined}
             onPatch={onPatch}
             onInsert={onInsert}
-            onUpdateKey={handleUpdateKey}
             onExpand={onExpand}
             onSelect={onSelect}
             onExpandSection={onExpandSection}
             selection={selection}
           >
-            <div
+            <div slot="identifier" class="identifier">
+              <JSONKey
+                path={path.concat(key)}
+                key={key}
+                onUpdateKey={handleUpdateKey}
+                selection={selection}
+                onSelect={onSelect}
+                searchResult={searchResult}
+              />
+            </div><div
               slot="insert-after"
               class="insert-button-area after"
               data-type="insert-button-area"
@@ -501,26 +477,11 @@
   {:else}
     <div class="contents-outer" style={indentationStyle} >
       <div class="contents" >
-        {#if typeof key === 'string'}
-          <JSONKey
-            path={path}
-            key={key}
-            editKey={editKey}
-            onUpdateKey={onUpdateKey}
-            selection={selection}
-            onSelect={onSelect}
-            searchResult={searchResult}
-          />
-          <div class="separator">:</div>
-        {/if}
-        {#if typeof index === 'number'}
-          <div class="index" data-type="selectable-item">{index}</div>
-          <div class="separator">:</div>
-        {/if}
+        <slot name="identifier" />
+        <div class="separator">:</div>
         <JSONValue
           path={path}
           value={value}
-          editValue={editValue}
           onPatch={onPatch}
           selection={selection}
           onSelect={onSelect}

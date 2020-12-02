@@ -555,10 +555,6 @@
     return patchResult
   }
 
-  function handleUpdateKey (oldKey, newKey) {
-    // should never be called on the root
-  }
-
   /**
    * Toggle expanded state of a node
    * @param {Path} path
@@ -840,7 +836,6 @@
       validationErrors={validationErrors}
       onPatch={handlePatch}
       onInsert={handleInsert}
-      onUpdateKey={handleUpdateKey}
       onExpand={handleExpand}
       onSelect={handleSelect}
       onExpandSection={handleExpandSection}

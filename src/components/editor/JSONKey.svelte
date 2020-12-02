@@ -1,5 +1,6 @@
 <script>
   import classnames from 'classnames'
+  import { isEqual } from 'lodash-es'
   import { onDestroy, tick } from 'svelte'
   import {
     ACTIVE_SEARCH_RESULT,
@@ -14,7 +15,6 @@
 
   export let path
   export let key
-  export let editKey
   export let onUpdateKey
   export let selection
   export let onSelect
@@ -28,6 +28,10 @@
   let newKey = key
   let keyClass
 
+  $: selectedKey = (selection && selection.type === SELECTION_TYPE.KEY)
+    ? isEqual(selection.path, path)
+    : false
+  $: editKey = selectedKey && selection && selection.edit === true
   $: keyClass = getKeyClass(newKey, searchResult)
 
   $: if (editKey === true) {

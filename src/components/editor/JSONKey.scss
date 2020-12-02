@@ -1,6 +1,10 @@
 @import '../../styles.scss';
 @import './shared.scss';
 
+.key {
+  display: inline-block;
+}
+
 div.empty.key::after {
   content: 'key';
 }

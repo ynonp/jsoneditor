@@ -1,5 +1,6 @@
 <script>
   import classnames from 'classnames'
+  import { isEqual } from 'lodash-es'
   import { onDestroy } from 'svelte'
   import { ACTIVE_SEARCH_RESULT, STATE_SEARCH_VALUE } from '../../constants.js'
   import { SELECTION_TYPE } from '../../logic/selection.js'
@@ -13,7 +14,6 @@
 
   export let path
   export let value
-  export let editValue
   export let onPatch
   export let selection
   export let onSelect
@@ -27,8 +27,11 @@
   let newValue = value
   let valueClass
 
+  $: selectedValue = (selection && selection.type === SELECTION_TYPE.VALUE)
+    ? isEqual(selection.path, path)
+    : false
   $: valueClass = getValueClass(newValue, searchResult)
-
+  $: editValue = selectedValue && selection && selection.edit === true
   $: valueIsUrl = isUrl(value)
 
   $: if (editValue === true) {
