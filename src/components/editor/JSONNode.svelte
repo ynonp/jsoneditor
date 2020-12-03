@@ -116,14 +116,15 @@
         anchorPath: selection.anchorPath,
         focusPath: path
       })
+    } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-key')) {
+      onSelect({ type: SELECTION_TYPE.KEY, path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
       onSelect({type: SELECTION_TYPE.VALUE, path})
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-item')) {
       onSelect({type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path})
     } else if (
       isChildOfAttribute(event.target, 'data-type', 'insert-button-area') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-area') ||
-      isChildOfAttribute(event.target, 'data-type', 'editable-div')
+      isChildOfAttribute(event.target, 'data-type', 'insert-area')
     ) {
       // do nothing: event already handled by event listener on the element or component itself
     } else {

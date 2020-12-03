@@ -121,14 +121,6 @@
     }
   }
 
-  function handleMouseDown (event) {
-    if (!editValue && !event.shiftKey) {
-      event.preventDefault()
-
-      onSelect({ type: SELECTION_TYPE.VALUE, path })
-    }
-  }
-
   function handleValueKeyDown (event) {
     event.stopPropagation()
 
@@ -148,14 +140,13 @@
 </script>
 
 <div
-  data-type="editable-div"
+  data-type="selectable-value"
   class={valueClass}
   contenteditable={editValue}
   spellcheck="false"
   on:input={handleValueInput}
   on:click={handleValueClick}
   on:dblclick={handleValueDoubleClick}
-  on:mousedown={handleMouseDown}
   on:keydown={handleValueKeyDown}
   bind:this={domValue}
   title={valueIsUrl ? 'Ctrl+Click or Ctrl+Enter to open url in new window' : null}

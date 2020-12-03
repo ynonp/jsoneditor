@@ -119,14 +119,6 @@
     }
   }
 
-  function handleMouseDown (event) {
-    if (!editKey && !event.shiftKey) {
-      event.preventDefault()
-
-      onSelect({type: SELECTION_TYPE.KEY, path})
-    }
-  }
-
   function getKeyClass (key, searchResult) {
     return classnames('editable-div', 'key', {
       search: searchResult && searchResult[STATE_SEARCH_PROPERTY],
@@ -137,14 +129,13 @@
 </script>
 
 <div
-  data-type="editable-div"
+  data-type="selectable-key"
   class={keyClass}
   contenteditable={editKey}
   spellcheck="false"
   on:input={handleKeyInput}
   on:dblclick={handleKeyDoubleClick}
   on:keydown={handleKeyKeyDown}
-  on:mousedown={handleMouseDown}
   bind:this={domKey}
 ></div>
 
