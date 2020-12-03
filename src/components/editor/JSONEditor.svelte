@@ -105,11 +105,13 @@
   function handleFocusIn () {
     const newFocus = activeElementIsChildOf(domJsonEditor)
 
-    if (newFocus && !focus) {
+    if (newFocus) {
       clearTimeout(blurTimeoutHandle)
-      debug('focus')
-      onFocus()
-      focus = newFocus
+      if (!focus) {
+        debug('focus')
+        onFocus()
+        focus = newFocus
+      }
     }
   }
 
