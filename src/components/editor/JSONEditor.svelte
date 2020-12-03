@@ -86,14 +86,14 @@
   export let onFocus = () => {}
   export let onBlur = () => {}
 
-  onMount (() => {
+  onMount(() => {
     debug('register global focus listeners')
     const window = getWindow(domJsonEditor)
     window.addEventListener('focusin', handleFocusIn, true)
     window.addEventListener('focusout', handleFocusOut, true)
   })
 
-  onDestroy (() => {
+  onDestroy(() => {
     debug('unregister global focus listeners')
     const window = getWindow(domJsonEditor)
     window.removeEventListener('focusin', handleFocusIn, true)

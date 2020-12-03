@@ -27,7 +27,7 @@ export function createQuery (json, queryOptions) {
         const name = last(field) || 'item' // 'item' in case of having selected the whole item
         const item = !isEmpty(field)
           ? `_.get(item, ${JSON.stringify(field)})`
-          : `item`
+          : 'item'
         return `    ${JSON.stringify(name)}: ${item}`
       })
       queryParts.push(`  data = data.map(item => ({\n${fields.join(',\n')}})\n  )\n`)
@@ -35,7 +35,7 @@ export function createQuery (json, queryOptions) {
       const field = projection.fields[0]
       const item = !isEmpty(field)
         ? `_.get(item, ${JSON.stringify(field)})`
-        : `item`
+        : 'item'
       queryParts.push(`  data = data.map(item => ${item})\n`)
     }
   }

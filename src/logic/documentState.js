@@ -701,7 +701,7 @@ export function isLastChild (doc, state, path) {
  * @return {Path | null}
  */
 // TODO: write unit tests
-export function getLastChildPath(doc, state, parentPath) {
+export function getLastChildPath (doc, state, parentPath) {
   const parent = getIn(doc, parentPath)
 
   if (Array.isArray(parent)) {

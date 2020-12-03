@@ -26,7 +26,7 @@ export function escapeHTML (text) {
   if (typeof text !== 'string') {
     return String(text)
   } else {
-    let htmlEscaped = String(text)
+    const htmlEscaped = String(text)
       .replace(/&/g, '&amp;') // must be replaced first!
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -223,7 +223,7 @@ export function setCursorToEnd (element) {
  * @return {Window}
  */
 export function getWindow (element) {
-  return element.ownerDocument.defaultView;
+  return element.ownerDocument.defaultView
 }
 
 /**

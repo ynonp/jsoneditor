@@ -8,7 +8,6 @@ import {
   STATE_KEYS,
   STATE_VISIBLE_SECTIONS
 } from '../constants.js'
-import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { isObject } from '../utils/typeUtils.js'
 import {
   CARET_POSITION,
@@ -16,7 +15,8 @@ import {
   createState,
   documentStatePatch,
   expandSection,
-  expandSinglePath, getVisibleCaretPositions,
+  expandSinglePath,
+  getVisibleCaretPositions,
   getVisiblePaths,
   isLastChild,
   syncKeys,
@@ -478,18 +478,18 @@ describe('documentState', () => {
     }
     const state = syncState(doc, undefined, [], () => false)
 
-    it ('should check whether root object is last child', () => {
+    it('should check whether root object is last child', () => {
       assert.strictEqual(isLastChild(doc, state, []), false)
     })
 
-    it ('should check whether an object key is the last child', () => {
+    it('should check whether an object key is the last child', () => {
       assert.strictEqual(isLastChild(doc, state, ['object']), false)
       assert.strictEqual(isLastChild(doc, state, ['value']), true)
       assert.strictEqual(isLastChild(doc, state, ['object', 'a']), false)
       assert.strictEqual(isLastChild(doc, state, ['object', 'b']), true)
     })
 
-    it ('should check whether an array item is the last child', () => {
+    it('should check whether an array item is the last child', () => {
       assert.strictEqual(isLastChild(doc, state, ['array', 1]), false)
       assert.strictEqual(isLastChild(doc, state, ['array', 2]), true)
     })

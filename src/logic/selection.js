@@ -88,7 +88,7 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
 export function getParentPath (selection) {
   if (selection.type === SELECTION_TYPE.APPEND) {
     return selection.path
-  } else  if (selection.path) { // key, value, before
+  } else if (selection.path) { // key, value, before
     return initial(selection.path)
   } else if (selection.paths) { // multi
     const firstPath = first(selection.paths)

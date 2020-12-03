@@ -75,24 +75,24 @@
 
   $: type = valueType(value)
 
-  function getIndentationStyle(level) {
+  function getIndentationStyle (level) {
     return `margin-left: ${level * INDENTATION_WIDTH}px`
   }
 
-  function toggleExpand(event) {
+  function toggleExpand (event) {
     event.stopPropagation()
 
     const recursive = event.ctrlKey
     onExpand(path, !expanded, recursive)
   }
 
-  function handleExpand(event) {
+  function handleExpand (event) {
     event.stopPropagation()
 
     onExpand(path, true)
   }
 
-  function handleUpdateKey(oldKey, newKey) {
+  function handleUpdateKey (oldKey, newKey) {
     const newKeyUnique = findUniqueName(newKey, value)
 
     onPatch(rename(path, keys, oldKey, newKeyUnique))
@@ -100,7 +100,7 @@
     return newKeyUnique
   }
 
-  function handleMouseDown(event) {
+  function handleMouseDown (event) {
     // check if the mouse down is not happening in the key or value input fields or on a button
     if (isContentEditableDiv(event.target) || isChildOfNodeName(event.target, 'BUTTON')) {
       return
@@ -119,9 +119,9 @@
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-key')) {
       onSelect({ type: SELECTION_TYPE.KEY, path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
-      onSelect({type: SELECTION_TYPE.VALUE, path})
+      onSelect({ type: SELECTION_TYPE.VALUE, path })
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-item')) {
-      onSelect({type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path})
+      onSelect({ type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path })
     } else if (
       isChildOfAttribute(event.target, 'data-type', 'insert-button-area') ||
       isChildOfAttribute(event.target, 'data-type', 'insert-area')
@@ -139,7 +139,7 @@
     document.addEventListener('mouseup', handleMouseUp)
   }
 
-  function handleMouseMove(event) {
+  function handleMouseMove (event) {
     if (singleton.mousedown) {
       event.preventDefault()
       event.stopPropagation()
@@ -163,7 +163,7 @@
     }
   }
 
-  function handleMouseUp(event) {
+  function handleMouseUp (event) {
     if (singleton.mousedown) {
       event.stopPropagation()
 
@@ -173,39 +173,39 @@
     document.removeEventListener('mouseup', handleMouseUp)
   }
 
-  function handleMouseOver(event) {
+  function handleMouseOver (event) {
     event.stopPropagation()
     hovered = true
   }
 
-  function handleMouseOut(event) {
+  function handleMouseOut (event) {
     event.stopPropagation()
     hovered = false
   }
 
-  function handleInsertInside() {
+  function handleInsertInside () {
     if (type === 'array') {
       if (value.length > 0) {
         // insert before the first item
-        onSelect({type: SELECTION_TYPE.BEFORE, path: path.concat([0])})
+        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([0]) })
       } else {
         // empty array -> append to the array
-        onSelect({type: SELECTION_TYPE.APPEND, path})
+        onSelect({ type: SELECTION_TYPE.APPEND, path })
       }
     } else {
       const keys = state[STATE_KEYS]
       if (!isEmpty(keys)) {
         // insert before the first key
         const firstKey = first(keys)
-        onSelect({type: SELECTION_TYPE.BEFORE, path: path.concat([firstKey])})
+        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([firstKey]) })
       } else {
         // empty object -> append to the object
-        onSelect({type: SELECTION_TYPE.APPEND, path})
+        onSelect({ type: SELECTION_TYPE.APPEND, path })
       }
     }
   }
 
-  function handleInsertAfter(keyOrIndex) {
+  function handleInsertAfter (keyOrIndex) {
     if (type === 'array') {
       // +1 because we want to insert *after* the current item,
       // which is *before* the next item
@@ -216,7 +216,7 @@
           path: path.concat(keyOrIndex + 1)
         })
       } else {
-        onSelect({type: SELECTION_TYPE.APPEND, path})
+        onSelect({ type: SELECTION_TYPE.APPEND, path })
       }
     } else {
       // find the next key, so we can insert before this next key
@@ -225,9 +225,9 @@
       const nextKey = keys[index + 1]
 
       if (typeof nextKey === 'string') {
-        onSelect({type: SELECTION_TYPE.BEFORE, path: path.concat(nextKey)})
+        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat(nextKey) })
       } else {
-        onSelect({type: SELECTION_TYPE.APPEND, path})
+        onSelect({ type: SELECTION_TYPE.APPEND, path })
       }
     }
   }
