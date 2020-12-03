@@ -1,18 +1,15 @@
 import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
 import { STATE_KEYS } from '../constants.js'
-import { xor } from '../utils/booleanUtils.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
-import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
+import { isObject } from '../utils/typeUtils.js'
 import {
-  CARET_POSITION,
   getLastChildPath,
   getNextVisiblePath,
   getPreviousVisiblePath,
   getVisibleCaretPositions,
   getVisiblePaths,
-  isExpanded,
-  isLastChild
+  isExpanded
 } from './documentState.js'
 
 export const SELECTION_TYPE = {
@@ -315,20 +312,10 @@ export function getSelectionLeft (doc, state, selection, keepAnchorPath = false)
 
   const { caret, previous } = findCaretAndSiblings(doc, state, selection)
   if (caret && previous) {
-    if (xor(
-      isEqual(previous.path, caret.path),
-      (
-        previous.type === CARET_POSITION.BEFORE ||
-        previous.type === CARET_POSITION.APPEND ||
-        caret.type === CARET_POSITION.BEFORE ||
-        caret.type === CARET_POSITION.APPEND
-      )
-    )) {
-      return createSelection(doc, state, {
-        type: previous.type,
-        path: previous.path
-      })
-    }
+    return createSelection(doc, state, {
+      type: previous.type,
+      path: previous.path
+    })
   }
 
   const parentPath = initial(selection.focusPath)
@@ -368,23 +355,12 @@ export function getSelectionRight (doc, state, selection, keepAnchorPath = false
     })
   }
 
-
   const { caret, next } = findCaretAndSiblings(doc, state, selection)
   if (caret && next) {
-    if (xor(
-      isEqual(next.path, caret.path),
-      (
-        next.type === CARET_POSITION.BEFORE ||
-        next.type === CARET_POSITION.APPEND ||
-        caret.type === CARET_POSITION.BEFORE ||
-        caret.type === CARET_POSITION.APPEND
-      )
-    )) {
-      return createSelection(doc, state, {
-        type: next.type,
-        path: next.path
-      })
-    }
+    return createSelection(doc, state, {
+      type: next.type,
+      path: next.path
+    })
   }
 
   if (selection.type === SELECTION_TYPE.MULTI) {

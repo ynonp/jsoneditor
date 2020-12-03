@@ -149,7 +149,12 @@ describe('selection', () => {
         path: ['path'],
         anchorPath: ['path'],
         focusPath: ['path']
-      }), null)
+      }), {
+        type: SELECTION_TYPE.BEFORE,
+        path: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path']
+      })
 
       assert.deepStrictEqual(getSelectionLeft(doc, state, {
         type: SELECTION_TYPE.BEFORE,
@@ -252,7 +257,14 @@ describe('selection', () => {
         focusPath: ['path1']
       })
 
-      assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.BEFORE, path: ['path'], anchorPath: ['path'], focusPath: ['path'] }), null)
+      assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.BEFORE, path: ['path'], anchorPath: ['path'], focusPath: ['path'] }), {
+        type: SELECTION_TYPE.KEY,
+        path: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path'],
+        edit: false
+      })
+
       assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.APPEND, path: ['path'], anchorPath: ['path'], focusPath: ['path'] }), null)
 
       assert.deepStrictEqual(getSelectionRight(doc, state, {
