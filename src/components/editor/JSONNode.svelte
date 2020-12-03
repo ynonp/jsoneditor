@@ -396,8 +396,8 @@
                 onSelect={onSelect}
                 searchResult={searchResult}
               />
-            </div>
-          </svelte:self>
+            </div
+          ></svelte:self>
         {/each}
       </div>
       <div class="footer-outer" style={indentationStyle} >
