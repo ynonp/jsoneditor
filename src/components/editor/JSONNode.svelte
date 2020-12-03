@@ -2,7 +2,7 @@
 
 <script>
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
-  import { first, isEmpty, isEqual, last } from 'lodash-es'
+  import { first, isEmpty, isEqual } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import {
     INDENTATION_WIDTH,
@@ -66,7 +66,6 @@
     ? isEqual(selection.path, path)
     : false
 
-  $: expanded = state[STATE_EXPANDED]
   $: expanded = state[STATE_EXPANDED]
   $: visibleSections = state[STATE_VISIBLE_SECTIONS]
   $: keys = state[STATE_KEYS]
@@ -290,7 +289,7 @@
         <div
           class="insert-button-area inside"
           data-type="insert-button-area"
-          on:mousedown|preventDefault={() => handleInsertInside(key)}
+          on:mousedown|preventDefault={handleInsertInside}
         >
           <button class="insert-button">&#8617;</button>
         </div>
@@ -391,7 +390,7 @@
         <div
           class="insert-button-area inside"
           data-type="insert-button-area"
-          on:mousedown|preventDefault={() => handleInsertInside(last(path))}
+          on:mousedown|preventDefault={handleInsertInside}
         >
           <button class="insert-button">&#8617;</button>
         </div>
