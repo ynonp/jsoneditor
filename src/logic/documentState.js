@@ -542,28 +542,69 @@ export function getNextKeys (keys, key, includeKey = false) {
  */
 // TODO: create memoized version of getVisiblePaths which remembers just the previous result if doc and state are the same
 export function getVisiblePaths (doc, state) {
-  const paths = [
-    [] // root itself is always visible
-  ]
+  const paths = []
 
   function _recurse (doc, state, path) {
+    paths.push(path)
+
     if (doc && state && state[STATE_EXPANDED] === true) {
       if (Array.isArray(doc)) {
-        const visibleSections = state[STATE_VISIBLE_SECTIONS]
-
-        visibleSections.forEach(({ start, end }) => {
-          forEachIndex(start, Math.min(doc.length, end), index => {
-            paths.push(path.concat(index))
-            _recurse(doc[index], state[index], path.concat(index))
-          })
+        forEachVisibleIndex(doc, state, index => {
+          _recurse(doc[index], state[index], path.concat(index))
         })
       } else { // Object
-        const keys = state[STATE_KEYS]
-        keys.forEach(key => {
-          paths.push(path.concat(key))
+        forEachKey(state, key => {
           _recurse(doc[key], state[key], path.concat(key))
         })
       }
+    }
+  }
+
+  _recurse(doc, state, [])
+
+  return paths
+}
+
+export const CARET_POSITION = {
+  BEFORE: 'before',
+  KEY: 'key',
+  VALUE: 'value',
+  APPEND: 'append'
+}
+
+/**
+ * Get all caret position which are visible and rendered:
+ * before a node, at a key, at a value, appending an object/arrayc
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @returns {CaretPosition[]}
+ */
+// TODO: create memoized version of getVisibleCaretPositions which remembers just the previous result if doc and state are the same
+export function getVisibleCaretPositions (doc, state) {
+  const paths = []
+
+  function _recurse (doc, state, path) {
+    paths.push({ path, type: CARET_POSITION.VALUE })
+
+    if (doc && state && state[STATE_EXPANDED] === true) {
+      if (Array.isArray(doc)) {
+        forEachVisibleIndex(doc, state, index => {
+          const itemPath = path.concat(index)
+          paths.push({ path: itemPath, type: CARET_POSITION.BEFORE })
+
+          _recurse(doc[index], state[index], itemPath)
+        })
+      } else { // Object
+        forEachKey(state, key => {
+          const propertyPath = path.concat(key)
+          paths.push({ path: propertyPath, type: CARET_POSITION.BEFORE })
+          paths.push({ path: propertyPath, type: CARET_POSITION.KEY })
+
+          _recurse(doc[key], state[key], propertyPath)
+        })
+      }
+
+      paths.push({ path, type: CARET_POSITION.APPEND })
     }
   }
 

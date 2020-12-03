@@ -1,12 +1,15 @@
 import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
 import { STATE_KEYS } from '../constants.js'
+import { xor } from '../utils/booleanUtils.js'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import {
+  CARET_POSITION,
   getLastChildPath,
   getNextVisiblePath,
   getPreviousVisiblePath,
+  getVisibleCaretPositions,
   getVisiblePaths,
   isExpanded,
   isLastChild
@@ -265,6 +268,36 @@ export function getSelectionDown (doc, state, selection, keepAnchorPath = false)
 }
 
 /**
+ * Find the caret position and its siblings for a given selection
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {Selection} selection
+ * @returns {{next: (CaretPosition|null), caret: (CaretPosition|null), previous: (CaretPosition|null)}}
+ */
+// TODO: unit test
+export function findCaretAndSiblings (doc, state, selection) {
+  const visibleCaretPositions = getVisibleCaretPositions(doc, state)
+
+  const index = visibleCaretPositions.findIndex(caret => {
+    return isEqual(caret.path, selection.focusPath) && caret.type === selection.type
+  })
+
+  return {
+    caret: (index !== -1)
+      ? visibleCaretPositions[index]
+      : null,
+
+    previous: (index !== -1 && index > 0)
+      ? visibleCaretPositions[index - 1]
+      : null,
+
+    next: (index !== -1 && index < visibleCaretPositions.length - 1)
+      ? visibleCaretPositions[index + 1]
+      : null
+  }
+}
+
+/**
  * @param {JSON} doc
  * @param {JSON} state
  * @param {Selection} selection
@@ -280,54 +313,40 @@ export function getSelectionLeft (doc, state, selection, keepAnchorPath = false)
     })
   }
 
-  if (selection.type === SELECTION_TYPE.BEFORE) {
-    const previousPath = getPreviousVisiblePath(doc, state, selection.focusPath)
-
-    if (previousPath) {
+  const { caret, previous } = findCaretAndSiblings(doc, state, selection)
+  if (caret && previous) {
+    if (xor(
+      isEqual(previous.path, caret.path),
+      (
+        previous.type === CARET_POSITION.BEFORE ||
+        previous.type === CARET_POSITION.APPEND ||
+        caret.type === CARET_POSITION.BEFORE ||
+        caret.type === CARET_POSITION.APPEND
+      )
+    )) {
       return createSelection(doc, state, {
-        type: SELECTION_TYPE.VALUE,
-        path: previousPath
+        type: previous.type,
+        path: previous.path
       })
     }
   }
 
-  if (selection.type === SELECTION_TYPE.APPEND) {
-    const path = selection.focusPath
+  const parentPath = initial(selection.focusPath)
+  const parent = getIn(doc, parentPath)
 
-    if (isExpanded(state, path)) {
-      // select the last child of the value (which is an object or array)
-      const lastChildPath = getLastChildPath(doc, state, path)
-      if (lastChildPath) {
-        return createSelection(doc, state, {
-          type: SELECTION_TYPE.VALUE,
-          path: lastChildPath
-        })
-      }
-    } else {
-      // select the value itself (object or array)
-      return createSelection(doc, state, {
-        type: SELECTION_TYPE.VALUE,
-        path
-      })
-    }
+  if (selection.type === SELECTION_TYPE.VALUE && Array.isArray(parent)) {
+    return createSelection(doc, state, {
+      type: SELECTION_TYPE.MULTI,
+      anchorPath: selection.focusPath,
+      focusPath: selection.focusPath
+    })
   }
 
-  if ((selection.type === SELECTION_TYPE.VALUE || selection.type === SELECTION_TYPE.MULTI)) {
-    const parentPath = initial(selection.focusPath)
-    const parent = getIn(doc, parentPath)
-
-    if (!Array.isArray(parent)) {
-      return createSelection(doc, state, {
-        type: SELECTION_TYPE.KEY,
-        path: selection.focusPath
-      })
-    } else {
-      return createSelection(doc, state, {
-        type: SELECTION_TYPE.MULTI,
-        anchorPath: selection.focusPath,
-        focusPath: selection.focusPath
-      })
-    }
+  if (selection.type === SELECTION_TYPE.MULTI && !Array.isArray(parent)) {
+    return createSelection(doc, state, {
+      type: SELECTION_TYPE.KEY,
+      path: selection.focusPath
+    })
   }
 
   return null
@@ -349,64 +368,30 @@ export function getSelectionRight (doc, state, selection, keepAnchorPath = false
     })
   }
 
-  if (selection.type === SELECTION_TYPE.KEY || selection.type === SELECTION_TYPE.MULTI) {
+
+  const { caret, next } = findCaretAndSiblings(doc, state, selection)
+  if (caret && next) {
+    if (xor(
+      isEqual(next.path, caret.path),
+      (
+        next.type === CARET_POSITION.BEFORE ||
+        next.type === CARET_POSITION.APPEND ||
+        caret.type === CARET_POSITION.BEFORE ||
+        caret.type === CARET_POSITION.APPEND
+      )
+    )) {
+      return createSelection(doc, state, {
+        type: next.type,
+        path: next.path
+      })
+    }
+  }
+
+  if (selection.type === SELECTION_TYPE.MULTI) {
     return createSelection(doc, state, {
       type: SELECTION_TYPE.VALUE,
       path: selection.focusPath
     })
-  }
-
-  if (selection.type === SELECTION_TYPE.VALUE) {
-    const path = selection.focusPath
-    const value = getIn(doc, path)
-    const nextPath = getNextVisiblePath(doc, state, path)
-
-    if (isObjectOrArray(value) && isExpanded(state, path)) {
-      // step into the array or object
-      if (isEmpty(value) || isLastChild(doc, state, path)) {
-        return createSelection(doc, state, {
-          type: SELECTION_TYPE.APPEND,
-          path
-        })
-      } else {
-        return createSelection(doc, state, {
-          type: SELECTION_TYPE.BEFORE,
-          path: nextPath
-        })
-      }
-    } else {
-      if (isLastChild(doc, state, path) || !nextPath) {
-        // append to parent of current path
-        return createSelection(doc, state, {
-          type: SELECTION_TYPE.APPEND,
-          path: initial(path)
-        })
-
-      } else {
-        return createSelection(doc, state, {
-          type: SELECTION_TYPE.BEFORE,
-          path: nextPath
-        })
-      }
-    }
-  }
-
-  if (selection.type === SELECTION_TYPE.APPEND) {
-    const path = selection.focusPath
-    const parentPath = initial(path)
-    const nextPath = getNextVisiblePath(doc, state, path, true)
-
-    if (isLastChild(doc, state, path)) {
-      return createSelection(doc, state, {
-        type: SELECTION_TYPE.APPEND,
-        path: parentPath
-      })
-    } else if (nextPath) {
-      return createSelection(doc, state, {
-        type: SELECTION_TYPE.BEFORE,
-        path: nextPath
-      })
-    }
   }
 
   return null

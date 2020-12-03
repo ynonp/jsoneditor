@@ -26,6 +26,17 @@
  */
 
 /**
+ * @typedef {'before' | 'key' | 'value' | 'append'} CaretType
+ */
+
+/**
+ * @typedef {{
+ *   path: Path,
+ *   type: CaretType
+ * }} CaretPosition
+ */
+
+/**
  * @typedef {{
  *   op: 'add' | 'remove' | 'replace' | 'copy' | 'move' | 'test',
  *   path: string,

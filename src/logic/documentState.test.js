@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { times } from 'lodash-es'
+import { flatMap, times } from 'lodash-es'
 import {
   ARRAY_SECTION_SIZE,
   DEFAULT_VISIBLE_SECTIONS,
@@ -11,11 +11,12 @@ import {
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { isObject } from '../utils/typeUtils.js'
 import {
+  CARET_POSITION,
   collapseSinglePath,
   createState,
   documentStatePatch,
   expandSection,
-  expandSinglePath,
+  expandSinglePath, getVisibleCaretPositions,
   getVisiblePaths,
   isLastChild,
   syncKeys,
@@ -100,47 +101,47 @@ describe('documentState', () => {
     }
 
     const state = syncState(doc, undefined, [], path => false)
-    assert.deepStrictEqual(getVisiblePaths(doc, state).map(compileJSONPointer), [
-      ''
+    assert.deepStrictEqual(getVisiblePaths(doc, state), [
+      []
     ])
 
     const state0 = syncState(doc, undefined, [], path => path.length <= 0)
-    assert.deepStrictEqual(getVisiblePaths(doc, state0).map(compileJSONPointer), [
-      '',
-      '/array',
-      '/object',
-      '/value'
+    assert.deepStrictEqual(getVisiblePaths(doc, state0), [
+      [],
+      ['array'],
+      ['object'],
+      ['value']
     ])
 
     const state1 = syncState(doc, undefined, [], path => path.length <= 1)
-    assert.deepStrictEqual(getVisiblePaths(doc, state1).map(compileJSONPointer), [
-      '',
-      '/array',
-      '/array/0',
-      '/array/1',
-      '/array/2',
-      '/object',
-      '/object/a',
-      '/object/b',
-      '/value'
+    assert.deepStrictEqual(getVisiblePaths(doc, state1), [
+      [],
+      ['array'],
+      ['array', 0],
+      ['array', 1],
+      ['array', 2],
+      ['object'],
+      ['object', 'a'],
+      ['object', 'b'],
+      ['value']
     ])
 
     const state2 = syncState(doc, undefined, [], path => path.length <= 2)
-    assert.deepStrictEqual(getVisiblePaths(doc, state2).map(compileJSONPointer), [
-      '',
-      '/array',
-      '/array/0',
-      '/array/1',
-      '/array/2',
-      '/array/2/c',
-      '/object',
-      '/object/a',
-      '/object/b',
-      '/value'
+    assert.deepStrictEqual(getVisiblePaths(doc, state2), [
+      [],
+      ['array'],
+      ['array', 0],
+      ['array', 1],
+      ['array', 2],
+      ['array', 2, 'c'],
+      ['object'],
+      ['object', 'a'],
+      ['object', 'b'],
+      ['value']
     ])
   })
 
-  it('get all expanded paths should recon with visible sections in an array', () => {
+  it('getVisiblePaths should recon with visible sections in an array', () => {
     const count = 5 * ARRAY_SECTION_SIZE
     const doc = {
       array: times(count, (index) => `item ${index}`)
@@ -148,22 +149,166 @@ describe('documentState', () => {
 
     // by default, should have a visible section from 0-100 only (so 100-500 is invisible)
     const state1 = syncState(doc, undefined, [], path => path.length <= 1)
-    assert.deepStrictEqual(getVisiblePaths(doc, state1).map(compileJSONPointer), [
-      '',
-      '/array',
-      ...times(ARRAY_SECTION_SIZE, (index) => `/array/${index}`)
+    assert.deepStrictEqual(getVisiblePaths(doc, state1), [
+      [],
+      ['array'],
+      ...times(ARRAY_SECTION_SIZE, (index) => ['array', index])
     ])
 
     // create a visible section from 200-300 (in addition to the visible section 0-100)
     const start = 200
     const end = 300
     const state2 = expandSection(doc, state1, ['array'], { start, end })
-    assert.deepStrictEqual(getVisiblePaths(doc, state2).map(compileJSONPointer), [
-      '',
-      '/array',
-      ...times(ARRAY_SECTION_SIZE, (index) => `/array/${index}`),
-      ...times((end - start), (index) => `/array/${index + start}`)
+    assert.deepStrictEqual(getVisiblePaths(doc, state2), [
+      [],
+      ['array'],
+      ...times(ARRAY_SECTION_SIZE, (index) => ['array', index]),
+      ...times((end - start), (index) => ['array', index + start])
     ])
+  })
+
+  it('should get all visible caret positions', () => {
+    const doc = {
+      array: [1, 2, { c: 6 }],
+      object: { a: 4, b: 5 },
+      value: 'hello'
+    }
+
+    const state = syncState(doc, undefined, [], path => false)
+    assert.deepStrictEqual(getVisibleCaretPositions(doc, state), [
+      { path: [], type: CARET_POSITION.VALUE }
+    ])
+
+    const state0 = syncState(doc, undefined, [], path => path.length <= 0)
+    assert.deepStrictEqual(getVisibleCaretPositions(doc, state0), [
+      { path: [], type: CARET_POSITION.VALUE },
+      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: ['array'], type: CARET_POSITION.KEY },
+      { path: ['array'], type: CARET_POSITION.VALUE },
+      { path: ['object'], type: CARET_POSITION.BEFORE },
+      { path: ['object'], type: CARET_POSITION.KEY },
+      { path: ['object'], type: CARET_POSITION.VALUE },
+      { path: ['value'], type: CARET_POSITION.BEFORE },
+      { path: ['value'], type: CARET_POSITION.KEY },
+      { path: ['value'], type: CARET_POSITION.VALUE },
+      { path: [], type: CARET_POSITION.APPEND }
+    ])
+
+    const state1 = syncState(doc, undefined, [], path => path.length <= 1)
+    assert.deepStrictEqual(getVisibleCaretPositions(doc, state1), [
+      { path: [], type: CARET_POSITION.VALUE },
+      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: ['array'], type: CARET_POSITION.KEY },
+      { path: ['array'], type: CARET_POSITION.VALUE },
+      { path: ['array', 0], type: CARET_POSITION.BEFORE },
+      { path: ['array', 0], type: CARET_POSITION.VALUE },
+      { path: ['array', 1], type: CARET_POSITION.BEFORE },
+      { path: ['array', 1], type: CARET_POSITION.VALUE },
+      { path: ['array', 2], type: CARET_POSITION.BEFORE },
+      { path: ['array', 2], type: CARET_POSITION.VALUE },
+      { path: ['array'], type: CARET_POSITION.APPEND },
+      { path: ['object'], type: CARET_POSITION.BEFORE },
+      { path: ['object'], type: CARET_POSITION.KEY },
+      { path: ['object'], type: CARET_POSITION.VALUE },
+      { path: ['object', 'a'], type: CARET_POSITION.BEFORE },
+      { path: ['object', 'a'], type: CARET_POSITION.KEY },
+      { path: ['object', 'a'], type: CARET_POSITION.VALUE },
+      { path: ['object', 'b'], type: CARET_POSITION.BEFORE },
+      { path: ['object', 'b'], type: CARET_POSITION.KEY },
+      { path: ['object', 'b'], type: CARET_POSITION.VALUE },
+      { path: ['object'], type: CARET_POSITION.APPEND },
+      { path: ['value'], type: CARET_POSITION.BEFORE },
+      { path: ['value'], type: CARET_POSITION.KEY },
+      { path: ['value'], type: CARET_POSITION.VALUE },
+      { path: [], type: CARET_POSITION.APPEND }
+    ])
+
+    const state2 = syncState(doc, undefined, [], path => path.length <= 2)
+    assert.deepStrictEqual(getVisibleCaretPositions(doc, state2), [
+      { path: [], type: CARET_POSITION.VALUE },
+      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: ['array'], type: CARET_POSITION.KEY },
+      { path: ['array'], type: CARET_POSITION.VALUE },
+      { path: ['array', 0], type: CARET_POSITION.BEFORE },
+      { path: ['array', 0], type: CARET_POSITION.VALUE },
+      { path: ['array', 1], type: CARET_POSITION.BEFORE },
+      { path: ['array', 1], type: CARET_POSITION.VALUE },
+      { path: ['array', 2], type: CARET_POSITION.BEFORE },
+      { path: ['array', 2], type: CARET_POSITION.VALUE },
+      { path: ['array', 2, 'c'], type: CARET_POSITION.BEFORE },
+      { path: ['array', 2, 'c'], type: CARET_POSITION.KEY },
+      { path: ['array', 2, 'c'], type: CARET_POSITION.VALUE },
+      { path: ['array', 2], type: CARET_POSITION.APPEND },
+      { path: ['array'], type: CARET_POSITION.APPEND },
+      { path: ['object'], type: CARET_POSITION.BEFORE },
+      { path: ['object'], type: CARET_POSITION.KEY },
+      { path: ['object'], type: CARET_POSITION.VALUE },
+      { path: ['object', 'a'], type: CARET_POSITION.BEFORE },
+      { path: ['object', 'a'], type: CARET_POSITION.KEY },
+      { path: ['object', 'a'], type: CARET_POSITION.VALUE },
+      { path: ['object', 'b'], type: CARET_POSITION.BEFORE },
+      { path: ['object', 'b'], type: CARET_POSITION.KEY },
+      { path: ['object', 'b'], type: CARET_POSITION.VALUE },
+      { path: ['object'], type: CARET_POSITION.APPEND },
+      { path: ['value'], type: CARET_POSITION.BEFORE },
+      { path: ['value'], type: CARET_POSITION.KEY },
+      { path: ['value'], type: CARET_POSITION.VALUE },
+      { path: [], type: CARET_POSITION.APPEND }
+    ])
+  })
+
+  it('getVisibleCaretPositions should recon with visible sections in an array', () => {
+    const count = 5 * ARRAY_SECTION_SIZE
+    const doc = {
+      array: times(count, (index) => `item ${index}`)
+    }
+
+    // by default, should have a visible section from 0-100 only (so 100-500 is invisible)
+    const state1 = syncState(doc, undefined, [], path => path.length <= 1)
+    assert.deepStrictEqual(getVisibleCaretPositions(doc, state1), flatMap([
+      { path: [], type: CARET_POSITION.VALUE },
+      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: ['array'], type: CARET_POSITION.KEY },
+      { path: ['array'], type: CARET_POSITION.VALUE },
+
+      ...times(ARRAY_SECTION_SIZE, (index) => {
+        return [
+          { path: ['array', index], type: CARET_POSITION.BEFORE },
+          { path: ['array', index], type: CARET_POSITION.VALUE }
+        ]
+      }),
+
+      { path: ['array'], type: CARET_POSITION.APPEND },
+      { path: [], type: CARET_POSITION.APPEND }
+    ]))
+
+    // create a visible section from 200-300 (in addition to the visible section 0-100)
+    const start = 200
+    const end = 300
+    const state2 = expandSection(doc, state1, ['array'], { start, end })
+    assert.deepStrictEqual(getVisibleCaretPositions(doc, state2), flatMap([
+      { path: [], type: CARET_POSITION.VALUE },
+      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: ['array'], type: CARET_POSITION.KEY },
+      { path: ['array'], type: CARET_POSITION.VALUE },
+
+      ...times(ARRAY_SECTION_SIZE, (index) => {
+        return [
+          { path: ['array', index], type: CARET_POSITION.BEFORE },
+          { path: ['array', index], type: CARET_POSITION.VALUE }
+        ]
+      }),
+
+      ...times((end - start), (index) => {
+        return [
+          { path: ['array', index + start], type: CARET_POSITION.BEFORE },
+          { path: ['array', index + start], type: CARET_POSITION.VALUE }
+        ]
+      }),
+
+      { path: ['array'], type: CARET_POSITION.APPEND },
+      { path: [], type: CARET_POSITION.APPEND }
+    ]))
   })
 
   describe('createState', () => {
