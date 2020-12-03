@@ -312,20 +312,22 @@ export function getSelectionLeft (doc, state, selection, keepAnchorPath = false)
     }
   }
 
-  const parentPath = initial(selection.focusPath)
-  if ((selection.type === SELECTION_TYPE.VALUE || selection.type === SELECTION_TYPE.MULTI) &&
-    !Array.isArray(getIn(doc, parentPath))
-  ) {
-    return createSelection(doc, state, {
-      type: SELECTION_TYPE.KEY,
-      path: selection.focusPath
-    })
-  } else {
-    return createSelection(doc, state, {
-      type: SELECTION_TYPE.MULTI,
-      anchorPath: selection.focusPath,
-      focusPath: selection.focusPath
-    })
+  if ((selection.type === SELECTION_TYPE.VALUE || selection.type === SELECTION_TYPE.MULTI)) {
+    const parentPath = initial(selection.focusPath)
+    const parent = getIn(doc, parentPath)
+
+    if (!Array.isArray(parent)) {
+      return createSelection(doc, state, {
+        type: SELECTION_TYPE.KEY,
+        path: selection.focusPath
+      })
+    } else {
+      return createSelection(doc, state, {
+        type: SELECTION_TYPE.MULTI,
+        anchorPath: selection.focusPath,
+        focusPath: selection.focusPath
+      })
+    }
   }
 
   return null

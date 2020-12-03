@@ -182,7 +182,7 @@ describe('selection', () => {
       })
     })
 
-    it('should NOT move selection left when in an array', () => {
+    it('should selection array item as a whole when moving left', () => {
       const doc = [1, 2, 3]
       const state = syncState(doc, undefined, [], () => false)
 
@@ -191,7 +191,17 @@ describe('selection', () => {
         path: [1],
         anchorPath: [1],
         focusPath: [1]
-      }), null)
+      }), {
+        anchorPath: [1],
+        focusPath: [1],
+        paths: [
+          [1]
+        ],
+        pathsMap: {
+          '/1': true
+        },
+        type: 'multi'
+      })
     })
 
     it('should move selection left and keep anchor path', () => {
