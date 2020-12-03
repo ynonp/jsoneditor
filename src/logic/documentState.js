@@ -1,5 +1,6 @@
 import createDebug from 'debug'
-import { initial, isEmpty, isEqual, isNumber, last, uniqueId } from 'lodash-es'
+import { immutableJSONPatch } from 'immutable-json-patch'
+import { initial, isEqual, isNumber, last, uniqueId } from 'lodash-es'
 import {
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
@@ -14,9 +15,8 @@ import {
   setIn,
   updateIn
 } from '../utils/immutabilityHelpers.js'
-import { immutableJSONPatch } from 'immutable-json-patch'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
-import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
+import { isObject } from '../utils/typeUtils.js'
 import {
   inVisibleSection,
   mergeSections,
@@ -566,10 +566,10 @@ export function getVisiblePaths (doc, state) {
 }
 
 export const CARET_POSITION = {
-  BEFORE: 'before',
+  INSIDE: 'inside',
+  AFTER: 'after',
   KEY: 'key',
-  VALUE: 'value',
-  APPEND: 'append'
+  VALUE: 'value'
 }
 
 /**
@@ -587,24 +587,24 @@ export function getVisibleCaretPositions (doc, state) {
     paths.push({ path, type: CARET_POSITION.VALUE })
 
     if (doc && state && state[STATE_EXPANDED] === true) {
+      paths.push({ path, type: CARET_POSITION.INSIDE })
+
       if (Array.isArray(doc)) {
         forEachVisibleIndex(doc, state, index => {
           const itemPath = path.concat(index)
-          paths.push({ path: itemPath, type: CARET_POSITION.BEFORE })
 
           _recurse(doc[index], state[index], itemPath)
+          paths.push({ path: itemPath, type: CARET_POSITION.AFTER })
         })
       } else { // Object
         forEachKey(state, key => {
           const propertyPath = path.concat(key)
-          paths.push({ path: propertyPath, type: CARET_POSITION.BEFORE })
-          paths.push({ path: propertyPath, type: CARET_POSITION.KEY })
 
+          paths.push({ path: propertyPath, type: CARET_POSITION.KEY })
           _recurse(doc[key], state[key], propertyPath)
+          paths.push({ path: propertyPath, type: CARET_POSITION.AFTER })
         })
       }
-
-      paths.push({ path, type: CARET_POSITION.APPEND })
     }
   }
 
@@ -641,80 +641,16 @@ export function getPreviousVisiblePath (doc, state, path) {
  * @param {JSON} doc
  * @param {JSON} state
  * @param {Path} path
- * @param {boolean} [after=false]
  * @return {Path | null} path
  */
 // TODO: write tests for getNextVisiblePath
-export function getNextVisiblePath (doc, state, path, after = false) {
-  const preprocessedState = (after && isObjectOrArray(getIn(doc, path)))
-    ? setIn(state, path.concat(STATE_EXPANDED), false, true)
-    : state
-
-  const visiblePaths = getVisiblePaths(doc, preprocessedState)
+export function getNextVisiblePath (doc, state, path) {
+  const visiblePaths = getVisiblePaths(doc, state)
   const visiblePathPointers = visiblePaths.map(compileJSONPointer)
   const index = visiblePathPointers.indexOf(compileJSONPointer(path))
 
   if (index !== -1 && index < visiblePaths.length - 1) {
     return visiblePaths[index + 1]
-  }
-
-  return null
-}
-
-/**
- * Test whether the given path is the last property or array of an object or array.
- * @param {JSON} doc
- * @param {JSON} state
- * @param {Path} path
- * @return {boolean}
- */
-// TODO: write tests for isLastChild
-export function isLastChild (doc, state, path) {
-  if (isEmpty(path)) {
-    // root selected
-    return false
-  }
-
-  const parentPath = initial(path)
-  const parent = getIn(doc, parentPath)
-
-  if (Array.isArray(parent)) {
-    const index = last(path)
-    return (index === parent.length - 1)
-  } else if (isObject(parent)) {
-    // note that when the path is not expanded in state, STATE_KEYS does not exist.
-    // in that case we temporarily create state for it
-    const key = last(path)
-    const keys = getKeys(state, parentPath) || createState(parent)[STATE_KEYS]
-    return (key === last(keys))
-  } else {
-    // this cannot occur in practice
-    return false
-  }
-}
-
-/**
- * Get the path of the last child of a parent
- * @param {JSON} doc
- * @param {JSON} state
- * @param {Path} parentPath
- * @return {Path | null}
- */
-// TODO: write unit tests
-export function getLastChildPath (doc, state, parentPath) {
-  const parent = getIn(doc, parentPath)
-
-  if (Array.isArray(parent)) {
-    if (!isEmpty(parent)) {
-      const index = parent.length - 1
-      return parentPath.concat([index])
-    }
-  } else if (isObject(parent)) { // object
-    const keys = getKeys(state, parentPath)
-    if (!isEmpty(keys)) {
-      const key = last(keys)
-      return parentPath.concat([key])
-    }
   }
 
   return null

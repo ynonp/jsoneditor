@@ -26,7 +26,7 @@
  */
 
 /**
- * @typedef {'before' | 'key' | 'value' | 'append'} CaretType
+ * @typedef {'after' | 'key' | 'value' | 'append'} CaretType
  */
 
 /**
@@ -84,11 +84,11 @@
  */
 
 /**
- * @typedef {{type: 'before', path: Path, anchorPath: Path, focusPath: Path}} BeforeSelection
+ * @typedef {{type: 'after', path: Path, anchorPath: Path, focusPath: Path}} AfterSelection
  */
 
 /**
- * @typedef {{type: 'append', path: Path, anchorPath: Path, focusPath: Path}} AppendSelection
+ * @typedef {{type: 'inside', path: Path, anchorPath: Path, focusPath: Path}} InsideSelection
  */
 
 /**
@@ -100,15 +100,15 @@
  */
 
 /**
- * @typedef {MultiSelection | BeforeSelection | AppendSelection | KeySelection | ValueSelection} Selection
+ * @typedef {MultiSelection | AfterSelection | InsideSelection | KeySelection | ValueSelection} Selection
  */
 
 /**
- * @typedef {{type: 'before', path: Path}} BeforeSelectionSchema
+ * @typedef {{type: 'after', path: Path}} AfterSelectionSchema
  */
 
 /**
- * @typedef {{type: 'append', path: Path}} AppendSelectionSchema
+ * @typedef {{type: 'inside', path: Path}} InsideSelectionSchema
  */
 
 /**
@@ -124,7 +124,7 @@
  */
 
 /**
- * @typedef {MultiSelectionSchema  | BeforeSelectionSchema | AppendSelectionSchema | KeySelectionSchema | ValueSelectionSchema} SelectionSchema
+ * @typedef {MultiSelectionSchema  | AfterSelectionSchema | InsideSelectionSchema | KeySelectionSchema | ValueSelectionSchema} SelectionSchema
  */
 
 /**

@@ -18,7 +18,6 @@ import {
   expandSinglePath,
   getVisibleCaretPositions,
   getVisiblePaths,
-  isLastChild,
   syncKeys,
   syncState
 } from './documentState.js'
@@ -182,78 +181,78 @@ describe('documentState', () => {
     const state0 = syncState(doc, undefined, [], path => path.length <= 0)
     assert.deepStrictEqual(getVisibleCaretPositions(doc, state0), [
       { path: [], type: CARET_POSITION.VALUE },
-      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: [], type: CARET_POSITION.INSIDE },
       { path: ['array'], type: CARET_POSITION.KEY },
       { path: ['array'], type: CARET_POSITION.VALUE },
-      { path: ['object'], type: CARET_POSITION.BEFORE },
+      { path: ['array'], type: CARET_POSITION.AFTER },
       { path: ['object'], type: CARET_POSITION.KEY },
       { path: ['object'], type: CARET_POSITION.VALUE },
-      { path: ['value'], type: CARET_POSITION.BEFORE },
+      { path: ['object'], type: CARET_POSITION.AFTER },
       { path: ['value'], type: CARET_POSITION.KEY },
       { path: ['value'], type: CARET_POSITION.VALUE },
-      { path: [], type: CARET_POSITION.APPEND }
+      { path: ['value'], type: CARET_POSITION.AFTER }
     ])
 
     const state1 = syncState(doc, undefined, [], path => path.length <= 1)
     assert.deepStrictEqual(getVisibleCaretPositions(doc, state1), [
       { path: [], type: CARET_POSITION.VALUE },
-      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: [], type: CARET_POSITION.INSIDE },
       { path: ['array'], type: CARET_POSITION.KEY },
       { path: ['array'], type: CARET_POSITION.VALUE },
-      { path: ['array', 0], type: CARET_POSITION.BEFORE },
+      { path: ['array'], type: CARET_POSITION.INSIDE },
       { path: ['array', 0], type: CARET_POSITION.VALUE },
-      { path: ['array', 1], type: CARET_POSITION.BEFORE },
+      { path: ['array', 0], type: CARET_POSITION.AFTER },
       { path: ['array', 1], type: CARET_POSITION.VALUE },
-      { path: ['array', 2], type: CARET_POSITION.BEFORE },
+      { path: ['array', 1], type: CARET_POSITION.AFTER },
       { path: ['array', 2], type: CARET_POSITION.VALUE },
-      { path: ['array'], type: CARET_POSITION.APPEND },
-      { path: ['object'], type: CARET_POSITION.BEFORE },
+      { path: ['array', 2], type: CARET_POSITION.AFTER },
+      { path: ['array'], type: CARET_POSITION.AFTER },
       { path: ['object'], type: CARET_POSITION.KEY },
       { path: ['object'], type: CARET_POSITION.VALUE },
-      { path: ['object', 'a'], type: CARET_POSITION.BEFORE },
+      { path: ['object'], type: CARET_POSITION.INSIDE },
       { path: ['object', 'a'], type: CARET_POSITION.KEY },
       { path: ['object', 'a'], type: CARET_POSITION.VALUE },
-      { path: ['object', 'b'], type: CARET_POSITION.BEFORE },
+      { path: ['object', 'a'], type: CARET_POSITION.AFTER },
       { path: ['object', 'b'], type: CARET_POSITION.KEY },
       { path: ['object', 'b'], type: CARET_POSITION.VALUE },
-      { path: ['object'], type: CARET_POSITION.APPEND },
-      { path: ['value'], type: CARET_POSITION.BEFORE },
+      { path: ['object', 'b'], type: CARET_POSITION.AFTER },
+      { path: ['object'], type: CARET_POSITION.AFTER },
       { path: ['value'], type: CARET_POSITION.KEY },
       { path: ['value'], type: CARET_POSITION.VALUE },
-      { path: [], type: CARET_POSITION.APPEND }
+      { path: ['value'], type: CARET_POSITION.AFTER }
     ])
 
     const state2 = syncState(doc, undefined, [], path => path.length <= 2)
     assert.deepStrictEqual(getVisibleCaretPositions(doc, state2), [
       { path: [], type: CARET_POSITION.VALUE },
-      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: [], type: CARET_POSITION.INSIDE },
       { path: ['array'], type: CARET_POSITION.KEY },
       { path: ['array'], type: CARET_POSITION.VALUE },
-      { path: ['array', 0], type: CARET_POSITION.BEFORE },
+      { path: ['array'], type: CARET_POSITION.INSIDE },
       { path: ['array', 0], type: CARET_POSITION.VALUE },
-      { path: ['array', 1], type: CARET_POSITION.BEFORE },
+      { path: ['array', 0], type: CARET_POSITION.AFTER },
       { path: ['array', 1], type: CARET_POSITION.VALUE },
-      { path: ['array', 2], type: CARET_POSITION.BEFORE },
+      { path: ['array', 1], type: CARET_POSITION.AFTER },
       { path: ['array', 2], type: CARET_POSITION.VALUE },
-      { path: ['array', 2, 'c'], type: CARET_POSITION.BEFORE },
+      { path: ['array', 2], type: CARET_POSITION.INSIDE },
       { path: ['array', 2, 'c'], type: CARET_POSITION.KEY },
       { path: ['array', 2, 'c'], type: CARET_POSITION.VALUE },
-      { path: ['array', 2], type: CARET_POSITION.APPEND },
-      { path: ['array'], type: CARET_POSITION.APPEND },
-      { path: ['object'], type: CARET_POSITION.BEFORE },
+      { path: ['array', 2, 'c'], type: CARET_POSITION.AFTER },
+      { path: ['array', 2], type: CARET_POSITION.AFTER },
+      { path: ['array'], type: CARET_POSITION.AFTER },
       { path: ['object'], type: CARET_POSITION.KEY },
       { path: ['object'], type: CARET_POSITION.VALUE },
-      { path: ['object', 'a'], type: CARET_POSITION.BEFORE },
+      { path: ['object'], type: CARET_POSITION.INSIDE },
       { path: ['object', 'a'], type: CARET_POSITION.KEY },
       { path: ['object', 'a'], type: CARET_POSITION.VALUE },
-      { path: ['object', 'b'], type: CARET_POSITION.BEFORE },
+      { path: ['object', 'a'], type: CARET_POSITION.AFTER },
       { path: ['object', 'b'], type: CARET_POSITION.KEY },
       { path: ['object', 'b'], type: CARET_POSITION.VALUE },
-      { path: ['object'], type: CARET_POSITION.APPEND },
-      { path: ['value'], type: CARET_POSITION.BEFORE },
+      { path: ['object', 'b'], type: CARET_POSITION.AFTER },
+      { path: ['object'], type: CARET_POSITION.AFTER },
       { path: ['value'], type: CARET_POSITION.KEY },
       { path: ['value'], type: CARET_POSITION.VALUE },
-      { path: [], type: CARET_POSITION.APPEND }
+      { path: ['value'], type: CARET_POSITION.AFTER }
     ])
   })
 
@@ -267,19 +266,20 @@ describe('documentState', () => {
     const state1 = syncState(doc, undefined, [], path => path.length <= 1)
     assert.deepStrictEqual(getVisibleCaretPositions(doc, state1), flatMap([
       { path: [], type: CARET_POSITION.VALUE },
-      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: [], type: CARET_POSITION.INSIDE },
+
       { path: ['array'], type: CARET_POSITION.KEY },
       { path: ['array'], type: CARET_POSITION.VALUE },
+      { path: ['array'], type: CARET_POSITION.INSIDE },
 
       ...times(ARRAY_SECTION_SIZE, (index) => {
         return [
-          { path: ['array', index], type: CARET_POSITION.BEFORE },
-          { path: ['array', index], type: CARET_POSITION.VALUE }
+          { path: ['array', index], type: CARET_POSITION.VALUE },
+          { path: ['array', index], type: CARET_POSITION.AFTER }
         ]
       }),
 
-      { path: ['array'], type: CARET_POSITION.APPEND },
-      { path: [], type: CARET_POSITION.APPEND }
+      { path: ['array'], type: CARET_POSITION.AFTER }
     ]))
 
     // create a visible section from 200-300 (in addition to the visible section 0-100)
@@ -288,26 +288,26 @@ describe('documentState', () => {
     const state2 = expandSection(doc, state1, ['array'], { start, end })
     assert.deepStrictEqual(getVisibleCaretPositions(doc, state2), flatMap([
       { path: [], type: CARET_POSITION.VALUE },
-      { path: ['array'], type: CARET_POSITION.BEFORE },
+      { path: [], type: CARET_POSITION.INSIDE },
+
       { path: ['array'], type: CARET_POSITION.KEY },
       { path: ['array'], type: CARET_POSITION.VALUE },
+      { path: ['array'], type: CARET_POSITION.INSIDE },
 
       ...times(ARRAY_SECTION_SIZE, (index) => {
         return [
-          { path: ['array', index], type: CARET_POSITION.BEFORE },
-          { path: ['array', index], type: CARET_POSITION.VALUE }
+          { path: ['array', index], type: CARET_POSITION.VALUE },
+          { path: ['array', index], type: CARET_POSITION.AFTER }
         ]
       }),
 
       ...times((end - start), (index) => {
         return [
-          { path: ['array', index + start], type: CARET_POSITION.BEFORE },
-          { path: ['array', index + start], type: CARET_POSITION.VALUE }
+          { path: ['array', index + start], type: CARET_POSITION.VALUE },
+          { path: ['array', index + start], type: CARET_POSITION.AFTER }
         ]
       }),
-
-      { path: ['array'], type: CARET_POSITION.APPEND },
-      { path: [], type: CARET_POSITION.APPEND }
+      { path: ['array'], type: CARET_POSITION.AFTER }
     ]))
   })
 
@@ -467,31 +467,6 @@ describe('documentState', () => {
 
       const collapsedState = collapseSinglePath(doc, state, [])
       assert.deepStrictEqual(collapsedState, state)
-    })
-  })
-
-  describe('isLastChild', () => {
-    const doc = {
-      array: [1, 2, { c: 6 }],
-      object: { a: 4, b: 5 },
-      value: 'hello'
-    }
-    const state = syncState(doc, undefined, [], () => false)
-
-    it('should check whether root object is last child', () => {
-      assert.strictEqual(isLastChild(doc, state, []), false)
-    })
-
-    it('should check whether an object key is the last child', () => {
-      assert.strictEqual(isLastChild(doc, state, ['object']), false)
-      assert.strictEqual(isLastChild(doc, state, ['value']), true)
-      assert.strictEqual(isLastChild(doc, state, ['object', 'a']), false)
-      assert.strictEqual(isLastChild(doc, state, ['object', 'b']), true)
-    })
-
-    it('should check whether an array item is the last child', () => {
-      assert.strictEqual(isLastChild(doc, state, ['array', 1]), false)
-      assert.strictEqual(isLastChild(doc, state, ['array', 2]), true)
     })
   })
 

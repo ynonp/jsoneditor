@@ -2,7 +2,7 @@
 
 <script>
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
-  import { first, isEmpty, isEqual } from 'lodash-es'
+  import { isEqual } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import {
     INDENTATION_WIDTH,
@@ -50,11 +50,11 @@
     ? selection.pathsMap[compileJSONPointer(path)] === true
     : false
 
-  $: selectedBefore = (selection && selection.type === SELECTION_TYPE.BEFORE)
+  $: selectedAfter = (selection && selection.type === SELECTION_TYPE.AFTER)
     ? isEqual(selection.path, path)
     : false
 
-  $: selectedAppend = (selection && selection.type === SELECTION_TYPE.APPEND)
+  $: selectedInside = (selection && selection.type === SELECTION_TYPE.INSIDE)
     ? isEqual(selection.path, path)
     : false
 
@@ -184,52 +184,11 @@
   }
 
   function handleInsertInside () {
-    if (type === 'array') {
-      if (value.length > 0) {
-        // insert before the first item
-        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([0]) })
-      } else {
-        // empty array -> append to the array
-        onSelect({ type: SELECTION_TYPE.APPEND, path })
-      }
-    } else {
-      const keys = state[STATE_KEYS]
-      if (!isEmpty(keys)) {
-        // insert before the first key
-        const firstKey = first(keys)
-        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat([firstKey]) })
-      } else {
-        // empty object -> append to the object
-        onSelect({ type: SELECTION_TYPE.APPEND, path })
-      }
-    }
+    onSelect({ type: SELECTION_TYPE.INSIDE, path })
   }
 
-  function handleInsertAfter (keyOrIndex) {
-    if (type === 'array') {
-      // +1 because we want to insert *after* the current item,
-      // which is *before* the next item
-
-      if (keyOrIndex < value.length - 1) {
-        onSelect({
-          type: SELECTION_TYPE.BEFORE,
-          path: path.concat(keyOrIndex + 1)
-        })
-      } else {
-        onSelect({ type: SELECTION_TYPE.APPEND, path })
-      }
-    } else {
-      // find the next key, so we can insert before this next key
-      const keys = state[STATE_KEYS]
-      const index = keys.indexOf(keyOrIndex)
-      const nextKey = keys[index + 1]
-
-      if (typeof nextKey === 'string') {
-        onSelect({ type: SELECTION_TYPE.BEFORE, path: path.concat(nextKey) })
-      } else {
-        onSelect({ type: SELECTION_TYPE.APPEND, path })
-      }
-    }
+  function handleInsertAfter () {
+    onSelect({ type: SELECTION_TYPE.AFTER, path })
   }
 
   $: indentationStyle = getIndentationStyle(path.length)
@@ -248,14 +207,6 @@
   on:mouseover={handleMouseOver}
   on:mouseout={handleMouseOut}
 >
-  {#if selectedBefore}
-    <div
-      class="insert-area before"
-      data-type="insert-area"
-      style={indentationStyle}
-      title={INSERT_EXPLANATION}
-    ></div>
-  {/if}
   {#if type === 'array'}
     <div class='header-outer' style={indentationStyle} >
       <div class='header'>
@@ -290,7 +241,7 @@
         <div
           class="insert-button-area inside"
           data-type="insert-button-area"
-          on:mousedown|preventDefault={handleInsertInside}
+          on:mousedown={handleInsertInside}
         >
           <button class="insert-button">&#8617;</button>
         </div>
@@ -298,11 +249,25 @@
         {#if validationError}
           <ValidationError validationError={validationError} onExpand={handleExpand} />
         {/if}
-        <slot name="insert-after" />
+        <div
+          class="insert-button-area after"
+          data-type="insert-button-area"
+          on:mousedown={handleInsertAfter}
+        >
+          <button class="insert-button">&#8617;</button>
+        </div>
       {/if}
     </div>
     {#if expanded}
       <div class="items">
+        {#if selectedInside}
+          <div
+            class="insert-area inside"
+            data-type="insert-area"
+            style={getIndentationStyle(path.length + 1)}
+            title={INSERT_EXPLANATION}
+          ></div>
+        {/if}
         {#each visibleSections as visibleSection, sectionIndex (sectionIndex)}
           {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (state[visibleSection.start + itemIndex][STATE_ID])}
             <svelte:self
@@ -319,15 +284,7 @@
               selection={selection}
             >
               <div slot="identifier" class="identifier">
-               <div class="index" data-type="selectable-item">{visibleSection.start + itemIndex}</div
-               >
-              </div><div
-                slot="insert-after"
-                class="insert-button-area after"
-                data-type="insert-button-area"
-                on:mousedown|preventDefault={() => handleInsertAfter(visibleSection.start + itemIndex)}
-              >
-                <button class="insert-button">&#8617;</button>
+                <div class="index" data-type="selectable-item">{visibleSection.start + itemIndex}</div>
               </div>
             </svelte:self>
           {/each}
@@ -341,20 +298,18 @@
             />
           {/if}
         {/each}
-        {#if selectedAppend}
-          <div
-            class="insert-area append"
-            data-type="insert-area"
-            style={getIndentationStyle(path.length + 1)}
-            title={INSERT_EXPLANATION}
-          ></div>
-        {/if}
       </div>
       <div class="footer-outer" style={indentationStyle} >
         <div data-type="selectable-value" class="footer">
           <span class="bracket">]</span>
         </div>
-        <slot name="insert-after" />
+        <div
+          class="insert-button-area after"
+          data-type="insert-button-area"
+          on:mousedown={handleInsertAfter}
+        >
+          <button class="insert-button">&#8617;</button>
+        </div>
       </div>
     {/if}
   {:else if type === 'object'}
@@ -391,7 +346,7 @@
         <div
           class="insert-button-area inside"
           data-type="insert-button-area"
-          on:mousedown|preventDefault={handleInsertInside}
+          on:mousedown={handleInsertInside}
         >
           <button class="insert-button">&#8617;</button>
         </div>
@@ -399,11 +354,25 @@
         {#if validationError}
           <ValidationError validationError={validationError} onExpand={handleExpand} />
         {/if}
-        <slot name="insert-after" />
+        <div
+          class="insert-button-area after"
+          data-type="insert-button-area"
+          on:mousedown={handleInsertAfter}
+        >
+          <button class="insert-button">&#8617;</button>
+        </div>
       {/if}
     </div>
     {#if expanded}
       <div class="props">
+        {#if selectedInside}
+          <div
+            class="insert-area inside"
+            data-type="insert-area"
+            style={getIndentationStyle(path.length + 1)}
+            title={INSERT_EXPLANATION}
+          ></div>
+        {/if}
         {#each keys as key (state[key][STATE_ID])}
           <svelte:self
             value={value[key]}
@@ -427,30 +396,21 @@
                 onSelect={onSelect}
                 searchResult={searchResult}
               />
-            </div><div
-              slot="insert-after"
-              class="insert-button-area after"
-              data-type="insert-button-area"
-              on:mousedown|preventDefault={() => handleInsertAfter(key)}
-            >
-              <button class="insert-button">&#8617;</button>
             </div>
           </svelte:self>
         {/each}
-        {#if selectedAppend}
-          <div
-            class="insert-area append"
-            data-type="insert-area"
-            style={getIndentationStyle(path.length + 1)}
-            title={INSERT_EXPLANATION}
-          ></div>
-        {/if}
       </div>
       <div class="footer-outer" style={indentationStyle} >
         <div data-type="selectable-value" class="footer">
           <div class="bracket">&rbrace;</div>
         </div>
-        <slot name="insert-after" />
+        <div
+          class="insert-button-area after"
+          data-type="insert-button-area"
+          on:mousedown={handleInsertAfter}
+        >
+          <button class="insert-button">&#8617;</button>
+        </div>
       </div>
     {/if}
   {:else}
@@ -470,8 +430,22 @@
       {#if validationError}
         <ValidationError validationError={validationError} onExpand={handleExpand} />
       {/if}
-      <slot name="insert-after" />
+      <div
+        class="insert-button-area after"
+        data-type="insert-button-area"
+        on:mousedown={handleInsertAfter}
+      >
+        <button class="insert-button">&#8617;</button>
+      </div>
     </div>
+  {/if}
+  {#if selectedAfter}
+    <div
+      class="insert-area after"
+      data-type="insert-area"
+      style={indentationStyle}
+      title={INSERT_EXPLANATION}
+    ></div>
   {/if}
 </div>
 

@@ -1,20 +1,18 @@
 import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
-import { STATE_KEYS } from '../constants.js'
-import { getIn } from '../utils/immutabilityHelpers.js'
+import { STATE_EXPANDED, STATE_KEYS } from '../constants.js'
+import { getIn, setIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
-import { isObject } from '../utils/typeUtils.js'
+import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import {
-  getLastChildPath,
   getNextVisiblePath,
   getPreviousVisiblePath,
   getVisibleCaretPositions,
-  getVisiblePaths,
-  isExpanded
+  getVisiblePaths
 } from './documentState.js'
 
 export const SELECTION_TYPE = {
-  BEFORE: 'before',
-  APPEND: 'append',
+  AFTER: 'after',
+  INSIDE: 'inside',
   KEY: 'key',
   VALUE: 'value',
   MULTI: 'multi'
@@ -86,9 +84,9 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
  * @return {Path} Returns parent path
  */
 export function getParentPath (selection) {
-  if (selection.type === SELECTION_TYPE.APPEND) {
+  if (selection.type === SELECTION_TYPE.INSIDE) {
     return selection.path
-  } else if (selection.path) { // key, value, before
+  } else if (selection.path) { // key, value, after
     return initial(selection.path)
   } else if (selection.paths) { // multi
     const firstPath = first(selection.paths)
@@ -105,7 +103,7 @@ export function getParentPath (selection) {
 export function isSelectionInsidePath (selection, path) {
   return (
     pathStartsWith(selection.focusPath, path) &&
-    ((selection.focusPath.length > path.length) || selection.type === SELECTION_TYPE.APPEND)
+    ((selection.focusPath.length > path.length) || selection.type === SELECTION_TYPE.INSIDE)
   )
 }
 
@@ -118,11 +116,9 @@ export function isSelectionInsidePath (selection, path) {
  */
 // TODO: write unit tests
 export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
-  // TODO: deduplicate this function from getSelectionDown
-
-  const previousPath = (selection.type === SELECTION_TYPE.APPEND && isExpanded(state, selection.focusPath))
-    ? getLastChildPath(doc, state, selection.focusPath)
-    : getPreviousVisiblePath(doc, state, selection.focusPath)
+  const previousPath = getPreviousVisiblePath(doc, state, selection.focusPath)
+  const anchorPath = previousPath
+  const focusPath = previousPath
 
   if (previousPath === null) {
     return null
@@ -130,15 +126,20 @@ export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
 
   if (keepAnchorPath) {
     // multi selection
+    if (selection.type === SELECTION_TYPE.AFTER || selection.type === SELECTION_TYPE.INSIDE) {
+      return createSelection(doc, state, {
+        type: SELECTION_TYPE.MULTI,
+        anchorPath: selection.anchorPath,
+        focusPath: selection.anchorPath
+      })
+    }
+
     return createSelection(doc, state, {
       type: SELECTION_TYPE.MULTI,
       anchorPath: selection.anchorPath,
-      focusPath: previousPath
+      focusPath
     })
   }
-
-  const anchorPath = previousPath
-  const focusPath = previousPath
 
   if (selection.type === SELECTION_TYPE.KEY) {
     const parentPath = initial(previousPath)
@@ -153,28 +154,6 @@ export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
 
   if (selection.type === SELECTION_TYPE.VALUE) {
     return { type: SELECTION_TYPE.VALUE, path: previousPath, anchorPath, focusPath }
-  }
-
-  if (selection.type === SELECTION_TYPE.APPEND) {
-    // TODO: deduplicate this logic from getSelectionLeft
-    const path = selection.focusPath
-
-    if (isExpanded(state, path)) {
-      // select the last child of the value (which is an object or array)
-      const lastChildPath = getLastChildPath(doc, state, path)
-      if (lastChildPath) {
-        return createSelection(doc, state, {
-          type: SELECTION_TYPE.VALUE,
-          path: lastChildPath
-        })
-      }
-    } else {
-      // select the value itself (object or array)
-      return createSelection(doc, state, {
-        type: SELECTION_TYPE.VALUE,
-        path
-      })
-    }
   }
 
   // multi selection with one entry
@@ -194,32 +173,50 @@ export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
  */
 // TODO: write unit tests
 export function getSelectionDown (doc, state, selection, keepAnchorPath = false) {
-  // TODO: deduplicate this function from getSelectionUp
-
-  if (keepAnchorPath) {
-    // multi selection
-
-    // if the focusPath is an Array or object, we must not step into it but
-    // over it, so we use after = true
-    const nextPath = getNextVisiblePath(doc, state, selection.focusPath, true)
-
-    if (nextPath === null) {
-      return null
-    }
-
-    return createSelection(doc, state, {
-      type: SELECTION_TYPE.MULTI,
-      anchorPath: selection.anchorPath,
-      focusPath: nextPath
-    })
-  }
-
   const nextPath = getNextVisiblePath(doc, state, selection.focusPath)
   const anchorPath = nextPath
   const focusPath = nextPath
 
   if (nextPath === null) {
     return null
+  }
+
+  if (keepAnchorPath) {
+    // multi selection
+
+    // if the focusPath is an Array or object, we must not step into it but
+    // over it, we pass state with this array/object collapsed
+    const collapsedState = isObjectOrArray(getIn(doc, selection.focusPath))
+      ? setIn(state, selection.focusPath.concat(STATE_EXPANDED), false, true)
+      : state
+
+    const nextPathAfter = getNextVisiblePath(doc, collapsedState, selection.focusPath)
+
+    if (nextPathAfter === null) {
+      return null
+    }
+
+    if (selection.type === SELECTION_TYPE.AFTER) {
+      return createSelection(doc, state, {
+        type: SELECTION_TYPE.MULTI,
+        anchorPath: nextPathAfter,
+        focusPath: nextPathAfter
+      })
+    }
+
+    if (selection.type === SELECTION_TYPE.INSIDE) {
+      return createSelection(doc, state, {
+        type: SELECTION_TYPE.MULTI,
+        anchorPath,
+        focusPath
+      })
+    }
+
+    return createSelection(doc, state, {
+      type: SELECTION_TYPE.MULTI,
+      anchorPath: selection.anchorPath,
+      focusPath: nextPathAfter
+    })
   }
 
   if (selection.type === SELECTION_TYPE.KEY) {
@@ -235,25 +232,6 @@ export function getSelectionDown (doc, state, selection, keepAnchorPath = false)
 
   if (selection.type === SELECTION_TYPE.VALUE) {
     return { type: SELECTION_TYPE.VALUE, path: nextPath, anchorPath, focusPath }
-  }
-
-  if (selection.type === SELECTION_TYPE.BEFORE) {
-    const path = selection.focusPath
-    return createSelection(doc, state, {
-      type: SELECTION_TYPE.MULTI,
-      anchorPath: path,
-      focusPath: path
-    })
-  }
-
-  if (selection.type === SELECTION_TYPE.APPEND) {
-    const nextPath = getNextVisiblePath(doc, state, selection.focusPath, true)
-    return {
-      type: SELECTION_TYPE.VALUE,
-      path: nextPath,
-      anchorPath: nextPath,
-      focusPath: nextPath
-    }
   }
 
   // multi selection with one entry
@@ -535,14 +513,14 @@ export function createSelection (doc, state, selectionSchema) {
       selection = getSelectionDown(doc, state, selection)
     }
     return selection
-  } else if (type === SELECTION_TYPE.BEFORE) {
+  } else if (type === SELECTION_TYPE.AFTER) {
     return {
       type,
       path,
       anchorPath: path,
       focusPath: path
     }
-  } else if (type === SELECTION_TYPE.APPEND) {
+  } else if (type === SELECTION_TYPE.INSIDE) {
     return {
       type,
       path,

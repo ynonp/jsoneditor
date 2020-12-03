@@ -51,7 +51,7 @@
   $: hasSelection = selection != null
   $: hasSelectionContents = selection != null && selection.type === SELECTION_TYPE.MULTI
   $: hasSelectionWithoutContents = (selection != null &&
-    (selection.type === SELECTION_TYPE.BEFORE || selection.type === SELECTION_TYPE.APPEND))
+    (selection.type === SELECTION_TYPE.AFTER || selection.type === SELECTION_TYPE.INSIDE))
   $: hasClipboardContents = selection != null
 
   function handleToggleSearch () {

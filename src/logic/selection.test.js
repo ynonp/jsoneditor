@@ -79,8 +79,8 @@ describe('selection', () => {
   it('should get parent path from a selection', () => {
     const path = ['a', 'b']
 
-    assert.deepStrictEqual(getParentPath({ type: SELECTION_TYPE.BEFORE, path, anchorPath: path, focusPath: path }), ['a'])
-    assert.deepStrictEqual(getParentPath({ type: SELECTION_TYPE.APPEND, path, anchorPath: path, focusPath: path }), ['a', 'b'])
+    assert.deepStrictEqual(getParentPath({ type: SELECTION_TYPE.AFTER, path, anchorPath: path, focusPath: path }), ['a'])
+    assert.deepStrictEqual(getParentPath({ type: SELECTION_TYPE.INSIDE, path, anchorPath: path, focusPath: path }), ['a', 'b'])
     assert.deepStrictEqual(getParentPath({
       type: SELECTION_TYPE.MULTI,
       anchorPath: ['a', 'b'],
@@ -116,8 +116,8 @@ describe('selection', () => {
     }), ['a'])
 
     const path = ['a', 'b']
-    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.BEFORE, path, anchorPath: path, focusPath: path }), path)
-    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.APPEND, path, anchorPath: path, focusPath: path }), path)
+    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.AFTER, path, anchorPath: path, focusPath: path }), path)
+    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.INSIDE, path, anchorPath: path, focusPath: path }), path)
     assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.KEY, path, anchorPath: path, focusPath: path }), path)
     assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.VALUE, path, anchorPath: path, focusPath: path }), path)
   })
@@ -146,39 +146,39 @@ describe('selection', () => {
 
       assert.deepStrictEqual(getSelectionLeft(doc, state, {
         type: SELECTION_TYPE.KEY,
-        path: ['path'],
-        anchorPath: ['path'],
-        focusPath: ['path']
+        path: ['path1'],
+        anchorPath: ['path1'],
+        focusPath: ['path1']
       }), {
-        type: SELECTION_TYPE.BEFORE,
+        type: SELECTION_TYPE.AFTER,
         path: ['path'],
         anchorPath: ['path'],
         focusPath: ['path']
       })
 
       assert.deepStrictEqual(getSelectionLeft(doc, state, {
-        type: SELECTION_TYPE.BEFORE,
+        type: SELECTION_TYPE.AFTER,
         path: ['path'],
         anchorPath: ['path'],
         focusPath: ['path']
       }), {
         type: SELECTION_TYPE.VALUE,
-        path: [],
-        anchorPath: [],
-        focusPath: [],
+        path: ['path'],
+        anchorPath: ['path'],
+        focusPath: ['path'],
         edit: false
       })
 
       assert.deepStrictEqual(getSelectionLeft(doc, state, {
-        type: SELECTION_TYPE.APPEND,
+        type: SELECTION_TYPE.INSIDE,
         path: [],
         anchorPath: [],
         focusPath: []
       }), {
         type: SELECTION_TYPE.VALUE,
-        path: ['path2'],
-        anchorPath: ['path2'],
-        focusPath: ['path2'],
+        path: [],
+        anchorPath: [],
+        focusPath: [],
         edit: false
       })
 
@@ -243,29 +243,29 @@ describe('selection', () => {
         edit: false
       })
 
-      assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.VALUE, path: ['path2'], anchorPath: ['path2'], focusPath: ['path2'] }), {
-        type: SELECTION_TYPE.APPEND,
+      assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.VALUE, path: [], anchorPath: [], focusPath: [] }), {
+        type: SELECTION_TYPE.INSIDE,
         path: [],
         anchorPath: [],
         focusPath: []
       })
 
       assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.VALUE, path: ['path'], anchorPath: ['path'], focusPath: ['path'] }), {
-        type: SELECTION_TYPE.BEFORE,
-        path: ['path1'],
-        anchorPath: ['path1'],
-        focusPath: ['path1']
-      })
-
-      assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.BEFORE, path: ['path'], anchorPath: ['path'], focusPath: ['path'] }), {
-        type: SELECTION_TYPE.KEY,
+        type: SELECTION_TYPE.AFTER,
         path: ['path'],
         anchorPath: ['path'],
-        focusPath: ['path'],
+        focusPath: ['path']
+      })
+
+      assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.AFTER, path: ['path'], anchorPath: ['path'], focusPath: ['path'] }), {
+        type: SELECTION_TYPE.KEY,
+        path: ['path1'],
+        anchorPath: ['path1'],
+        focusPath: ['path1'],
         edit: false
       })
 
-      assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.APPEND, path: ['path'], anchorPath: ['path'], focusPath: ['path'] }), null)
+      assert.deepStrictEqual(getSelectionRight(doc, state, { type: SELECTION_TYPE.INSIDE, path: ['path'], anchorPath: ['path'], focusPath: ['path'] }), null)
 
       assert.deepStrictEqual(getSelectionRight(doc, state, {
         type: SELECTION_TYPE.MULTI,
@@ -318,8 +318,8 @@ describe('selection', () => {
   it('should turn selection into text', () => {
     assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.KEY, path: ['str'] })), '"str"')
     assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.VALUE, path: ['str'] })), '"hello world"')
-    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.BEFORE, path: ['str'] })), null)
-    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.APPEND, path: ['str'] })), null)
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.AFTER, path: ['str'] })), null)
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.INSIDE, path: ['str'] })), null)
 
     assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { anchorPath: ['str'], focusPath: ['bool'] })),
       '"str": "hello world",\n' +

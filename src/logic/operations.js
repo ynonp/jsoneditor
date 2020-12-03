@@ -1,17 +1,9 @@
-import {
-  cloneDeepWith,
-  first,
-  initial,
-  isEmpty,
-  isEqual,
-  last,
-  pickBy
-} from 'lodash-es'
+import { cloneDeepWith, first, initial, isEmpty, last, pickBy } from 'lodash-es'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { findUniqueName } from '../utils/stringUtils.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
-import { getKeys, getNextKeys, getNextVisiblePath } from './documentState.js'
+import { getKeys, getNextKeys } from './documentState.js'
 import {
   createSelection,
   createSelectionFromOperations,
@@ -38,6 +30,8 @@ export function insertBefore (doc, state, path, values) { // TODO: find a better
   const parent = getIn(doc, parentPath)
 
   if (Array.isArray(parent)) {
+    // the path is parsed from a JSONPatch operation,
+    // so array indices are a string which we have to parse into a number
     const offset = parseInt(last(path), 10)
     return values.map((entry, index) => ({
       op: 'add',
@@ -247,11 +241,50 @@ export function duplicate (doc, state, paths) {
   }
 }
 
+// TODO: write unit tests
 export function insert (doc, state, selection, values) {
-  if (selection.type === SELECTION_TYPE.BEFORE) {
-    return insertBefore(doc, state, selection.path, values)
-  } else if (selection.type === SELECTION_TYPE.APPEND) {
-    return append(doc, selection.path, values)
+  if (selection.type === SELECTION_TYPE.AFTER) {
+    const path = selection.focusPath
+    const parentPath = initial(path)
+    const parent = getIn(doc, parentPath)
+
+    console.log('insert', { selection, path, parent, isArray: Array.isArray(parent), doc })
+    if (Array.isArray(parent)) {
+      const index = last(path)
+      console.log('insert', index, path)
+      const nextItemPath = parentPath.concat([index + 1])
+      const operations = insertBefore(doc, state, nextItemPath, values)
+      console.log('insert', operations)
+      return operations
+    } else { // value is an Object
+      const key = last(path)
+      const keys = getKeys(state, parentPath)
+      if (isEmpty(keys) || last(keys) === key) {
+        return append(doc, parentPath, values)
+      } else {
+        const index = keys.indexOf(key)
+        const nextKey = keys[index + 1]
+        const nextKeyPath = parentPath.concat([nextKey])
+        return insertBefore(doc, state, nextKeyPath, values)
+      }
+    }
+  } else if (selection.type === SELECTION_TYPE.INSIDE) {
+    const path = selection.focusPath
+    const value = getIn(doc, path)
+
+    if (Array.isArray(value)) {
+      const firstItemPath = path.concat([0])
+      return insertBefore(doc, state, firstItemPath, values)
+    } else { // value is an Object
+      const keys = getKeys(state, path)
+      if (isEmpty(keys)) {
+        return append(doc, selection.path, values)
+      } else {
+        const firstKey = first(keys)
+        const firstKeyPath = path.concat([firstKey])
+        return insertBefore(doc, state, firstKeyPath, values)
+      }
+    }
   } else if (selection.type === SELECTION_TYPE.MULTI) {
     return replace(doc, state, selection.paths, values)
   } else {
@@ -427,18 +460,21 @@ export function createRemoveOperations (doc, state, selection) {
 
   if (Array.isArray(parent)) {
     const firstPath = first(selection.paths)
-    const firstIndex = last(firstPath)
-    const newSelection = firstIndex < parent.length - selection.paths.length - 1
-      ? createSelection(doc, state, { type: SELECTION_TYPE.BEFORE, path: parentPath.concat([firstIndex]) })
-      : createSelection(doc, state, { type: SELECTION_TYPE.APPEND, path: parentPath })
+    const index = last(firstPath)
+    const newSelection = index === 0
+      ? createSelection(doc, state, { type: SELECTION_TYPE.INSIDE, path: parentPath })
+      : createSelection(doc, state, { type: SELECTION_TYPE.AFTER, path: parentPath.concat([index - 1]) })
 
     return { operations, newSelection }
   } else { // parent is object
-    const nextPath = getNextVisiblePath(doc, state, lastPath, true)
-    const nextIsSibling = isEqual(initial(nextPath), parentPath)
-    const newSelection = nextIsSibling
-      ? createSelection(doc, state, { type: SELECTION_TYPE.BEFORE, path: nextPath })
-      : createSelection(doc, state, { type: SELECTION_TYPE.APPEND, path: parentPath })
+    const keys = getKeys(state, parentPath)
+    const firstPath = first(selection.paths)
+    const key = last(firstPath)
+    const index = keys.indexOf(key)
+    const previousKey = keys[index - 1]
+    const newSelection = index === 0
+      ? createSelection(doc, state, { type: SELECTION_TYPE.INSIDE, path: parentPath })
+      : createSelection(doc, state, { type: SELECTION_TYPE.AFTER, path: parentPath.concat([previousKey]) })
 
     return { operations, newSelection }
   }
