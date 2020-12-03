@@ -296,6 +296,8 @@ describe('selection', () => {
         }
       })
     })
+
+    // TODO: test nested, expanded objects -> should move to append to next object
   })
 
   it('getInitialSelection', () => {
