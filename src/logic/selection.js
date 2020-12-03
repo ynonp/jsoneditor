@@ -277,15 +277,20 @@ export function findCaretAndSiblings (doc, state, selection) {
  * @returns {Selection | null}
  */
 export function getSelectionLeft (doc, state, selection, keepAnchorPath = false) {
-  if (keepAnchorPath && selection.type === SELECTION_TYPE.VALUE) {
-    return createSelection(doc, state, {
-      type: SELECTION_TYPE.MULTI,
-      anchorPath: selection.focusPath,
-      focusPath: selection.focusPath
-    })
+  const { caret, previous } = findCaretAndSiblings(doc, state, selection)
+
+  if (keepAnchorPath) {
+    if (selection.type !== SELECTION_TYPE.MULTI) {
+      return createSelection(doc, state, {
+        type: SELECTION_TYPE.MULTI,
+        anchorPath: selection.anchorPath,
+        focusPath: selection.focusPath
+      })
+    }
+
+    return null
   }
 
-  const { caret, previous } = findCaretAndSiblings(doc, state, selection)
   if (caret && previous) {
     return createSelection(doc, state, {
       type: previous.type,
@@ -322,15 +327,20 @@ export function getSelectionLeft (doc, state, selection, keepAnchorPath = false)
  * @returns {Selection | null}
  */
 export function getSelectionRight (doc, state, selection, keepAnchorPath = false) {
-  if (keepAnchorPath && selection.type === SELECTION_TYPE.KEY) {
-    return createSelection(doc, state, {
-      type: SELECTION_TYPE.MULTI,
-      anchorPath: selection.focusPath,
-      focusPath: selection.focusPath
-    })
+  const { caret, next } = findCaretAndSiblings(doc, state, selection)
+
+  if (keepAnchorPath) {
+    if (selection.type !== SELECTION_TYPE.MULTI) {
+      return createSelection(doc, state, {
+        type: SELECTION_TYPE.MULTI,
+        anchorPath: selection.anchorPath,
+        focusPath: selection.focusPath
+      })
+    }
+
+    return null
   }
 
-  const { caret, next } = findCaretAndSiblings(doc, state, selection)
   if (caret && next) {
     return createSelection(doc, state, {
       type: next.type,
