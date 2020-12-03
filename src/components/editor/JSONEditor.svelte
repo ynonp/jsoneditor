@@ -704,10 +704,10 @@
       if (selection.type === SELECTION_TYPE.VALUE) {
         event.preventDefault()
 
-        const value = getIn(doc, selection.path)
+        const value = getIn(doc, selection.focusPath)
         if (isObjectOrArray(value)) {
           // expand object/array
-          handleExpand(selection.path, true)
+          handleExpand(selection.focusPath, true)
         } else {
           // go to value edit mode
           selection = {
@@ -728,7 +728,7 @@
     }
 
     if (combo === 'Ctrl+Enter' && selection && selection.type === SELECTION_TYPE.VALUE) {
-      const value = getIn(doc, selection.path)
+      const value = getIn(doc, selection.focusPath)
 
       if (isUrl(value)) {
         // open url in new page

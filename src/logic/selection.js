@@ -85,12 +85,9 @@ export function expandSelection (doc, state, anchorPath, focusPath) {
  */
 export function getParentPath (selection) {
   if (selection.type === SELECTION_TYPE.INSIDE) {
-    return selection.path
-  } else if (selection.path) { // key, value, after
-    return initial(selection.path)
-  } else if (selection.paths) { // multi
-    const firstPath = first(selection.paths)
-    return initial(firstPath)
+    return selection.focusPath
+  } else {
+    return initial(selection.focusPath)
   }
 }
 
@@ -146,14 +143,14 @@ export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
     const parent = getIn(doc, parentPath)
     if (Array.isArray(parent) || isEmpty(previousPath)) {
       // switch to value selection: array has no keys, and root object also not
-      return { type: SELECTION_TYPE.VALUE, path: previousPath, anchorPath, focusPath }
+      return { type: SELECTION_TYPE.VALUE, anchorPath, focusPath }
     } else {
-      return { type: SELECTION_TYPE.KEY, path: previousPath, anchorPath, focusPath }
+      return { type: SELECTION_TYPE.KEY, anchorPath, focusPath }
     }
   }
 
   if (selection.type === SELECTION_TYPE.VALUE) {
-    return { type: SELECTION_TYPE.VALUE, path: previousPath, anchorPath, focusPath }
+    return { type: SELECTION_TYPE.VALUE, anchorPath, focusPath }
   }
 
   // multi selection with one entry
@@ -224,14 +221,14 @@ export function getSelectionDown (doc, state, selection, keepAnchorPath = false)
     const parent = getIn(doc, parentPath)
     if (Array.isArray(parent)) {
       // switch to value selection: array has no keys
-      return { type: SELECTION_TYPE.VALUE, path: nextPath, anchorPath, focusPath }
+      return { type: SELECTION_TYPE.VALUE, anchorPath, focusPath }
     } else {
-      return { type: SELECTION_TYPE.KEY, path: nextPath, anchorPath, focusPath }
+      return { type: SELECTION_TYPE.KEY, anchorPath, focusPath }
     }
   }
 
   if (selection.type === SELECTION_TYPE.VALUE) {
-    return { type: SELECTION_TYPE.VALUE, path: nextPath, anchorPath, focusPath }
+    return { type: SELECTION_TYPE.VALUE, anchorPath, focusPath }
   }
 
   // multi selection with one entry
@@ -283,8 +280,8 @@ export function getSelectionLeft (doc, state, selection, keepAnchorPath = false)
   if (keepAnchorPath && selection.type === SELECTION_TYPE.VALUE) {
     return createSelection(doc, state, {
       type: SELECTION_TYPE.MULTI,
-      anchorPath: selection.path,
-      focusPath: selection.path
+      anchorPath: selection.focusPath,
+      focusPath: selection.focusPath
     })
   }
 
@@ -328,8 +325,8 @@ export function getSelectionRight (doc, state, selection, keepAnchorPath = false
   if (keepAnchorPath && selection.type === SELECTION_TYPE.KEY) {
     return createSelection(doc, state, {
       type: SELECTION_TYPE.MULTI,
-      anchorPath: selection.path,
-      focusPath: selection.path
+      anchorPath: selection.focusPath,
+      focusPath: selection.focusPath
     })
   }
 
@@ -368,8 +365,8 @@ export function getInitialSelection (doc, state) {
 
   const path = visiblePaths[index]
   return (path.length === 0 || Array.isArray(getIn(doc, initial(path))))
-    ? { type: SELECTION_TYPE.VALUE, path, anchorPath: path, focusPath: path } // Array items and root object/array do not have a key, so select value in that case
-    : { type: SELECTION_TYPE.KEY, path, anchorPath: path, focusPath: path }
+    ? { type: SELECTION_TYPE.VALUE, anchorPath: path, focusPath: path } // Array items and root object/array do not have a key, so select value in that case
+    : { type: SELECTION_TYPE.KEY, anchorPath: path, focusPath: path }
 }
 
 /**
@@ -492,7 +489,6 @@ export function createSelection (doc, state, selectionSchema) {
   if (type === SELECTION_TYPE.KEY) {
     let selection = {
       type,
-      path,
       anchorPath: path,
       focusPath: path,
       edit
@@ -504,7 +500,6 @@ export function createSelection (doc, state, selectionSchema) {
   } else if (type === SELECTION_TYPE.VALUE) {
     let selection = {
       type: SELECTION_TYPE.VALUE,
-      path,
       anchorPath: path,
       focusPath: path,
       edit
@@ -516,14 +511,12 @@ export function createSelection (doc, state, selectionSchema) {
   } else if (type === SELECTION_TYPE.AFTER) {
     return {
       type,
-      path,
       anchorPath: path,
       focusPath: path
     }
   } else if (type === SELECTION_TYPE.INSIDE) {
     return {
       type,
-      path,
       anchorPath: path,
       focusPath: path
     }
@@ -537,9 +530,9 @@ export function createSelection (doc, state, selectionSchema) {
 
     return {
       type: SELECTION_TYPE.MULTI,
-      paths,
       anchorPath: focusPathLast ? first(paths) : last(paths),
       focusPath: focusPathLast ? last(paths) : first(paths),
+      paths,
       pathsMap: createPathsMap(paths)
     }
   } else {
@@ -557,11 +550,11 @@ export function createSelection (doc, state, selectionSchema) {
  */
 export function selectionToPartialJson (doc, selection, indentation = 2) {
   if (selection.type === SELECTION_TYPE.KEY) {
-    return JSON.stringify(last(selection.path))
+    return JSON.stringify(last(selection.focusPath))
   }
 
   if (selection.type === SELECTION_TYPE.VALUE) {
-    const value = getIn(doc, selection.path)
+    const value = getIn(doc, selection.focusPath)
     return JSON.stringify(value, null, indentation) // TODO: customizable indentation?
   }
 
@@ -600,7 +593,6 @@ export function selectionToPartialJson (doc, selection, indentation = 2) {
 export function selectAll () {
   return {
     type: SELECTION_TYPE.VALUE,
-    path: [],
     anchorPath: [],
     focusPath: []
   }

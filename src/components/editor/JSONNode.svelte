@@ -51,19 +51,19 @@
     : false
 
   $: selectedAfter = (selection && selection.type === SELECTION_TYPE.AFTER)
-    ? isEqual(selection.path, path)
+    ? isEqual(selection.focusPath, path)
     : false
 
   $: selectedInside = (selection && selection.type === SELECTION_TYPE.INSIDE)
-    ? isEqual(selection.path, path)
+    ? isEqual(selection.focusPath, path)
     : false
 
   $: selectedKey = (selection && selection.type === SELECTION_TYPE.KEY)
-    ? isEqual(selection.path, path)
+    ? isEqual(selection.focusPath, path)
     : false
 
   $: selectedValue = (selection && selection.type === SELECTION_TYPE.VALUE)
-    ? isEqual(selection.path, path)
+    ? isEqual(selection.focusPath, path)
     : false
 
   $: expanded = state[STATE_EXPANDED]

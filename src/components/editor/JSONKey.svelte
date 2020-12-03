@@ -29,7 +29,7 @@
   let keyClass
 
   $: selectedKey = (selection && selection.type === SELECTION_TYPE.KEY)
-    ? isEqual(selection.path, path)
+    ? isEqual(selection.focusPath, path)
     : false
   $: editKey = selectedKey && selection && selection.edit === true
   $: keyClass = getKeyClass(newKey, searchResult)

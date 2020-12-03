@@ -248,13 +248,10 @@ export function insert (doc, state, selection, values) {
     const parentPath = initial(path)
     const parent = getIn(doc, parentPath)
 
-    console.log('insert', { selection, path, parent, isArray: Array.isArray(parent), doc })
     if (Array.isArray(parent)) {
       const index = last(path)
-      console.log('insert', index, path)
       const nextItemPath = parentPath.concat([index + 1])
       const operations = insertBefore(doc, state, nextItemPath, values)
-      console.log('insert', operations)
       return operations
     } else { // value is an Object
       const key = last(path)
@@ -278,7 +275,7 @@ export function insert (doc, state, selection, values) {
     } else { // value is an Object
       const keys = getKeys(state, path)
       if (isEmpty(keys)) {
-        return append(doc, selection.path, values)
+        return append(doc, path, values)
       } else {
         const firstKey = first(keys)
         const firstKeyPath = path.concat([firstKey])
@@ -383,7 +380,7 @@ export function createPasteOperations (doc, state, selection, clipboardData) {
     const operations = [
       {
         op: 'replace',
-        path: compileJSONPointer(selection.path),
+        path: compileJSONPointer(selection.focusPath),
         value: clipboard
       }
     ]
@@ -399,8 +396,8 @@ export function createPasteOperations (doc, state, selection, clipboardData) {
       return { operations, newSelection }
     } else {
       // rename key
-      const path = initial(selection.path)
-      const oldKey = last(selection.path)
+      const path = initial(selection.focusPath)
+      const oldKey = last(selection.focusPath)
       const keys = getKeys(state, path)
       const nextKeys = getNextKeys(keys, oldKey, false)
       const newKey = String(clipboard)

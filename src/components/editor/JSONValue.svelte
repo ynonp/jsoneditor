@@ -28,7 +28,7 @@
   let valueClass
 
   $: selectedValue = (selection && selection.type === SELECTION_TYPE.VALUE)
-    ? isEqual(selection.path, path)
+    ? isEqual(selection.focusPath, path)
     : false
   $: valueClass = getValueClass(newValue, searchResult)
   $: editValue = selectedValue && selection && selection.edit === true
