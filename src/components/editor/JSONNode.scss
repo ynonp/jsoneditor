@@ -244,6 +244,7 @@
   // value selected
   &.selected-value {
     .meta,
+    > .footer-outer > .footer,
     .props .contents,
     .props .header,
     .props .footer,
