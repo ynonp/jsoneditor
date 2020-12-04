@@ -99,7 +99,8 @@
 
     if (event.key === 'Escape') {
       // cancel changes
-      setDomKey(key)
+      newKey = key
+      setDomKey(newKey)
       onSelect({ type: SELECTION_TYPE.KEY, path })
     }
 
