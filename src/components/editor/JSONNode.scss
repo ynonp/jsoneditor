@@ -89,20 +89,36 @@
   .header-outer:hover > .insert-button-area:not(.selected),
   .footer-outer:hover .insert-button-area:not(.selected) {
     visibility: visible;
+    z-index: 1;
   }
 
   .insert-area {
     $height: 4px;
 
+    display: none;
     position: relative;
-    background: $theme-color;
 
-    width: 100%;
     max-width: 250px;
-    height: $height;
-    margin-top: -$height/2;
-    margin-bottom: -$height/2;
-    z-index: 1;
+    min-width: 100px;
+    height: 0;
+    margin-right: $padding/2;
+
+    &.hovered {
+      display: flex;
+      outline: $height/2 solid $hovered-background;
+    }
+
+    &.selected {
+      display: flex;
+      z-index: 1;
+      outline: $height/2 solid $selection-background;
+    }
+  }
+
+  &.selected {
+    .insert-area {
+      display: none;
+    }
   }
 }
 
@@ -148,26 +164,33 @@
   font-size: $font-size-small;
   font-family: $font-family;
   color: white;
-  background: $light-gray;
   border-radius: 2px;
   cursor: pointer;
   position: relative;
-
-  &:hover {
-    background: lighten($light-gray, 5%);
-  }
 }
 
 .tag {
   vertical-align: top;
   padding: 0 4px 1px;
   margin: 2px;
+
+  background: $light-gray;
+
+  &:hover {
+    background: lighten($light-gray, 5%);
+  }
 }
 
 .insert-button {
   padding: 0 4px;
   margin: 0;
   line-height: $line-height;
+
+  background: $hovered-background;
+
+  &:hover {
+    background: $light-gray;
+  }
 }
 
 .identifier {

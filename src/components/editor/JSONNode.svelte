@@ -5,8 +5,13 @@
   import { isEqual } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import {
+    HOVER_ENTRY,
+    HOVER_INSERT_AREA_INSIDE,
+    HOVER_INSERT_AREA_AFTER,
     INDENTATION_WIDTH,
+    INSERT_AFTER_EXPLANATION,
     INSERT_EXPLANATION,
+    INSERT_INSIDE_EXPLANATION,
     STATE_EXPANDED,
     STATE_ID,
     STATE_KEYS,
@@ -71,7 +76,7 @@
   $: keys = state[STATE_KEYS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
 
-  let hovered = false
+  let hover = null
 
   $: type = valueType(value)
 
@@ -123,8 +128,10 @@
     } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-item')) {
       onSelect({ type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path })
     } else if (
-      isChildOfAttribute(event.target, 'data-type', 'insert-button-area') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-area')
+      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside') ||
+      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after') ||
+      isChildOfAttribute(event.target, 'data-type', 'insert-area-inside') ||
+      isChildOfAttribute(event.target, 'data-type', 'insert-area-after')
     ) {
       // do nothing: event already handled by event listener on the element or component itself
     } else {
@@ -175,12 +182,26 @@
 
   function handleMouseOver (event) {
     event.stopPropagation()
-    hovered = true
+
+    if (
+      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside') ||
+      isChildOfAttribute(event.target, 'data-type', 'insert-area-inside')
+    ) {
+      hover = HOVER_INSERT_AREA_INSIDE
+    } else if (
+      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after') ||
+      isChildOfAttribute(event.target, 'data-type', 'insert-area-after')
+    ) {
+      hover = HOVER_INSERT_AREA_AFTER
+    } else {
+      hover = HOVER_ENTRY
+    }
   }
 
   function handleMouseOut (event) {
     event.stopPropagation()
-    hovered = false
+
+    hover = null
   }
 
   function handleInsertInside () {
@@ -201,7 +222,7 @@
   class:selected={selected}
   class:selected-key={selectedKey}
   class:selected-value={selectedValue}
-  class:hovered={hovered}
+  class:hovered={hover === HOVER_ENTRY}
   on:mousedown={handleMouseDown}
   on:mousemove={handleMouseMove}
   on:mouseover={handleMouseOver}
@@ -240,10 +261,10 @@
       {#if expanded}
         <div
           class="insert-button-area inside"
-          data-type="insert-button-area"
+          data-type="insert-button-area-inside"
           on:mousedown={handleInsertInside}
         >
-          <button class="insert-button">&#8617;</button>
+          <button class="insert-button" title={INSERT_INSIDE_EXPLANATION}>&#8617;</button>
         </div>
       {:else}
         {#if validationError}
@@ -251,23 +272,23 @@
         {/if}
         <div
           class="insert-button-area after"
-          data-type="insert-button-area"
+          data-type="insert-button-area-after"
           on:mousedown={handleInsertAfter}
         >
-          <button class="insert-button">&#8617;</button>
+          <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
         </div>
       {/if}
     </div>
     {#if expanded}
       <div class="items">
-        {#if selectedInside}
-          <div
-            class="insert-area inside"
-            data-type="insert-area"
-            style={getIndentationStyle(path.length + 1)}
-            title={INSERT_EXPLANATION}
-          ></div>
-        {/if}
+        <div
+          data-type="insert-area-inside"
+          class="insert-area inside"
+          class:hovered={hover === HOVER_INSERT_AREA_INSIDE}
+          class:selected={selectedInside}
+          style={getIndentationStyle(path.length + 1)}
+          title={INSERT_EXPLANATION}
+        ></div>
         {#each visibleSections as visibleSection, sectionIndex (sectionIndex)}
           {#each value.slice(visibleSection.start, Math.min(visibleSection.end, value.length)) as item, itemIndex (state[visibleSection.start + itemIndex][STATE_ID])}
             <svelte:self
@@ -305,10 +326,10 @@
         </div>
         <div
           class="insert-button-area after"
-          data-type="insert-button-area"
+          data-type="insert-button-area-after"
           on:mousedown={handleInsertAfter}
         >
-          <button class="insert-button">&#8617;</button>
+          <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
         </div>
       </div>
     {/if}
@@ -345,10 +366,10 @@
       {#if expanded}
         <div
           class="insert-button-area inside"
-          data-type="insert-button-area"
+          data-type="insert-button-area-inside"
           on:mousedown={handleInsertInside}
         >
-          <button class="insert-button">&#8617;</button>
+          <button class="insert-button" title={INSERT_INSIDE_EXPLANATION}>&#8617;</button>
         </div>
       {:else}
         {#if validationError}
@@ -356,23 +377,23 @@
         {/if}
         <div
           class="insert-button-area after"
-          data-type="insert-button-area"
+          data-type="insert-button-area-after"
           on:mousedown={handleInsertAfter}
         >
-          <button class="insert-button">&#8617;</button>
+          <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
         </div>
       {/if}
     </div>
     {#if expanded}
       <div class="props">
-        {#if selectedInside}
-          <div
-            class="insert-area inside"
-            data-type="insert-area"
-            style={getIndentationStyle(path.length + 1)}
-            title={INSERT_EXPLANATION}
-          ></div>
-        {/if}
+        <div
+          data-type="insert-area-inside"
+          class="insert-area inside"
+          class:hovered={hover === HOVER_INSERT_AREA_INSIDE}
+          class:selected={selectedInside}
+          style={getIndentationStyle(path.length + 1)}
+          title={INSERT_EXPLANATION}
+        ></div>
         {#each keys as key (state[key][STATE_ID])}
           <svelte:self
             value={value[key]}
@@ -406,10 +427,10 @@
         </div>
         <div
           class="insert-button-area after"
-          data-type="insert-button-area"
+          data-type="insert-button-area-after"
           on:mousedown={handleInsertAfter}
         >
-          <button class="insert-button">&#8617;</button>
+          <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
         </div>
       </div>
     {/if}
@@ -432,21 +453,21 @@
       {/if}
       <div
         class="insert-button-area after"
-        data-type="insert-button-area"
+        data-type="insert-button-area-after"
         on:mousedown={handleInsertAfter}
       >
-        <button class="insert-button">&#8617;</button>
+        <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
       </div>
     </div>
   {/if}
-  {#if selectedAfter}
-    <div
-      class="insert-area after"
-      data-type="insert-area"
-      style={indentationStyle}
-      title={INSERT_EXPLANATION}
-    ></div>
-  {/if}
+  <div
+    data-type="insert-area-after"
+    class="insert-area after"
+    class:hovered={hover === HOVER_INSERT_AREA_AFTER}
+    class:selected={selectedAfter}
+    style={indentationStyle}
+    title={INSERT_EXPLANATION}
+  ></div>
 </div>
 
 <style src="./JSONNode.scss"></style>
