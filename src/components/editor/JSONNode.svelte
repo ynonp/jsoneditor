@@ -129,9 +129,7 @@
       onSelect({ type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path })
     } else if (
       isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-area-inside') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-area-after')
+      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after')
     ) {
       // do nothing: event already handled by event listener on the element or component itself
     } else {
@@ -183,15 +181,9 @@
   function handleMouseOver (event) {
     event.stopPropagation()
 
-    if (
-      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-area-inside')
-    ) {
+    if (isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside')) {
       hover = HOVER_INSERT_AREA_INSIDE
-    } else if (
-      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-area-after')
-    ) {
+    } else if (isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after')) {
       hover = HOVER_INSERT_AREA_AFTER
     } else {
       hover = HOVER_ENTRY
@@ -282,7 +274,6 @@
     {#if expanded}
       <div class="items">
         <div
-          data-type="insert-area-inside"
           class="insert-area inside"
           class:hovered={hover === HOVER_INSERT_AREA_INSIDE}
           class:selected={selectedInside}
@@ -387,7 +378,6 @@
     {#if expanded}
       <div class="props">
         <div
-          data-type="insert-area-inside"
           class="insert-area inside"
           class:hovered={hover === HOVER_INSERT_AREA_INSIDE}
           class:selected={selectedInside}
@@ -461,7 +451,6 @@
     </div>
   {/if}
   <div
-    data-type="insert-area-after"
     class="insert-area after"
     class:hovered={hover === HOVER_INSERT_AREA_AFTER}
     class:selected={selectedAfter}
