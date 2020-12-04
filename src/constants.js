@@ -42,8 +42,8 @@ export const INSERT_EXPLANATION = 'Insert or paste contents, ' +
   'enter { to insert a new object, ' +
   'or start typing to insert a new value'
 
-export const HOVER_INSERT_AREA_INSIDE = 'hover-insert-area-inside'
-export const HOVER_INSERT_AREA_AFTER = 'hover-insert-area-after'
+export const HOVER_INSERT_INSIDE = 'hover-insert-inside'
+export const HOVER_INSERT_AFTER = 'hover-insert-after'
 export const HOVER_ENTRY = 'hover-entry'
 
 export const INSERT_AFTER_EXPLANATION = 'Click to insert contents after this entry'

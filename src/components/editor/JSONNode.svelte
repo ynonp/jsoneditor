@@ -6,8 +6,8 @@
   import Icon from 'svelte-awesome'
   import {
     HOVER_ENTRY,
-    HOVER_INSERT_AREA_INSIDE,
-    HOVER_INSERT_AREA_AFTER,
+    HOVER_INSERT_INSIDE,
+    HOVER_INSERT_AFTER,
     INDENTATION_WIDTH,
     INSERT_AFTER_EXPLANATION,
     INSERT_EXPLANATION,
@@ -182,9 +182,9 @@
     event.stopPropagation()
 
     if (isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside')) {
-      hover = HOVER_INSERT_AREA_INSIDE
+      hover = HOVER_INSERT_INSIDE
     } else if (isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after')) {
-      hover = HOVER_INSERT_AREA_AFTER
+      hover = HOVER_INSERT_AFTER
     } else {
       hover = HOVER_ENTRY
     }
@@ -275,7 +275,7 @@
       <div class="items">
         <div
           class="insert-area inside"
-          class:hovered={hover === HOVER_INSERT_AREA_INSIDE}
+          class:hovered={hover === HOVER_INSERT_INSIDE}
           class:selected={selectedInside}
           style={getIndentationStyle(path.length + 1)}
           title={INSERT_EXPLANATION}
@@ -379,7 +379,7 @@
       <div class="props">
         <div
           class="insert-area inside"
-          class:hovered={hover === HOVER_INSERT_AREA_INSIDE}
+          class:hovered={hover === HOVER_INSERT_INSIDE}
           class:selected={selectedInside}
           style={getIndentationStyle(path.length + 1)}
           title={INSERT_EXPLANATION}
@@ -452,7 +452,7 @@
   {/if}
   <div
     class="insert-area after"
-    class:hovered={hover === HOVER_INSERT_AREA_AFTER}
+    class:hovered={hover === HOVER_INSERT_AFTER}
     class:selected={selectedAfter}
     style={indentationStyle}
     title={INSERT_EXPLANATION}
