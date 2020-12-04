@@ -3,6 +3,10 @@
 
 .key {
   display: inline-block;
+
+  &:hover {
+    background: $hovered-background;
+  }
 }
 
 div.empty.key::after {

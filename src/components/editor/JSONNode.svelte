@@ -5,7 +5,7 @@
   import { isEqual } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import {
-    HOVER_ENTRY,
+    HOVER_COLLECTION,
     HOVER_INSERT_INSIDE,
     HOVER_INSERT_AFTER,
     INDENTATION_WIDTH,
@@ -181,12 +181,12 @@
   function handleMouseOver (event) {
     event.stopPropagation()
 
-    if (isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside')) {
+    if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
+      hover = HOVER_COLLECTION
+    } else if (isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside')) {
       hover = HOVER_INSERT_INSIDE
     } else if (isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after')) {
       hover = HOVER_INSERT_AFTER
-    } else {
-      hover = HOVER_ENTRY
     }
   }
 
@@ -214,7 +214,7 @@
   class:selected={selected}
   class:selected-key={selectedKey}
   class:selected-value={selectedValue}
-  class:hovered={hover === HOVER_ENTRY}
+  class:hovered={hover === HOVER_COLLECTION}
   on:mousedown={handleMouseDown}
   on:mousemove={handleMouseMove}
   on:mouseover={handleMouseOver}

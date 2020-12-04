@@ -32,6 +32,10 @@
     color: green;
     text-decoration: underline;
   }
+
+  &:hover {
+    background: $hovered-background;
+  }
 }
 
 div.empty.value::after {

@@ -13,8 +13,11 @@
   }
 
   &.hovered {
-    .header,
-    .contents,
+    > .header-outer > .header > .meta,
+    .props .header,
+    .items .header,
+    .props .contents,
+    .items .contents,
     .footer {
       background-color: $hovered-background;
     }
@@ -110,12 +113,13 @@
 
     &.selected {
       display: flex;
-      z-index: 1;
+      z-index: 2;
       outline: $height/2 solid $selection-background;
     }
   }
 
-  &.selected {
+  &.selected,
+  &.selected-value {
     .insert-area {
       display: none;
     }
@@ -205,8 +209,10 @@
     .contents,
     .meta,
     .expand,
-    .footer {
-      background-color: $selection-background;
+    .footer,
+    :global(.key),
+    :global(.value) {
+      background-color: $selection-background !important;
       color: $selection-color;
     }
 
@@ -214,10 +220,6 @@
     .separator,
     .index {
       color: $meta-color-selected;
-    }
-
-    :global(.value) {
-      color: $selection-color;
     }
 
     .tag {
@@ -241,21 +243,21 @@
 
   // value selected
   &.selected-value {
-    > .header-outer > .header > .meta,
-    > .footer-outer > .footer,
-    > .contents-outer > .contents .contents,
+    .meta,
     .props .contents,
-    .props .header-outer .header,
-    .props .footer-outer .footer,
+    .props .header,
+    .props .footer,
     .props .expand,
     .items .contents,
-    .items .header-outer .header,
-    .items .footer-outer .footer,
+    .items .header,
+    .items .footer,
     .items .expand {
-      background-color: $selection-background;
+      background-color: $selection-background !important;
       color: $selection-color;
 
+      :global(.key),
       :global(.value) {
+        background-color: $selection-background !important;
         color: $selection-color;
       }
 

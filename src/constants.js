@@ -44,7 +44,7 @@ export const INSERT_EXPLANATION = 'Insert or paste contents, ' +
 
 export const HOVER_INSERT_INSIDE = 'hover-insert-inside'
 export const HOVER_INSERT_AFTER = 'hover-insert-after'
-export const HOVER_ENTRY = 'hover-entry'
+export const HOVER_COLLECTION = 'hover-collection'
 
 export const INSERT_AFTER_EXPLANATION = 'Click to insert contents after this entry'
 export const INSERT_INSIDE_EXPLANATION = 'Click to insert contents inside this array or object'

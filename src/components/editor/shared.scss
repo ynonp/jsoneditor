@@ -16,7 +16,8 @@ div.editable-div {
     background: $theme-color;
     color: $selection-color !important;
     position: relative;
-    z-index: 1; // must be on top of hovering the entry below it
+    border-radius: 0;
+    z-index: 3; // must be on top of hovering the entry below it
   }
 
   &.search {
