@@ -367,10 +367,11 @@
     }
 
     const newValue = createNewValue(doc, selection, type)
-    const data = selection.type === SELECTION_TYPE.VALUE
+    const data = (selection.type === SELECTION_TYPE.VALUE || selection.type === SELECTION_TYPE.MULTI)
       ? JSON.stringify(newValue)
       : JSON.stringify({ 'New Item': newValue })
     const { operations, newSelection } = insert(doc, state, selection, data)
+    debug('handeleInsert', { type, operations, newSelection, newValue, data })
 
     handlePatch(operations, newSelection)
 
@@ -429,12 +430,13 @@
     const path = selection.focusPath
     const parent = getIn(doc, initial(path))
     selection = createSelection(doc, state, {
-      type: Array.isArray(parent)
+      type: (Array.isArray(parent) || selection.type === SELECTION_TYPE.VALUE)
         ? SELECTION_TYPE.VALUE
         : SELECTION_TYPE.KEY,
       path,
       edit: true
     })
+
     await tick()
     setTimeout(() => replaceActiveElementContents(char))
   }
