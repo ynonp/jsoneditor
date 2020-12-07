@@ -105,6 +105,11 @@
     }
 
     if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      // updating newKey here is important to handle when contents are changed
+      // programmatically when edit mode is opened after typing a character
+      newKey = getDomKey()
+
+      // apply changes
       updateKey()
 
       // we apply selection on next tick, since the actual path will change

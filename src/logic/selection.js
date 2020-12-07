@@ -1,7 +1,10 @@
 import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
 import { STATE_EXPANDED, STATE_KEYS } from '../constants.js'
 import { getIn, setIn } from '../utils/immutabilityHelpers.js'
-import { compileJSONPointer, parseJSONPointer } from '../utils/jsonPointer.js'
+import {
+  compileJSONPointer,
+  parseJSONPointerWithArrayIndices
+} from '../utils/jsonPointer.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import {
   getNextVisiblePath,
@@ -380,11 +383,15 @@ export function getInitialSelection (doc, state) {
 }
 
 /**
+ * @param {JSON} doc
  * @param {JSONPatchDocument} operations
  * @returns {MultiSelection}
  */
 // TODO: write unit tests
-export function createSelectionFromOperations (operations) {
+export function createSelectionFromOperations (doc, operations) {
+  // FIXME: handle rename key (move) -> SELECTION_TYPE.KEY
+  // FIXME: handle replace value -> SELECTION_TYPE.VALUE
+
   const paths = operations
     .filter(operation => {
       return (
@@ -394,7 +401,7 @@ export function createSelectionFromOperations (operations) {
         operation.op === 'replace'
       )
     })
-    .map(operation => parseJSONPointer(operation.path))
+    .map(operation => parseJSONPointerWithArrayIndices(doc, operation.path))
 
   // TODO: make this function robust against operations which do not have consecutive paths
 
@@ -504,7 +511,10 @@ export function createSelection (doc, state, selectionSchema) {
       edit
     }
     if (next) {
-      selection = getSelectionDown(doc, state, selection)
+      selection = {
+        ...selection,
+        type: SELECTION_TYPE.VALUE
+      }
     }
     return selection
   } else if (type === SELECTION_TYPE.VALUE) {

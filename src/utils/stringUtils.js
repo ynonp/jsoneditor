@@ -3,16 +3,18 @@
  * Find a unique name. Suffix the name with ' (copy)', '(copy 2)', etc
  * until a unique name is found
  * @param {string} name
- * @param {Object} existingProps    Object with existing props
+ * @param {string[]} keys    Array with existing keys
  */
-export function findUniqueName (name, existingProps) {
-  let validName = name
-  let i = 1
+export function findUniqueName (name, keys) {
+  const keysSet = new Set(keys)
 
   // remove any " (copy)" or " (copy 2)" suffix from the name
   const nameWithoutCopySuffix = name.replace(/ \(copy( \d+)?\)$/, '')
 
-  while (validName in existingProps) {
+  let validName = name
+  let i = 1
+
+  while (keysSet.has(validName)) {
     const copy = 'copy' + (i > 1 ? (' ' + i) : '')
     validName = `${nameWithoutCopySuffix} (${copy})`
     i++

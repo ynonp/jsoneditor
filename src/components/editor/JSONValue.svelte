@@ -132,6 +132,10 @@
     }
 
     if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      // updating newValue here is important to handle when contents are changed
+      // programmatically when edit mode is opened after typing a character
+      newValue = getDomValue()
+
       // apply changes
       updateValue()
 

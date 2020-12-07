@@ -50,8 +50,6 @@
 
   $: hasSelection = selection != null
   $: hasSelectionContents = selection != null && selection.type === SELECTION_TYPE.MULTI
-  $: hasSelectionWithoutContents = (selection != null &&
-    (selection.type === SELECTION_TYPE.AFTER || selection.type === SELECTION_TYPE.INSIDE))
   $: hasClipboardContents = selection != null
 
   function handleToggleSearch () {
@@ -86,27 +84,27 @@
       text: 'Insert value',
       title: 'Insert a new value',
       onClick: () => onInsert('value'),
-      disabled: !hasSelectionWithoutContents,
+      disabled: !hasSelection,
       default: true
     },
     {
       text: 'Insert object',
       title: 'Insert a new object',
       onClick: () => onInsert('object'),
-      disabled: !hasSelectionWithoutContents
+      disabled: !hasSelection
     },
     {
       text: 'Insert array',
       title: 'Insert a new array',
       onClick: () => onInsert('array'),
-      disabled: !hasSelectionWithoutContents
+      disabled: !hasSelection
     },
     {
       text: 'Insert structure',
       title: 'Insert a new item with the same structure as other items. ' +
         'Only applicable inside an array',
       onClick: handleInsertStructure,
-      disabled: !hasSelectionWithoutContents
+      disabled: !hasSelection
     }
   ]
 </script>
@@ -164,7 +162,7 @@
       class="button insert"
       slot="defaultItem" 
       on:click={handleInsertStructure}
-      disabled={!hasSelectionWithoutContents}
+      disabled={!hasSelection}
     >
       <Icon data={faPlus} />
     </button>

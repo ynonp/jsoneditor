@@ -69,7 +69,7 @@ export function compareArrays (a, b) {
 
 /**
  * Get the paths of all nested properties in the items of an array
- * @param {JSON} json
+ * @param {JSON} array
  * @param {boolean} [includeObjects=false] If true, object and array paths are returned as well
  * @return {Path[]}
  */

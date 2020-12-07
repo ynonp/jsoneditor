@@ -1,5 +1,9 @@
 import assert from 'assert'
-import { createNewValue, parsePartialJson } from './operations.js'
+import {
+  clipboardToValues,
+  createNewValue,
+  parsePartialJson
+} from './operations.js'
 import { SELECTION_TYPE } from './selection.js'
 
 describe('operations', () => {
@@ -61,6 +65,10 @@ describe('operations', () => {
     }
     assert.deepStrictEqual(parsePartialJson(partialJson), expected)
     assert.deepStrictEqual(parsePartialJson(partialJson + ','), expected)
+  })
+
+  it('should turn clipboard data into an array with key/value pairs', () => {
+    // TODO: write tests
   })
 
   // TODO: write tests for all operations

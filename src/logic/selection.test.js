@@ -303,6 +303,7 @@ describe('selection', () => {
   it('should turn selection into text', () => {
     assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.KEY, path: ['str'] })), '"str"')
     assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.VALUE, path: ['str'] })), '"hello world"')
+    assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.VALUE, path: ['obj', 'arr', 1] })), '2')
     assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.AFTER, path: ['str'] })), null)
     assert.deepStrictEqual(selectionToPartialJson(doc, createSelection(doc, state, { type: SELECTION_TYPE.INSIDE, path: ['str'] })), null)
 

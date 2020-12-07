@@ -1,5 +1,5 @@
 import Ajv from 'ajv'
-import { parseJSONPointer } from '../utils/jsonPointer.js'
+import { parseJSONPointerWithArrayIndices } from '../utils/jsonPointer.js'
 import { draft04 } from '../generated/ajv/draft04.js'
 import { draft06 } from '../generated/ajv/draft06.js'
 
@@ -36,17 +36,18 @@ export function createAjvValidator (schema, schemaRefs) {
 
     return ajvErrors
       .map(improveAjvError)
-      .map(normalizeAjvError)
+      .map(error => normalizeAjvError(doc, error))
   }
 }
 
 /**
+ * @param {JSON} doc
  * @param {Object} ajvError
  * @return {ValidationError}
  */
-function normalizeAjvError (ajvError) {
+function normalizeAjvError (doc, ajvError) {
   return {
-    path: parseJSONPointer(ajvError.dataPath),
+    path: parseJSONPointerWithArrayIndices(doc, ajvError.dataPath),
     message: ajvError.message
   }
 }

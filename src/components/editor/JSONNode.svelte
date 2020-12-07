@@ -2,12 +2,12 @@
 
 <script>
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
-  import { isEqual } from 'lodash-es'
+  import { isEqual, last } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import {
     HOVER_COLLECTION,
-    HOVER_INSERT_INSIDE,
     HOVER_INSERT_AFTER,
+    HOVER_INSERT_INSIDE,
     INDENTATION_WIDTH,
     INSERT_AFTER_EXPLANATION,
     INSERT_EXPLANATION,
@@ -25,8 +25,8 @@
     isChildOfNodeName,
     isContentEditableDiv
   } from '../../utils/domUtils.js'
+  import { getIn } from '../../utils/immutabilityHelpers.js'
   import { compileJSONPointer } from '../../utils/jsonPointer'
-  import { findUniqueName } from '../../utils/stringUtils.js'
   import { valueType } from '../../utils/typeUtils'
   import CollapsedItems from './CollapsedItems.svelte'
   import JSONKey from './JSONKey.svelte'
@@ -98,9 +98,12 @@
   }
 
   function handleUpdateKey (oldKey, newKey) {
-    const newKeyUnique = findUniqueName(newKey, value)
+    const operations = rename(path, keys, oldKey, newKey)
+    onPatch(operations)
 
-    onPatch(rename(path, keys, oldKey, newKeyUnique))
+    // It is possible that the applied key differs from newKey,
+    // to prevent duplicate keys. Here we figure out the actually applied key
+    const newKeyUnique = last(getIn(operations, [0, 'path']))
 
     return newKeyUnique
   }

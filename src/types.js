@@ -128,6 +128,10 @@
  */
 
 /**
+ * @typedef {Array.<{key: string, value: *}>} ClipboardValues
+ */
+
+/**
  * @typedef {Object} MenuDropdownItem
  * @property {string} text
  * @property {function} onClick

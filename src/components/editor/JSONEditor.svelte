@@ -2,6 +2,7 @@
 
 <script>
   import createDebug from 'debug'
+  import { immutableJSONPatch, revertJSONPatch } from 'immutable-json-patch'
   import { initial, throttle, uniqueId } from 'lodash-es'
   import { getContext, onDestroy, onMount, tick } from 'svelte'
   import jump from '../../assets/jump.js/src/jump.js'
@@ -21,7 +22,6 @@
   import { createHistory } from '../../logic/history.js'
   import {
     createNewValue,
-    createPasteOperations,
     createRemoveOperations,
     duplicate,
     insert
@@ -51,16 +51,13 @@
   import {
     activeElementIsChildOf,
     getWindow,
-    isChildOfNodeName
+    isChildOfNodeName,
+    setCursorToEnd
   } from '../../utils/domUtils.js'
   import { getIn, setIn, updateIn } from '../../utils/immutabilityHelpers.js'
   import {
-    immutableJSONPatch,
-    revertJSONPatch
-  } from 'immutable-json-patch'
-  import {
     compileJSONPointer,
-    parseJSONPointer
+    parseJSONPointerWithArrayIndices
   } from '../../utils/jsonPointer.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
   import { isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
@@ -279,6 +276,7 @@
   // TODO: cleanup logging
   $: debug('doc', doc)
   $: debug('state', state)
+  $: debug('selection', selection)
 
   async function handleCut () {
     const clipboard = selectionToPartialJson(doc, selection)
@@ -324,7 +322,7 @@
 
     try {
       const clipboardData = event.clipboardData.getData('text/plain')
-      const { operations, newSelection } = createPasteOperations(doc, state, selection, clipboardData)
+      const { operations, newSelection } = insert(doc, state, selection, clipboardData)
 
       debug('paste', { clipboardData, operations, selection, newSelection })
 
@@ -355,7 +353,7 @@
     debug('duplicate', { selection })
 
     const operations = duplicate(doc, state, selection.paths)
-    const newSelection = createSelectionFromOperations(operations)
+    const newSelection = createSelectionFromOperations(doc, operations)
 
     handlePatch(operations, newSelection)
   }
@@ -364,30 +362,81 @@
    * @param {'value' | 'object' | 'array' | 'structure'} type
    */
   function handleInsert (type) {
-    if (selection == null) {
+    if (!selection) {
       return
     }
 
-    debug('insert', { type, selection })
-
-    const value = createNewValue(doc, selection, type)
-    const values = [
-      {
-        key: '',
-        value
-      }
-    ]
-    const operations = insert(doc, state, selection, values)
-    const newSelection = createSelectionFromOperations(operations)
+    const newValue = createNewValue(doc, selection, type)
+    const data = selection.type === SELECTION_TYPE.VALUE
+      ? JSON.stringify(newValue)
+      : JSON.stringify({ 'New Item': newValue })
+    const { operations, newSelection } = insert(doc, state, selection, data)
 
     handlePatch(operations, newSelection)
 
-    if (isObjectOrArray(value)) {
-      // expand the new object/array in case of inserting a structure
+    if (isObjectOrArray(newValue)) {
+      // expand newly inserted object/array
       operations
-        .filter(operation => operation.op === 'add')
-        .forEach(operation => handleExpand(parseJSONPointer(operation.path), true, true))
+        .filter(operation => (operation.op === 'add' || operation.op === 'replace'))
+        .forEach(operation => handleExpand(parseJSONPointerWithArrayIndices(doc, operation.path), true, true))
     }
+  }
+
+  function replaceActiveElementContents (char) {
+    const activeElement = getWindow(domJsonEditor).document.activeElement
+    activeElement.textContent = char
+    setCursorToEnd(activeElement)
+    // FIXME: must trigger an oninput, else the component will not update it's newKey/newValue variable
+  }
+
+  async function handleInsertCharacter (char) {
+    // a regular key like a, A, _, etc is entered.
+    // Replace selected contents with a new value having this first character as text
+    if (!selection) {
+      return
+    }
+
+    if (selection.type === SELECTION_TYPE.KEY) {
+      selection = { ...selection, edit: true }
+      await tick()
+      setTimeout(() => replaceActiveElementContents(char))
+      return
+    }
+
+    if (char === '{') {
+      handleInsert('object')
+    } else if (char === '[') {
+      handleInsert('array')
+    } else {
+      if (
+        selection.type === SELECTION_TYPE.VALUE &&
+        !isObjectOrArray(getIn(doc, selection.focusPath))
+      ) {
+        selection = {...selection, edit: true}
+        await tick()
+        setTimeout(() => replaceActiveElementContents(char))
+      } else {
+        await handleInsertValueWithCharacter(char)
+      }
+    }
+  }
+
+  async function handleInsertValueWithCharacter (char) {
+    // first insert a new value
+    handleInsert('value')
+
+    // next, open the new value in edit mode and apply the current character
+    const path = selection.focusPath
+    const parent = getIn(doc, initial(path))
+    selection = createSelection(doc, state, {
+      type: Array.isArray(parent)
+        ? SELECTION_TYPE.VALUE
+        : SELECTION_TYPE.KEY,
+      path,
+      edit: true
+    })
+    await tick()
+    setTimeout(() => replaceActiveElementContents(char))
   }
 
   function handleUndo () {
@@ -718,13 +767,11 @@
       }
     }
 
-    if (combo === 'Shift+[' && selection) {
-      // key Shift+[ is the { character
-      handleInsert('object')
-    }
-
-    if (combo === '[' && selection) {
-      handleInsert('array')
+    if (event.key.length === 1 && !event.altKey && !event.ctrlKey && selection) {
+      // a regular key like a, A, _, etc is entered.
+      // Replace selected contents with a new value having this first character as text
+      event.preventDefault()
+      handleInsertCharacter(event.key)
     }
 
     if (combo === 'Ctrl+Enter' && selection && selection.type === SELECTION_TYPE.VALUE) {
