@@ -1,18 +1,10 @@
 import { cloneDeepWith, first, initial, isEmpty, last } from 'lodash-es'
 import { getIn } from '../utils/immutabilityHelpers.js'
-import {
-  compileJSONPointer,
-  parseJSONPointerWithArrayIndices
-} from '../utils/jsonPointer.js'
+import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { findUniqueName } from '../utils/stringUtils.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import { getKeys, getNextKeys } from './documentState.js'
-import {
-  createSelection,
-  createSelectionFromOperations,
-  getParentPath,
-  SELECTION_TYPE
-} from './selection.js'
+import { createSelection, getParentPath, SELECTION_TYPE } from './selection.js'
 
 /**
  * Create a JSONPatch for an insert operation.
@@ -250,10 +242,7 @@ export function duplicate (doc, state, paths) {
  * @param {JSON} state
  * @param {Selection} selection
  * @param {string} clipboardData
- * @return {{
- *   operations: JSONPatchDocument,
- *   newSelection: Selection
- * }}
+ * @return {JSONPatchDocument}
  */
 // TODO: write unit tests
 export function insert (doc, state, selection, clipboardData) {
@@ -267,26 +256,19 @@ export function insert (doc, state, selection, clipboardData) {
     const newKey = typeof clipboard === 'string'
       ? clipboard
       : clipboardData
-    const operations = rename(parentPath, keys, oldKey, newKey)
 
-    const newSelection = createSelectionFromOperations(doc, operations)
-
-    return { operations, newSelection }
+    return rename(parentPath, keys, oldKey, newKey)
   }
 
   if (selection.type === SELECTION_TYPE.VALUE) {
     // replace selected value (new value can be primitive or an array/object with contents)
-    const operations = [
+    return [
       {
         op: 'replace',
         path: compileJSONPointer(selection.focusPath),
         value: clipboard
       }
     ]
-
-    const newSelection = createSelectionFromOperations(doc, operations)
-
-    return { operations, newSelection }
   }
 
   if (selection.type === SELECTION_TYPE.MULTI) {
@@ -295,10 +277,7 @@ export function insert (doc, state, selection, clipboardData) {
       ? [{ key: 'New item', value: clipboard }]
       : clipboardToValues(clipboard)
 
-    const operations = replace(doc, state, selection.paths, values)
-    const newSelection = createSelectionFromOperations(doc, operations)
-
-    return { operations, newSelection }
+    return replace(doc, state, selection.paths, values)
   }
 
   if (selection.type === SELECTION_TYPE.AFTER) {
@@ -310,26 +289,19 @@ export function insert (doc, state, selection, clipboardData) {
     if (Array.isArray(parent)) {
       const index = last(path)
       const nextItemPath = parentPath.concat([index + 1])
-      const operations = insertBefore(doc, state, nextItemPath, newValues)
-      const newSelection = createSelectionFromOperations(doc, operations)
 
-      return { operations, newSelection }
+      return insertBefore(doc, state, nextItemPath, newValues)
     } else { // value is an Object
       const key = last(path)
       const keys = getKeys(state, parentPath)
       if (isEmpty(keys) || last(keys) === key) {
-        const operations = append(doc, parentPath, newValues)
-        const newSelection = createSelectionFromOperations(doc, operations)
-
-        return { operations, newSelection }
+        return append(doc, parentPath, newValues)
       } else {
         const index = keys.indexOf(key)
         const nextKey = keys[index + 1]
         const nextKeyPath = parentPath.concat([nextKey])
-        const operations = insertBefore(doc, state, nextKeyPath, newValues)
-        const newSelection = createSelectionFromOperations(doc, operations)
 
-        return { operations, newSelection }
+        return insertBefore(doc, state, nextKeyPath, newValues)
       }
     }
   }
@@ -341,24 +313,16 @@ export function insert (doc, state, selection, clipboardData) {
 
     if (Array.isArray(value)) {
       const firstItemPath = path.concat([0])
-      const operations = insertBefore(doc, state, firstItemPath, newValues)
-      const newSelection = createSelectionFromOperations(doc, operations)
-
-      return { operations, newSelection }
+      return insertBefore(doc, state, firstItemPath, newValues)
     } else { // value is an Object
       const keys = getKeys(state, path)
       if (isEmpty(keys)) {
-        const operations = append(doc, path, newValues)
-        const newSelection = createSelectionFromOperations(doc, operations)
-
-        return { operations, newSelection }
+        return append(doc, path, newValues)
       } else {
         const firstKey = first(keys)
         const firstKeyPath = path.concat([firstKey])
-        const operations = insertBefore(doc, state, firstKeyPath, newValues)
-        const newSelection = createSelectionFromOperations(doc, operations)
 
-        return { operations, newSelection }
+        return insertBefore(doc, state, firstKeyPath, newValues)
       }
     }
   }

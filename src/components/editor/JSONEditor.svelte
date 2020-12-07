@@ -322,7 +322,8 @@
 
     try {
       const clipboardData = event.clipboardData.getData('text/plain')
-      const { operations, newSelection } = insert(doc, state, selection, clipboardData)
+      const operations = insert(doc, state, selection, clipboardData)
+      const newSelection = createSelectionFromOperations(doc, operations)
 
       debug('paste', { clipboardData, operations, selection, newSelection })
 
@@ -370,7 +371,8 @@
     const data = (selection.type === SELECTION_TYPE.VALUE || selection.type === SELECTION_TYPE.MULTI)
       ? JSON.stringify(newValue)
       : JSON.stringify({ 'New Item': newValue })
-    const { operations, newSelection } = insert(doc, state, selection, data)
+    const operations = insert(doc, state, selection, data)
+    const newSelection = createSelectionFromOperations(doc, operations)
     debug('handeleInsert', { type, operations, newSelection, newValue, data })
 
     handlePatch(operations, newSelection)
