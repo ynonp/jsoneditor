@@ -2,6 +2,7 @@ import assert from 'assert'
 import { syncState } from './documentState.js'
 import {
   createSelection,
+  createSelectionFromOperations,
   expandSelection,
   findRootPath,
   getInitialSelection,
@@ -349,5 +350,48 @@ describe('selection', () => {
       anchorPath: ['obj'],
       focusPath: ['obj']
     }), indentation), '"obj": ' + JSON.stringify(doc.obj, null, indentation) + ',')
+  })
+
+  describe('createSelectionFromOperations', () => {
+    it ('should get selection from add operations', () => {
+      assert.deepStrictEqual(createSelectionFromOperations(doc, [
+        { op: 'add', path: '/obj/arr/2', value: 42 },
+        { op: 'add', path: '/obj/arr/3', value: 43 }
+      ]), createSelection(doc, state, {
+        type: SELECTION_TYPE.MULTI,
+        anchorPath: ['obj', 'arr', 2],
+        focusPath: ['obj', 'arr', 3]
+      }))
+    })
+  })
+
+  it ('should get selection from copy operations', () => {
+    assert.deepStrictEqual(createSelectionFromOperations(doc, [
+      { op: 'copy', from: '/str', path: '/strCopy' }
+    ]), createSelection(doc, state, {
+      type: SELECTION_TYPE.MULTI,
+      anchorPath: ['strCopy'],
+      focusPath: ['strCopy']
+    }))
+  })
+
+  it ('should get selection from replace operations', () => {
+    assert.deepStrictEqual(createSelectionFromOperations(doc, [
+      { op: 'replace', path: '/str', value: 'hello world (updated)' }
+    ]), createSelection(doc, state, {
+      type: SELECTION_TYPE.VALUE,
+      path: ['str']
+    }))
+  })
+
+  it ('should get selection from renaming a key', () => {
+    assert.deepStrictEqual(createSelectionFromOperations(doc, [
+      { op: 'move', from: '/str', path: '/strRenamed' },
+      { op: 'move', from: '/foo', path: '/foo' },
+      { op: 'move', from: '/bar', path: '/bar' }
+    ]), createSelection(doc, state, {
+      type: SELECTION_TYPE.KEY,
+      path: ['strRenamed']
+    }))
   })
 })

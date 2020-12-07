@@ -262,15 +262,14 @@ export function insert (doc, state, selection, clipboardData) {
   if (selection.type === SELECTION_TYPE.KEY) {
     // rename key
     const parentPath = initial(selection.focusPath)
-    const oldKey = last(selection.focusPath)
     const keys = getKeys(state, parentPath)
-    const operations = rename(parentPath, keys, oldKey, clipboard)
+    const oldKey = last(selection.focusPath)
+    const newKey = typeof clipboard === 'string'
+      ? clipboard
+      : clipboardData
+    const operations = rename(parentPath, keys, oldKey, newKey)
 
-    // TDOO: refactor to use createSelectionFromOperations here too
-    const newSelection = createSelection(doc, state, {
-      type: SELECTION_TYPE.KEY,
-      path: parseJSONPointerWithArrayIndices(doc, first(operations).path)
-    })
+    const newSelection = createSelectionFromOperations(doc, operations)
 
     return { operations, newSelection }
   }
@@ -285,9 +284,9 @@ export function insert (doc, state, selection, clipboardData) {
       }
     ]
 
-    // FIXME: refactor to use createSelectionFromOperations here too to calculate newSelection?
+    const newSelection = createSelectionFromOperations(doc, operations)
 
-    return { operations, newSelection: selection }
+    return { operations, newSelection }
   }
 
   if (selection.type === SELECTION_TYPE.MULTI) {

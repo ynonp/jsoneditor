@@ -387,20 +387,43 @@ export function getInitialSelection (doc, state) {
  * @param {JSONPatchDocument} operations
  * @returns {MultiSelection}
  */
-// TODO: write unit tests
 export function createSelectionFromOperations (doc, operations) {
-  // FIXME: handle rename key (move) -> SELECTION_TYPE.KEY
-  // FIXME: handle replace value -> SELECTION_TYPE.VALUE
+  if (operations.length === 1) {
+    const operation = first(operations)
+    if (operation.op === 'replace') {
+      // replaced value
+      const path = parseJSONPointerWithArrayIndices(doc, operation.path)
+
+      return {
+        type: SELECTION_TYPE.VALUE,
+        anchorPath: path,
+        focusPath: path,
+        edit: false
+      }
+    }
+  }
+
+  if (operations.every(operation => operation.op === 'move')) {
+    const firstOp = first(operations)
+    const otherOps = operations.slice(1)
+
+    if (firstOp.from !== firstOp.path && otherOps.every(operation => operation.from === operation.path)) {
+      // a renamed key
+      const path = parseJSONPointerWithArrayIndices(doc, firstOp.path)
+
+      return {
+        type: SELECTION_TYPE.KEY,
+        anchorPath: path,
+        focusPath: path,
+        edit: false
+      }
+    }
+  }
 
   const paths = operations
-    .filter(operation => {
-      return (
-        operation.op === 'add' ||
-        operation.op === 'copy' ||
-        operation.op === 'rename' ||
-        operation.op === 'replace'
-      )
-    })
+    .filter(operation => operation.op !== 'test')
+    .filter(operation => operation.op !== 'move' || operation.from !== operation.path)
+    .filter(operation => typeof operation.path === 'string')
     .map(operation => parseJSONPointerWithArrayIndices(doc, operation.path))
 
   // TODO: make this function robust against operations which do not have consecutive paths
