@@ -36,8 +36,17 @@
   &:hover {
     background: $hovered-background;
   }
+
+  &.empty::after {
+    content: 'value';
+  }
+
+  &[contenteditable="true"] {
+    min-width: 50px;
+
+    &::after {
+      content: none;
+    }
+  }
 }
 
-div.empty.value::after {
-  content: 'value';
-}

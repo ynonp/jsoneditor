@@ -7,8 +7,16 @@
   &:hover {
     background: $hovered-background;
   }
-}
 
-div.empty.key::after {
-  content: 'key';
+  &.empty::after {
+    content: 'key';
+  }
+
+  &[contenteditable="true"] {
+    min-width: 50px;
+
+    &::after {
+      content: none;
+    }
+  }
 }
