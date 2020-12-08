@@ -38,11 +38,7 @@
   $: editKey = selectedKey && selection && selection.edit === true
   $: keyClass = getKeyClass(newKey, searchResult)
 
-  $: {
-    if (!editKey) {
-      newKey = key
-    }
-  }
+  $: newKey = key
 
   $: if (editKey === true) {
     // edit changed to true -> set focus to end of input

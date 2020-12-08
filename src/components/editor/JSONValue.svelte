@@ -38,11 +38,7 @@
   $: editValue = selectedValue && selection && selection.edit === true
   $: valueIsUrl = isUrl(value)
 
-  $: {
-    if (!editValue) {
-      newValue = value
-    }
-  }
+  $: newValue = value
 
   $: if (editValue === true) {
     focusValue()
