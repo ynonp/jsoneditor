@@ -408,7 +408,7 @@
                 onUpdateKey={handleUpdateKey}
                 selection={selection}
                 onSelect={onSelect}
-                searchResult={searchResult}
+                searchResult={searchResult ? searchResult[key] : undefined}
               />
             </div
           ></svelte:self>
