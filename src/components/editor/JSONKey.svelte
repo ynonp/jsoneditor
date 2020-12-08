@@ -29,7 +29,7 @@
   })
 
   let domKey
-  let newKey = key
+  let newKey
   let keyClass
 
   $: selectedKey = (selection && selection.type === SELECTION_TYPE.KEY)
@@ -56,8 +56,6 @@
   function updateKey () {
     if (key !== newKey) {
       debug('updateKey', { key, newKey })
-
-      key = newKey // prevent loops when value and newValue are temporarily not in sync
 
       // must be handled by the parent which has knowledge about the other keys
       const uniqueKey = onUpdateKey(key, newKey)
