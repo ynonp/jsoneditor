@@ -140,6 +140,10 @@
   color: $gray-icon;
   font-size: $font-size-mono;
   line-height: $line-height;
+
+  &:hover {
+    color: lighten($gray-icon, 10%);
+  }
 }
 
 .meta,
