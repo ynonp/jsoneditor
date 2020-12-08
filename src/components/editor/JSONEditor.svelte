@@ -327,11 +327,10 @@
     try {
       const clipboardData = event.clipboardData.getData('text/plain')
       const operations = insert(doc, state, selection, clipboardData)
-      const newSelection = createSelectionFromOperations(doc, operations)
 
-      debug('paste', { clipboardData, operations, selection, newSelection })
+      debug('paste', { clipboardData, operations, selection })
 
-      handlePatch(operations, newSelection)
+      handlePatch(operations)
 
       // TODO: expand when inserted an object/array at a value
     } catch (err) {
@@ -360,9 +359,8 @@
     debug('duplicate', { selection })
 
     const operations = duplicate(doc, state, selection.paths)
-    const newSelection = createSelectionFromOperations(doc, operations)
 
-    handlePatch(operations, newSelection)
+    handlePatch(operations)
   }
 
   /**
@@ -378,10 +376,9 @@
       ? JSON.stringify(newValue)
       : JSON.stringify({ 'New Item': newValue })
     const operations = insert(doc, state, selection, data)
-    const newSelection = createSelectionFromOperations(doc, operations)
-    debug('handleInsert', { type, operations, newSelection, newValue, data })
+    debug('handleInsert', { type, operations, newValue, data })
 
-    handlePatch(operations, newSelection)
+    handlePatch(operations)
 
     if (isObjectOrArray(newValue)) {
       // expand newly inserted object/array
@@ -604,10 +601,15 @@
 
   /**
    * @param {JSONPatchDocument} operations
-   * @param {Selection} [newSelection]
+   * @param {Selection} [newSelection] If no new selection is provided,
+   *                                   The new selection will be determined
+   *                                   based on the operations.
    */
-  function handlePatch (operations, newSelection) {
-    // debug('handlePatch', operations)
+  function handlePatch (
+    operations,
+    newSelection = createSelectionFromOperations(doc, operations)
+  ) {
+    debug('handlePatch', operations, newSelection)
 
     const patchResult = patch(operations, newSelection)
 

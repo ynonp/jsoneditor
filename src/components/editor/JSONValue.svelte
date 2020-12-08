@@ -48,6 +48,8 @@
 
   function updateValue () {
     if (newValue !== value) {
+      value = newValue // to prevent loops when value and newValue are temporarily not in sync
+
       onPatch([{
         op: 'replace',
         path: compileJSONPointer(path),
