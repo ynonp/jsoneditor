@@ -2,6 +2,7 @@
 
 // for key and value
 div.editable-div {
+  height: $line-height;
   line-height: $line-height;
   min-width: 16px;
   word-break: normal;
@@ -12,7 +13,7 @@ div.editable-div {
   vertical-align: top;
 
   &[contenteditable="true"] {
-    outline: 2px solid $edit-border-color; // TODO: border should be displayed on top of light gray highlight background when hovering sibling above or below
+    outline: 2px solid $edit-border-color;
     background: $theme-color;
     color: $selection-color !important;
     position: relative;

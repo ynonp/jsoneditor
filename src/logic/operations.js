@@ -4,7 +4,12 @@ import { compileJSONPointer } from '../utils/jsonPointer.js'
 import { findUniqueName } from '../utils/stringUtils.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import { getKeys, getNextKeys } from './documentState.js'
-import { createSelection, getParentPath, SELECTION_TYPE } from './selection.js'
+import {
+  createSelection,
+  createSelectionFromOperations,
+  getParentPath,
+  SELECTION_TYPE
+} from './selection.js'
 
 /**
  * Create a JSONPatch for an insert operation.
@@ -328,7 +333,7 @@ export function insert (doc, state, selection, clipboardData) {
   }
 
   // this should never happen
-  throw new Error('Cannot insert: unsupported type of selection')
+  throw new Error('Cannot insert: unsupported type of selection ' + JSON.stringify(selection))
 }
 
 export function createNewValue (doc, selection, type) {
@@ -432,32 +437,72 @@ export function clipboardToValues (clipboard) {
  */
 // TODO: write unit tests
 export function createRemoveOperations (doc, state, selection) {
-  const operations = removeAll(selection.paths)
-
-  const lastPath = last(selection.paths)
-  const parentPath = initial(lastPath)
-  const parent = getIn(doc, parentPath)
-
-  if (Array.isArray(parent)) {
-    const firstPath = first(selection.paths)
-    const index = last(firstPath)
-    const newSelection = index === 0
-      ? createSelection(doc, state, { type: SELECTION_TYPE.INSIDE, path: parentPath })
-      : createSelection(doc, state, { type: SELECTION_TYPE.AFTER, path: parentPath.concat([index - 1]) })
-
-    return { operations, newSelection }
-  } else { // parent is object
+  if (selection.type === SELECTION_TYPE.KEY) {
+    // FIXME: DOESN'T work yet
+    const parentPath = initial(selection.focusPath)
     const keys = getKeys(state, parentPath)
-    const firstPath = first(selection.paths)
-    const key = last(firstPath)
-    const index = keys.indexOf(key)
-    const previousKey = keys[index - 1]
-    const newSelection = index === 0
-      ? createSelection(doc, state, { type: SELECTION_TYPE.INSIDE, path: parentPath })
-      : createSelection(doc, state, { type: SELECTION_TYPE.AFTER, path: parentPath.concat([previousKey]) })
+    const oldKey = last(selection.focusPath)
+    const newKey = ''
+
+    const operations = rename(parentPath, keys, oldKey, newKey)
+    const newSelection = createSelectionFromOperations(doc, operations)
 
     return { operations, newSelection }
   }
+
+  if (selection.type === SELECTION_TYPE.VALUE) {
+    const operations = [{
+      op: 'replace',
+      path: compileJSONPointer(selection.focusPath),
+      value: ''
+    }]
+
+    return { operations, newSelection: selection }
+  }
+
+  if (selection.type === SELECTION_TYPE.MULTI) {
+    const operations = removeAll(selection.paths)
+
+    const lastPath = last(selection.paths)
+    const parentPath = initial(lastPath)
+    const parent = getIn(doc, parentPath)
+
+    if (Array.isArray(parent)) {
+      const firstPath = first(selection.paths)
+      const index = last(firstPath)
+      const newSelection = index === 0
+        ? createSelection(doc, state, {
+          type: SELECTION_TYPE.INSIDE,
+          path: parentPath
+        })
+        : createSelection(doc, state, {
+          type: SELECTION_TYPE.AFTER,
+          path: parentPath.concat([index - 1])
+        })
+
+      return {operations, newSelection}
+    } else { // parent is object
+      const keys = getKeys(state, parentPath)
+      const firstPath = first(selection.paths)
+      const key = last(firstPath)
+      const index = keys.indexOf(key)
+      const previousKey = keys[index - 1]
+      const newSelection = index === 0
+        ? createSelection(doc, state, {
+          type: SELECTION_TYPE.INSIDE,
+          path: parentPath
+        })
+        : createSelection(doc, state, {
+          type: SELECTION_TYPE.AFTER,
+          path: parentPath.concat([previousKey])
+        })
+
+      return {operations, newSelection}
+    }
+  }
+
+  // this should never happen
+  throw new Error('Cannot remove: unsupported type of selection ' + JSON.stringify(selection))
 }
 
 /**

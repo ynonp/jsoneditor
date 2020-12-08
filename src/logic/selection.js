@@ -548,7 +548,7 @@ export function createSelection (doc, state, selectionSchema) {
       edit
     }
     if (next) {
-      selection = getSelectionDown(doc, state, selection)
+      selection = getSelectionDown(doc, state, selection) || selection
     }
     return selection
   } else if (type === SELECTION_TYPE.AFTER) {

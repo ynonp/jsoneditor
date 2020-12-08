@@ -233,15 +233,24 @@
     > .header-outer > .header > :global(.identifier) > :global(.key) {
       background-color: $selection-background;
       color: $selection-color;
+
+      &.empty::after {
+        content: none;
+      }
     }
   }
 
+  // value selected (part 1)
   &.selected-value > .contents-outer > .contents > :global(.value) {
     background-color: $selection-background;
     color: $selection-color;
+
+    &.empty::after {
+      content: none;
+    }
   }
 
-  // value selected
+  // value selected (part 2)
   &.selected-value {
     .meta,
     > .footer-outer > .footer,

@@ -279,6 +279,10 @@
   $: debug('selection', selection)
 
   async function handleCut () {
+    if (!selection) {
+      return
+    }
+
     const clipboard = selectionToPartialJson(doc, selection)
     if (clipboard == null) {
       return
@@ -328,6 +332,8 @@
       debug('paste', { clipboardData, operations, selection, newSelection })
 
       handlePatch(operations, newSelection)
+
+      // TODO: expand when inserted an object/array at a value
     } catch (err) {
       // TODO: report error to user -> onError callback
       console.error(err)
@@ -335,7 +341,7 @@
   }
 
   function handleRemove () {
-    if (!selection || selection.type !== SELECTION_TYPE.MULTI) {
+    if (!selection) {
       return
     }
 
@@ -776,6 +782,12 @@
       // Replace selected contents with a new value having this first character as text
       event.preventDefault()
       handleInsertCharacter(event.key)
+    }
+
+    if (combo === 'Enter' && (selection.type === SELECTION_TYPE.AFTER || selection.type === SELECTION_TYPE.INSIDE)) {
+      // Enter on an insert area -> open the area in edit mode
+      event.preventDefault()
+      handleInsertCharacter('')
     }
 
     if (combo === 'Ctrl+Enter' && selection && selection.type === SELECTION_TYPE.VALUE) {

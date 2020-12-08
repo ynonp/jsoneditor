@@ -8,15 +8,15 @@
     background: $hovered-background;
   }
 
-  &.empty::after {
-    content: 'key';
-  }
-
-  &[contenteditable="true"] {
-    min-width: 50px;
+  &.empty {
+    min-width: 3em;
 
     &::after {
-      content: none;
+      content: 'key';
+
+      &[contenteditable="true"] {
+        content: none;
+      }
     }
   }
 }

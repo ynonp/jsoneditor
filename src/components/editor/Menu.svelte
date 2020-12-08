@@ -49,8 +49,11 @@
   let domSearch
 
   $: hasSelection = selection != null
-  $: hasSelectionContents = selection != null && selection.type === SELECTION_TYPE.MULTI
-  $: hasClipboardContents = selection != null
+  $: hasSelectionContents = selection != null && (
+    selection.type === SELECTION_TYPE.MULTI ||
+    selection.type === SELECTION_TYPE.KEY ||
+    selection.type === SELECTION_TYPE.VALUE
+  )
 
   function handleToggleSearch () {
     showSearch = !showSearch
@@ -130,7 +133,7 @@
     class="button paste"
     bind:this={domPasteFromMenu}
     on:click={handlePasteFromMenu}
-    disabled={!hasClipboardContents}
+    disabled={!hasSelection}
     title="Paste (Ctrl+V)"
   >
     <Icon data={faPaste} />
