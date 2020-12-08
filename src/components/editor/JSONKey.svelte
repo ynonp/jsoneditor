@@ -1,5 +1,6 @@
 <script>
   import classnames from 'classnames'
+  import createDebug from 'debug'
   import { isEqual } from 'lodash-es'
   import { onDestroy, tick } from 'svelte'
   import {
@@ -13,6 +14,8 @@
     setPlainText
   } from '../../utils/domUtils.js'
 
+  const debug = createDebug('jsoneditor:JSONKey')
+
   export let path
   export let key
   export let onUpdateKey
@@ -21,6 +24,7 @@
   export let searchResult
 
   onDestroy(() => {
+    debug('destroy', path)
     updateKey()
   })
 
@@ -33,6 +37,12 @@
     : false
   $: editKey = selectedKey && selection && selection.edit === true
   $: keyClass = getKeyClass(newKey, searchResult)
+
+  $: {
+    if (!editKey) {
+      newKey = key
+    }
+  }
 
   $: if (editKey === true) {
     // edit changed to true -> set focus to end of input
@@ -49,6 +59,10 @@
 
   function updateKey () {
     if (key !== newKey) {
+      debug('updateKey', { key, newKey })
+
+      key = newKey // prevent loops when value and newValue are temporarily not in sync
+
       // must be handled by the parent which has knowledge about the other keys
       const uniqueKey = onUpdateKey(key, newKey)
       if (uniqueKey !== newKey) {

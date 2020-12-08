@@ -247,7 +247,7 @@
     const prevState = state
     const prevSelection = selection
 
-    debug('operations', operations)
+    debug('patch', operations, newSelection)
 
     const undo = revertJSONPatch(doc, operations)
     doc = immutableJSONPatch(doc, operations)
@@ -263,7 +263,7 @@
       prevState,
       state,
       prevSelection: removeEditModeFromSelection(prevSelection),
-      selection: removeEditModeFromSelection(newSelection)
+      selection: removeEditModeFromSelection(newSelection || selection)
     })
 
     return {

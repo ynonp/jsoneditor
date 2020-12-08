@@ -42,7 +42,8 @@
 	<p>
 		<button id="loadLargeJson">load large json</button>
 		<button id="clearJson">clear json</button>
-		<button id="patchJson">patch json</button>
+		<button id="patchJson">patch /string</button>
+		<button id="patchJson2">patch /object/nested/name</button>
 		<button id="moveJson">move json</button>
 		<input id="loadFile" type="file">
 	</p>
@@ -163,6 +164,16 @@
 		document.getElementById('patchJson').onclick = function handleClearJson() {
 			const operations = [{
 				op: 'replace', 
+				path: '/string',
+				value: 'Hello world (updated!)'
+			}]
+
+			testEditor.patch(operations)
+		}
+
+		document.getElementById('patchJson2').onclick = function handleClearJson() {
+			const operations = [{
+				op: 'replace',
 				path: '/object/nested/name',
 				value: 'Item 2 (updated!)'
 			}]

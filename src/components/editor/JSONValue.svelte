@@ -1,5 +1,6 @@
 <script>
   import classnames from 'classnames'
+  import createDebug from 'debug'
   import { isEqual } from 'lodash-es'
   import { onDestroy } from 'svelte'
   import { ACTIVE_SEARCH_RESULT, STATE_SEARCH_VALUE } from '../../constants.js'
@@ -12,6 +13,8 @@
   import { compileJSONPointer } from '../../utils/jsonPointer.js'
   import { isUrl, stringConvert, valueType } from '../../utils/typeUtils.js'
 
+  const debug = createDebug('jsoneditor:JSONValue')
+
   export let path
   export let value
   export let onPatch
@@ -20,6 +23,7 @@
   export let searchResult
 
   onDestroy(() => {
+    debug('destroy', path)
     updateValue()
   })
 
@@ -33,6 +37,12 @@
   $: valueClass = getValueClass(newValue, searchResult)
   $: editValue = selectedValue && selection && selection.edit === true
   $: valueIsUrl = isUrl(value)
+
+  $: {
+    if (!editValue) {
+      newValue = value
+    }
+  }
 
   $: if (editValue === true) {
     focusValue()
@@ -48,7 +58,9 @@
 
   function updateValue () {
     if (newValue !== value) {
-      value = newValue // to prevent loops when value and newValue are temporarily not in sync
+      debug('updateValue', { value, newValue })
+
+      value = newValue // prevent loops when value and newValue are temporarily not in sync
 
       onPatch([{
         op: 'replace',
