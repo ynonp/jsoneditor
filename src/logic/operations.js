@@ -278,7 +278,7 @@ export function insert (doc, state, selection, clipboardData) {
   }
 
   if (selection.type === SELECTION_TYPE.MULTI) {
-    const clipboardContainsObjectOrArray = clipboardData.match(/^\s*[{\[]/)
+    const clipboardContainsObjectOrArray = clipboardData.match(/^\s*[{[]/)
     const values = clipboardContainsObjectOrArray
       ? [{ key: 'New item', value: clipboard }]
       : clipboardToValues(clipboard)
@@ -473,15 +473,15 @@ export function createRemoveOperations (doc, state, selection) {
       const index = last(firstPath)
       const newSelection = index === 0
         ? createSelection(doc, state, {
-          type: SELECTION_TYPE.INSIDE,
-          path: parentPath
-        })
+            type: SELECTION_TYPE.INSIDE,
+            path: parentPath
+          })
         : createSelection(doc, state, {
           type: SELECTION_TYPE.AFTER,
           path: parentPath.concat([index - 1])
         })
 
-      return {operations, newSelection}
+      return { operations, newSelection }
     } else { // parent is object
       const keys = getKeys(state, parentPath)
       const firstPath = first(selection.paths)
@@ -490,15 +490,15 @@ export function createRemoveOperations (doc, state, selection) {
       const previousKey = keys[index - 1]
       const newSelection = index === 0
         ? createSelection(doc, state, {
-          type: SELECTION_TYPE.INSIDE,
-          path: parentPath
-        })
+            type: SELECTION_TYPE.INSIDE,
+            path: parentPath
+          })
         : createSelection(doc, state, {
           type: SELECTION_TYPE.AFTER,
           path: parentPath.concat([previousKey])
         })
 
-      return {operations, newSelection}
+      return { operations, newSelection }
     }
   }
 

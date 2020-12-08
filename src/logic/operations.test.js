@@ -1,6 +1,5 @@
 import assert from 'assert'
 import {
-  clipboardToValues,
   createNewValue,
   parsePartialJson
 } from './operations.js'

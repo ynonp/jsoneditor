@@ -193,13 +193,21 @@
 
 		document.getElementById('loadFile').onchange = function loadFile(event) {
 			console.log('loadFile', event.target.files)
+			console.time('load file')
 
 			const reader = new FileReader()
 			const file = event.target.files[0]
 			reader.onload = function (event) {
+				console.timeEnd('load file')
 				const text = event.target.result
+
+				console.time('parse JSON')
 				const json = JSON.parse(text)
+				console.timeEnd('parse JSON')
+
+				console.time('set JSON')
 				testEditor.set(json)
+				console.timeEnd('set JSON')
 			}
 			reader.readAsText(file)
 		}

@@ -418,7 +418,7 @@
         selection.type === SELECTION_TYPE.VALUE &&
         !isObjectOrArray(getIn(doc, selection.focusPath))
       ) {
-        selection = {...selection, edit: true}
+        selection = { ...selection, edit: true }
         await tick()
         setTimeout(() => replaceActiveElementContents(char))
       } else {
