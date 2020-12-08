@@ -114,7 +114,6 @@ export function isSelectionInsidePath (selection, path) {
  * @param {boolean} [keepAnchorPath=false]
  * @returns {Selection | null}
  */
-// TODO: write unit tests
 export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
   const previousPath = getPreviousVisiblePath(doc, state, selection.focusPath)
   const anchorPath = previousPath
@@ -156,8 +155,18 @@ export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
     return { type: SELECTION_TYPE.VALUE, anchorPath, focusPath }
   }
 
-  if (selection.type === SELECTION_TYPE.AFTER || selection.type === SELECTION_TYPE.INSIDE) {
-    // select the node itself, not the previous node
+  if (selection.type === SELECTION_TYPE.AFTER) {
+    // select the node itself, not the previous node,
+    // FIXME: when after an expanded object/array, should go to the last item inside the object/array
+    return createSelection(doc, state, {
+      type: SELECTION_TYPE.MULTI,
+      anchorPath: selection.focusPath,
+      focusPath: selection.focusPath
+    })
+  }
+
+  if (selection.type === SELECTION_TYPE.INSIDE) {
+    // select the node itself, not the previous node,
     return createSelection(doc, state, {
       type: SELECTION_TYPE.MULTI,
       anchorPath: selection.focusPath,
@@ -180,7 +189,6 @@ export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
  * @param {boolean} [keepAnchorPath=false]
  * @returns {Selection | null}
  */
-// TODO: write unit tests
 export function getSelectionDown (doc, state, selection, keepAnchorPath = false) {
   const nextPath = getNextVisiblePath(doc, state, selection.focusPath)
   const anchorPath = nextPath
@@ -190,17 +198,16 @@ export function getSelectionDown (doc, state, selection, keepAnchorPath = false)
     return null
   }
 
+  // if the focusPath is an Array or object, we must not step into it but
+  // over it, we pass state with this array/object collapsed
+  const collapsedState = isObjectOrArray(getIn(doc, selection.focusPath))
+    ? setIn(state, selection.focusPath.concat(STATE_EXPANDED), false, true)
+    : state
+
+  const nextPathAfter = getNextVisiblePath(doc, collapsedState, selection.focusPath)
+
   if (keepAnchorPath) {
     // multi selection
-
-    // if the focusPath is an Array or object, we must not step into it but
-    // over it, we pass state with this array/object collapsed
-    const collapsedState = isObjectOrArray(getIn(doc, selection.focusPath))
-      ? setIn(state, selection.focusPath.concat(STATE_EXPANDED), false, true)
-      : state
-
-    const nextPathAfter = getNextVisiblePath(doc, collapsedState, selection.focusPath)
-
     if (nextPathAfter === null) {
       return null
     }
@@ -243,11 +250,23 @@ export function getSelectionDown (doc, state, selection, keepAnchorPath = false)
     return { type: SELECTION_TYPE.VALUE, anchorPath, focusPath }
   }
 
-  // multi selection with one entry
+  if (selection.type === SELECTION_TYPE.INSIDE) {
+    return createSelection(doc, state, {
+      type: SELECTION_TYPE.MULTI,
+      anchorPath,
+      focusPath
+    })
+  }
+
+  if (nextPathAfter === null) {
+    return null
+  }
+
+  // multi selection or AFTER
   return createSelection(doc, state, {
     type: SELECTION_TYPE.MULTI,
-    anchorPath,
-    focusPath
+    anchorPath: nextPathAfter,
+    focusPath: nextPathAfter
   })
 }
 
