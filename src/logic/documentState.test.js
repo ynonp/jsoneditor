@@ -527,8 +527,31 @@ describe('documentState', () => {
       // TODO
     })
 
-    it('replace: should the root document itself', () => {
-      // TODO
+    it('replace: should replace the root document itself', () => {
+      const doc = {
+        a: 2,
+        b: 3
+      }
+      const state = syncState(doc, undefined, [], () => true)
+      console.log('state', state)
+      assert.deepStrictEqual(state[STATE_KEYS], ['a', 'b'])
+      assert.deepStrictEqual(state[STATE_EXPANDED], true)
+      assert.strictEqual(typeof state.a, 'object')
+      assert.strictEqual(typeof state.b, 'object')
+      assert.strictEqual(typeof state.d, 'undefined')
+
+      const operations = [{
+        op: 'replace',
+        path: '',
+        value: { d: 4 }
+      }]
+      const updatedState = documentStatePatch(state, operations)
+      console.log('updatedState', updatedState)
+      assert.deepStrictEqual(updatedState[STATE_KEYS], ['d'])
+      assert.deepStrictEqual(updatedState[STATE_EXPANDED], true)
+      assert.strictEqual(typeof updatedState.a, 'undefined')
+      assert.strictEqual(typeof updatedState.b, 'undefined')
+      assert.strictEqual(typeof updatedState.d, 'object')
     })
 
     it('copy: should copy a value into an object', () => {

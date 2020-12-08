@@ -70,7 +70,7 @@ export function syncState (doc, state, path, expand, forceRefresh = false) {
 
     // note that we reset the visible items when the state is not expanded
     updatedState[STATE_VISIBLE_SECTIONS] = (state && updatedState[STATE_EXPANDED])
-      ? (state[STATE_VISIBLE_SECTIONS] || DEFAULT_VISIBLE_SECTIONS)
+      ? state[STATE_VISIBLE_SECTIONS]
       : DEFAULT_VISIBLE_SECTIONS
 
     if (updatedState[STATE_EXPANDED]) {
@@ -95,7 +95,7 @@ export function createState (json) {
 
     state[STATE_ID] = uniqueId()
     state[STATE_EXPANDED] = false
-    state[STATE_VISIBLE_SECTIONS] = [] // nothing, not expanded
+    state[STATE_VISIBLE_SECTIONS] = DEFAULT_VISIBLE_SECTIONS
 
     return state
   }

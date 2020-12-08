@@ -522,11 +522,14 @@
 
         const expanded = getIn(state, rootPath.concat(STATE_EXPANDED))
 
-        patch(operations, selection)
+        patch(operations)
 
-        // keep the root nodes expanded state
-        await tick()
-        state = setIn(state, rootPath.concat(STATE_EXPANDED), expanded)
+        if (expanded) {
+          // keep the root nodes expanded state
+          await tick()
+          handleExpand(rootPath, true)
+          // FIXME: because we apply expand *after* the patch, when doing undo/redo, the expanded state is not restored
+        }
       }
     }, {
       ...SIMPLE_MODAL_OPTIONS,
