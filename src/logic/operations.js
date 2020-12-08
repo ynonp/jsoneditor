@@ -106,7 +106,8 @@ export function append (json, path, values) { // TODO: find a better name and de
  * @returns {JSONPatchDocument}
  */
 export function rename (parentPath, keys, oldKey, newKey) {
-  const newKeyUnique = findUniqueName(newKey, keys)
+  const filteredKeys = keys.filter(key => key !== oldKey)
+  const newKeyUnique = findUniqueName(newKey, filteredKeys)
   const nextKeys = getNextKeys(keys, oldKey, false)
 
   return [

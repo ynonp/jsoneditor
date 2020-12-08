@@ -38,8 +38,6 @@
   $: editValue = selectedValue && selection && selection.edit === true
   $: valueIsUrl = isUrl(value)
 
-  $: newValue = value
-
   $: if (editValue === true) {
     focusValue()
   }
@@ -49,7 +47,8 @@
   }
 
   $: if (domValue) {
-    setDomValueIfNotEditing(value)
+    debug('received updated value', { value, editValue })
+    setDomValue(value)
   }
 
   function updateValue () {
@@ -77,13 +76,8 @@
 
   function setDomValue (updatedValue) {
     if (domValue) {
+      newValue = updatedValue
       setPlainText(domValue, updatedValue)
-    }
-  }
-
-  function setDomValueIfNotEditing (updatedValue) {
-    if (editValue === false) {
-      setDomValue(updatedValue)
     }
   }
 
@@ -136,8 +130,7 @@
 
     if (event.key === 'Escape') {
       // cancel changes
-      newValue = value
-      setDomValue(newValue)
+      setDomValue(value)
       onSelect({ type: SELECTION_TYPE.VALUE, path })
     }
 

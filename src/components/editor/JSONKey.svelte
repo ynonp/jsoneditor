@@ -29,7 +29,7 @@
   })
 
   let domKey
-  let newKey
+  let newKey = key
   let keyClass
 
   $: selectedKey = (selection && selection.type === SELECTION_TYPE.KEY)
@@ -38,15 +38,14 @@
   $: editKey = selectedKey && selection && selection.edit === true
   $: keyClass = getKeyClass(newKey, searchResult)
 
-  $: newKey = key
-
   $: if (editKey === true) {
     // edit changed to true -> set focus to end of input
     focusKey()
   }
 
   $: if (domKey) {
-    setDomKeyIfNotEditing(key)
+    debug('received updated key', { key, editKey })
+    setDomKey(key)
   }
 
   $: if (editKey === false) {
@@ -73,14 +72,9 @@
     return getPlainText(domKey)
   }
 
-  function setDomKeyIfNotEditing (updatedKey) {
-    if (editKey === false) {
-      setDomKey(updatedKey)
-    }
-  }
-
   function setDomKey (updatedKey) {
     if (domKey) {
+      newKey = updatedKey
       setPlainText(domKey, updatedKey)
     }
   }
@@ -107,8 +101,7 @@
 
     if (event.key === 'Escape') {
       // cancel changes
-      newKey = key
-      setDomKey(newKey)
+      setDomKey(key)
       onSelect({ type: SELECTION_TYPE.KEY, path })
     }
 
