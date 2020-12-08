@@ -54,6 +54,7 @@
     selection.type === SELECTION_TYPE.KEY ||
     selection.type === SELECTION_TYPE.VALUE
   )
+  $: hasMultiSelection = selection != null && selection.type === SELECTION_TYPE.MULTI
 
   function handleToggleSearch () {
     showSearch = !showSearch
@@ -152,7 +153,7 @@
   <button
     class="button duplicate"
     on:click={onDuplicate}
-    disabled={!hasSelectionContents}
+    disabled={!hasMultiSelection}
     title="Duplicate (Ctrl+D)"
   >
     <Icon data={faClone} />
