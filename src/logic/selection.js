@@ -156,7 +156,16 @@ export function getSelectionUp (doc, state, selection, keepAnchorPath = false) {
     return { type: SELECTION_TYPE.VALUE, anchorPath, focusPath }
   }
 
-  // multi selection with one entry
+  if (selection.type === SELECTION_TYPE.AFTER || selection.type === SELECTION_TYPE.INSIDE) {
+    // select the node itself, not the previous node
+    return createSelection(doc, state, {
+      type: SELECTION_TYPE.MULTI,
+      anchorPath: selection.focusPath,
+      focusPath: selection.focusPath
+    })
+  }
+
+  // multi selection -> select previous node
   return createSelection(doc, state, {
     type: SELECTION_TYPE.MULTI,
     anchorPath,
