@@ -63,6 +63,7 @@
   }
 
   .contents {
+    min-height: $line-height;
     padding-left: $line-height ; // must be the same as the width of the expand button
   }
 

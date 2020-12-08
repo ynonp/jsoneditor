@@ -75,6 +75,7 @@
   $: visibleSections = state[STATE_VISIBLE_SECTIONS]
   $: keys = state[STATE_KEYS]
   $: validationError = validationErrors && validationErrors[VALIDATION_ERROR]
+  $: root = path.length === 0
 
   let hover = null
 
@@ -213,7 +214,7 @@
 <div
   class='json-node'
   data-path={compileJSONPointer(path)}
-  class:root={path.length === 0}
+  class:root={root}
   class:selected={selected}
   class:selected-key={selectedKey}
   class:selected-value={selectedValue}
@@ -238,7 +239,9 @@
           {/if}
         </button>
         <slot name="identifier" />
-        <div class="separator">:</div>
+        {#if !root}
+          <div class="separator">:</div>
+        {/if}
         <div class="meta">
           <div class="meta-inner" data-type="selectable-value">
             {#if expanded}
@@ -318,13 +321,15 @@
         <div data-type="selectable-value" class="footer">
           <span class="bracket">]</span>
         </div>
-        <div
-          class="insert-button-area after"
-          data-type="insert-button-area-after"
-          on:mousedown={handleInsertAfter}
-        >
-          <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
-        </div>
+        {#if !root}
+          <div
+            class="insert-button-area after"
+            data-type="insert-button-area-after"
+            on:mousedown={handleInsertAfter}
+          >
+            <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
+          </div>
+        {/if}
       </div>
     {/if}
   {:else if type === 'object'}
@@ -342,7 +347,9 @@
           {/if}
         </button>
         <slot name="identifier" />
-        <div class="separator">:</div>
+        {#if !root}
+          <div class="separator">:</div>
+        {/if}
         <div class="meta" data-type="selectable-value" >
           <div class="meta-inner">
             {#if expanded}
@@ -369,13 +376,15 @@
         {#if validationError}
           <ValidationError validationError={validationError} onExpand={handleExpand} />
         {/if}
-        <div
-          class="insert-button-area after"
-          data-type="insert-button-area-after"
-          on:mousedown={handleInsertAfter}
-        >
-          <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
-        </div>
+        {#if !root}
+          <div
+            class="insert-button-area after"
+            data-type="insert-button-area-after"
+            on:mousedown={handleInsertAfter}
+          >
+            <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
+          </div>
+        {/if}
       {/if}
     </div>
     {#if expanded}
@@ -418,20 +427,24 @@
         <div data-type="selectable-value" class="footer">
           <div class="bracket">&rbrace;</div>
         </div>
-        <div
-          class="insert-button-area after"
-          data-type="insert-button-area-after"
-          on:mousedown={handleInsertAfter}
-        >
-          <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
-        </div>
+        {#if !root}
+          <div
+            class="insert-button-area after"
+            data-type="insert-button-area-after"
+            on:mousedown={handleInsertAfter}
+          >
+            <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
+          </div>
+        {/if}
       </div>
     {/if}
   {:else}
     <div class="contents-outer" style={indentationStyle} >
       <div class="contents" >
         <slot name="identifier" />
-        <div class="separator">:</div>
+        {#if !root}
+          <div class="separator">:</div>
+        {/if}
         <JSONValue
           path={path}
           value={value}
@@ -444,13 +457,15 @@
       {#if validationError}
         <ValidationError validationError={validationError} onExpand={handleExpand} />
       {/if}
-      <div
-        class="insert-button-area after"
-        data-type="insert-button-area-after"
-        on:mousedown={handleInsertAfter}
-      >
-        <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
-      </div>
+      {#if !root}
+        <div
+          class="insert-button-area after"
+          data-type="insert-button-area-after"
+          on:mousedown={handleInsertAfter}
+        >
+          <button class="insert-button" title={INSERT_AFTER_EXPLANATION}>&#8617;</button>
+        </div>
+      {/if}
     </div>
   {/if}
   <div

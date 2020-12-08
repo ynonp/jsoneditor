@@ -3,6 +3,7 @@
 
 .key {
   display: inline-block;
+  min-height: $line-height;
 
   &:hover {
     background: $hovered-background;
