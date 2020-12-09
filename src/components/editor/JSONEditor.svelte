@@ -407,10 +407,11 @@
 
   function replaceActiveElementContents (char) {
     const activeElement = getWindow(domJsonEditor).document.activeElement
-    debug('replaceActiveElementContents', activeElement)
-    activeElement.textContent = char
-    setCursorToEnd(activeElement)
-    // FIXME: must trigger an oninput, else the component will not update it's newKey/newValue variable
+    if (activeElement.isContentEditable) {
+      activeElement.textContent = char
+      setCursorToEnd(activeElement)
+      // FIXME: should trigger an oninput, else the component will not update it's newKey/newValue variable
+    }
   }
 
   async function handleInsertCharacter (char) {
