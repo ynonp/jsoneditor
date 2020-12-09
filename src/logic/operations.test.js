@@ -81,7 +81,7 @@ describe('operations', () => {
     ])
 
     assert.deepStrictEqual(clipboardToValues('[1,2,3]'), [
-      { key: 'New item', value: [1,2,3] }
+      { key: 'New item', value: [1, 2, 3] }
     ])
 
     assert.deepStrictEqual(clipboardToValues('{"a": 2, "b": 3}'), [
