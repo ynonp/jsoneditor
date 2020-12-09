@@ -449,10 +449,19 @@ export function createSelectionFromOperations (doc, operations) {
   }
 
   const paths = operations
-    .filter(operation => operation.op !== 'test')
-    .filter(operation => operation.op !== 'move' || operation.from !== operation.path)
-    .filter(operation => typeof operation.path === 'string')
+    .filter(operation => {
+      return (
+        (operation.op !== 'test') &&
+        (operation.op !== 'remove') &&
+        (operation.op !== 'move' || operation.from !== operation.path) &&
+        (typeof operation.path === 'string')
+      )
+    })
     .map(operation => parseJSONPointerWithArrayIndices(doc, operation.path))
+
+  if (isEmpty(paths)) {
+    return null
+  }
 
   // TODO: make this function robust against operations which do not have consecutive paths
 

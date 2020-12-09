@@ -556,4 +556,10 @@ describe('selection', () => {
       path: ['strRenamed']
     }))
   })
+
+  it('should get selection from removing a key', () => {
+    assert.deepStrictEqual(createSelectionFromOperations(doc, [
+      { op: 'remove', path: '/str' },
+    ]), null)
+  })
 })
