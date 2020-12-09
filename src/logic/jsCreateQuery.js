@@ -9,7 +9,7 @@ export function createQuery (json, queryOptions) {
   if (filter) {
     // Note that the comparisons embrace type coercion,
     // so a filter value like '5' (text) will match numbers like 5 too.
-    const getActualValue = !isEmpty(filter)
+    const getActualValue = !isEmpty(filter.field)
       ? `item => _.get(item, ${JSON.stringify(filter.field)})`
       : 'item => item'
     queryParts.push(`  data = data.filter(${getActualValue} ${filter.relation} '${filter.value}')\n`)
