@@ -372,24 +372,42 @@
     }
 
     const newValue = createNewValue(doc, selection, type)
-    const data = (selection.type === SELECTION_TYPE.KEY || selection.type === SELECTION_TYPE.VALUE || selection.type === SELECTION_TYPE.MULTI)
-      ? JSON.stringify(newValue)
-      : JSON.stringify({ 'New Item': newValue })
+    const data = JSON.stringify(newValue)
     const operations = insert(doc, state, selection, data)
     debug('handleInsert', { type, operations, newValue, data })
 
     handlePatch(operations)
 
-    if (isObjectOrArray(newValue)) {
-      // expand newly inserted object/array
-      operations
-        .filter(operation => (operation.op === 'add' || operation.op === 'replace'))
-        .forEach(operation => handleExpand(parseJSONPointerWithArrayIndices(doc, operation.path), true, true))
-    }
+    operations
+      .filter(operation => (operation.op === 'add' || operation.op === 'replace'))
+      .forEach(async operation => {
+        const path = parseJSONPointerWithArrayIndices(doc, operation.path)
+
+        if (isObjectOrArray(newValue)) {
+          // expand newly inserted object/array
+          handleExpand(path, true, true)
+        }
+
+        if (newValue === '') {
+          // open the newly inserted value in edit mode
+          const parentPath = initial(path)
+          const parent = getIn(doc, parentPath)
+
+          selection = createSelection(doc, state, {
+            type: Array.isArray(parent) ? SELECTION_TYPE.VALUE : SELECTION_TYPE.KEY,
+            path,
+            edit: true
+          })
+
+          await tick()
+          setTimeout(() => replaceActiveElementContents(''))
+        }
+      })
   }
 
   function replaceActiveElementContents (char) {
     const activeElement = getWindow(domJsonEditor).document.activeElement
+    debug('replaceActiveElementContents', activeElement)
     activeElement.textContent = char
     setCursorToEnd(activeElement)
     // FIXME: must trigger an oninput, else the component will not update it's newKey/newValue variable
