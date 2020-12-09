@@ -646,7 +646,6 @@
       if (isSelectionInsidePath(selection, path)) {
         // remove selection when not visible anymore
         selection = null
-        debug('deselect')
       }
     }
 
@@ -664,10 +663,8 @@
   function handleSelect (selectionSchema) {
     if (selectionSchema) {
       selection = createSelection(doc, state, selectionSchema)
-      debug('select', selection)
     } else {
       selection = null
-      debug('deselect')
     }
 
     // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
@@ -716,7 +713,6 @@
       selection = selection
         ? getSelectionUp(doc, state, selection, keepAnchorPath) || selection
         : getInitialSelection(doc, state)
-      debug('selection', selection)
 
       scrollIntoView(selection.focusPath)
     }
@@ -725,7 +721,6 @@
       selection = selection
         ? getSelectionDown(doc, state, selection, keepAnchorPath) || selection
         : getInitialSelection(doc, state)
-      debug('selection', selection)
 
       scrollIntoView(selection.focusPath)
     }
@@ -734,14 +729,12 @@
       selection = selection
         ? getSelectionLeft(doc, state, selection, keepAnchorPath) || selection
         : getInitialSelection(doc, state)
-      debug('selection', selection)
     }
     if (combo === 'Right' || combo === 'Shift+Right') {
       event.preventDefault()
       selection = selection
         ? getSelectionRight(doc, state, selection, keepAnchorPath) || selection
         : getInitialSelection(doc, state)
-      debug('selection', selection)
     }
 
     if (combo === 'Enter' && selection) {
@@ -807,7 +800,6 @@
     if (combo === 'Escape' && selection) {
       event.preventDefault()
       selection = null
-      debug('deselect')
     }
 
     if (combo === 'Ctrl+F' || combo === 'Command+F') {
