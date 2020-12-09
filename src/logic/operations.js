@@ -247,21 +247,20 @@ export function duplicate (doc, state, paths) {
  * @param {JSON} doc
  * @param {JSON} state
  * @param {Selection} selection
- * @param {string} clipboardData
+ * @param {string} clipboardText
  * @return {JSONPatchDocument}
  */
 // TODO: write unit tests
-export function insert (doc, state, selection, clipboardData) {
-  const clipboard = parsePartialJson(clipboardData)
-
+export function insert (doc, state, selection, clipboardText) {
   if (selection.type === SELECTION_TYPE.KEY) {
     // rename key
+    const clipboard = parsePartialJson(clipboardText)
     const parentPath = initial(selection.focusPath)
     const keys = getKeys(state, parentPath)
     const oldKey = last(selection.focusPath)
     const newKey = typeof clipboard === 'string'
       ? clipboard
-      : clipboardData
+      : clipboardText
 
     return rename(parentPath, keys, oldKey, newKey)
   }
@@ -272,22 +271,19 @@ export function insert (doc, state, selection, clipboardData) {
       {
         op: 'replace',
         path: compileJSONPointer(selection.focusPath),
-        value: clipboard
+        value: parsePartialJson(clipboardText)
       }
     ]
   }
 
   if (selection.type === SELECTION_TYPE.MULTI) {
-    const clipboardContainsObjectOrArray = clipboardData.match(/^\s*[{[]/)
-    const values = clipboardContainsObjectOrArray
-      ? [{ key: 'New item', value: clipboard }]
-      : clipboardToValues(clipboard)
+    const newValues = clipboardToValues(clipboardText)
 
-    return replace(doc, state, selection.paths, values)
+    return replace(doc, state, selection.paths, newValues)
   }
 
   if (selection.type === SELECTION_TYPE.AFTER) {
-    const newValues = clipboardToValues(clipboard)
+    const newValues = clipboardToValues(clipboardText)
     const path = selection.focusPath
     const parentPath = initial(path)
     const parent = getIn(doc, parentPath)
@@ -313,7 +309,7 @@ export function insert (doc, state, selection, clipboardData) {
   }
 
   if (selection.type === SELECTION_TYPE.INSIDE) {
-    const newValues = clipboardToValues(clipboard)
+    const newValues = clipboardToValues(clipboardText)
     const path = selection.focusPath
     const value = getIn(doc, path)
 
@@ -410,24 +406,33 @@ function moveDown (parentPath, key) {
 }
 
 /**
- * @param {JSON} clipboard
+ * @param {string} clipboardText
  * @returns {Array.<{key: string, value: *}>}
  */
-export function clipboardToValues (clipboard) {
+export function clipboardToValues (clipboardText) {
+  const clipboard = parsePartialJson(clipboardText)
+
+  const clipboardContainsObjectOrArray = clipboardText.match(/^\s*[{[]/)
+  if (clipboardContainsObjectOrArray) {
+    return [{ key: 'New item', value: clipboard }]
+  }
+
   if (Array.isArray(clipboard)) {
     return clipboard.map((value, index) => {
       return { key: 'New item ' + index, value }
     })
-  } else if (isObject(clipboard)) {
+  }
+
+  if (isObject(clipboard)) {
     return Object.keys(clipboard).map(key => {
       return { key, value: clipboard[key] }
     })
-  } else {
-    // regular value
-    return [
-      { key: 'New Item', value: clipboard }
-    ]
   }
+
+  // regular value
+  return [
+    { key: 'New item', value: clipboard }
+  ]
 }
 
 /**
@@ -515,9 +520,7 @@ export function parsePartialJson (partialJson) {
   // for now: dumb brute force approach: simply try out a few things...
 
   // remove trailing comma
-  if (partialJson.endsWith(',')) {
-    partialJson = partialJson.substring(0, partialJson.length - 1)
-  }
+  partialJson = partialJson.replace(END_WITH_COMMA_AND_OPTIONAL_WHITESPACES_REGEX, '')
 
   try {
     return JSON.parse(partialJson)
@@ -534,3 +537,6 @@ export function parsePartialJson (partialJson) {
   // return the whole partialJson as a single JSON string
   return partialJson
 }
+
+// test whether a string ends with a comma, followed by zero or more white space characters
+const END_WITH_COMMA_AND_OPTIONAL_WHITESPACES_REGEX = /,\s*$/

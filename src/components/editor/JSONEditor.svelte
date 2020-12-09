@@ -325,10 +325,10 @@
     }
 
     try {
-      const clipboardData = event.clipboardData.getData('text/plain')
-      const operations = insert(doc, state, selection, clipboardData)
+      const clipboardText = event.clipboardData.getData('text/plain')
+      const operations = insert(doc, state, selection, clipboardText)
 
-      debug('paste', { clipboardData, operations, selection })
+      debug('paste', { clipboardText, operations, selection })
 
       handlePatch(operations)
 
