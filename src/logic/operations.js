@@ -410,28 +410,30 @@ function moveDown (parentPath, key) {
  * @returns {Array.<{key: string, value: *}>}
  */
 export function clipboardToValues (clipboardText) {
-  const clipboard = parsePartialJson(clipboardText)
+  const clipboardOriginal = parseJsonOrUndefined(clipboardText)
+  const clipboardRepaired = clipboardOriginal !== undefined
+    ? clipboardOriginal
+    : parsePartialJson(clipboardText)
 
-  const clipboardContainsObjectOrArray = clipboardText.match(/^\s*[{[]/)
-  if (clipboardContainsObjectOrArray) {
-    return [{ key: 'New item', value: clipboard }]
+  if (isObjectOrArray(clipboardOriginal)) {
+    return [{ key: 'New item', value: clipboardRepaired }]
   }
 
-  if (Array.isArray(clipboard)) {
-    return clipboard.map((value, index) => {
+  if (Array.isArray(clipboardRepaired)) {
+    return clipboardRepaired.map((value, index) => {
       return { key: 'New item ' + index, value }
     })
   }
 
-  if (isObject(clipboard)) {
-    return Object.keys(clipboard).map(key => {
-      return { key, value: clipboard[key] }
+  if (isObject(clipboardRepaired)) {
+    return Object.keys(clipboardRepaired).map(key => {
+      return { key, value: clipboardRepaired[key] }
     })
   }
 
   // regular value
   return [
-    { key: 'New item', value: clipboard }
+    { key: 'New item', value: clipboardRepaired }
   ]
 }
 
@@ -536,6 +538,19 @@ export function parsePartialJson (partialJson) {
 
   // return the whole partialJson as a single JSON string
   return partialJson
+}
+
+/**
+ * Just parse the JSON. When not valid, undefined is returned
+ * @param {string} partialJson
+ * @returns {undefined|JSON}
+ */
+export function parseJsonOrUndefined (partialJson) {
+  try {
+    return JSON.parse(partialJson)
+  } catch (err) {
+    return undefined
+  }
 }
 
 // test whether a string ends with a comma, followed by zero or more white space characters
