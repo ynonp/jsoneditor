@@ -31,6 +31,13 @@
 
 /**
  * @typedef {{
+ *   start: number,
+ *   end: number
+ * }} VisibleSection
+ */
+
+/**
+ * @typedef {{
  *   path: Path,
  *   type: CaretType
  * }} CaretPosition

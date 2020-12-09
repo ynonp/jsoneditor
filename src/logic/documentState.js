@@ -377,6 +377,9 @@ export function documentStatePatch (state, operations) {
           updatedState = appendToKeys(updatedState, parentPath, key)
         }
       }
+
+      // shift the visible sections one down
+      updatedState = shiftVisibleSections(updatedState, path, 1)
     }
 
     if (op === 'move') {
@@ -411,6 +414,9 @@ export function documentStatePatch (state, operations) {
         if (keys) {
           updatedState = appendToKeys(updatedState, initial(from), newKey)
         }
+
+        // shift the visible sections one down
+        updatedState = shiftVisibleSections(updatedState, path, 1)
       }
 
       // we must keep the existing state
@@ -425,7 +431,9 @@ export function documentStatePatch (state, operations) {
         // remove old key
         const oldKey = last(path)
         updatedState = removeFromKeys(updatedState, parentPath, oldKey)
-      }
+      } else {
+        // shift the visible sections one up
+        updatedState = shiftVisibleSections(updatedState, path, -1)
     }
 
     return {
@@ -450,6 +458,37 @@ export function documentStatePatch (state, operations) {
   }
 
   return immutableJSONPatch(state, operations, { before, after })
+}
+
+/**
+ * @param {JSON} state
+ * @param {Path} path
+ * @param {number} offset
+ * @returns {JSON}
+ */
+// TODO: write unit test
+export function shiftVisibleSections (state, path, offset) {
+  const parentPath = initial(path)
+  const sectionsPath = parentPath.concat([STATE_VISIBLE_SECTIONS])
+  const visibleSections = getIn(state, sectionsPath)
+  if (!visibleSections) {
+    return state
+  }
+
+  const index = parseInt(last(path), 10)
+  const shiftedVisibleSections = visibleSections.map(section => {
+    return {
+      start: section.start > index
+        ? section.start + offset
+        : section.start,
+
+      end: section.end > index
+        ? section.end + offset
+        : section.end
+    }
+  })
+
+  return setIn(state, sectionsPath, shiftedVisibleSections)
 }
 
 /**
