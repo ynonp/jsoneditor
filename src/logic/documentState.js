@@ -415,7 +415,8 @@ export function documentStatePatch (state, operations) {
           updatedState = appendToKeys(updatedState, initial(from), newKey)
         }
 
-        // shift the visible sections one down
+        // shift the visible sections one up from where removed, and one down from where inserted
+        updatedState = shiftVisibleSections(updatedState, from, -1)
         updatedState = shiftVisibleSections(updatedState, path, 1)
       }
 
@@ -434,6 +435,7 @@ export function documentStatePatch (state, operations) {
       } else {
         // shift the visible sections one up
         updatedState = shiftVisibleSections(updatedState, path, -1)
+      }
     }
 
     return {
@@ -472,17 +474,18 @@ export function shiftVisibleSections (state, path, offset) {
   const sectionsPath = parentPath.concat([STATE_VISIBLE_SECTIONS])
   const visibleSections = getIn(state, sectionsPath)
   if (!visibleSections) {
+    // nothing to do, this is no object but an array apparently :)
     return state
   }
 
   const index = parseInt(last(path), 10)
   const shiftedVisibleSections = visibleSections.map(section => {
     return {
-      start: section.start > index
+      start: section.start >= index
         ? section.start + offset
         : section.start,
 
-      end: section.end > index
+      end: section.end >= index
         ? section.end + offset
         : section.end
     }
