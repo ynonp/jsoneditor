@@ -849,10 +849,9 @@
   }
 
   function handleMouseDown (event) {
-    event.preventDefault() // prevent losing focus
-
     setTimeout(() => {
       if (!focus && !isChildOfNodeName(event.target, 'BUTTON')) {
+        // for example when clicking on the empty area in the main menu
         domHiddenInput.focus()
       }
     })
