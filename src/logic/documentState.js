@@ -283,7 +283,7 @@ export function collapseSinglePath (doc, state, path) {
       const updatedState = []
       updatedState[STATE_ID] = arrayState[STATE_ID]
       updatedState[STATE_EXPANDED] = false
-      updatedState[STATE_VISIBLE_SECTIONS] = [] // reset visible sections
+      updatedState[STATE_VISIBLE_SECTIONS] = DEFAULT_VISIBLE_SECTIONS // reset visible sections
       return updatedState
     })
   }

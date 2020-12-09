@@ -444,6 +444,7 @@ describe('documentState', () => {
 
       const expandedState = expandSinglePath(doc, state, [])
       assert.strictEqual(expandedState[STATE_EXPANDED], true)
+      assert.deepStrictEqual(expandedState[STATE_VISIBLE_SECTIONS], DEFAULT_VISIBLE_SECTIONS)
       assert.strictEqual(expandedState.length, 3)
       assert.notStrictEqual(expandedState[1], undefined)
       assert.notStrictEqual(expandedState[2], undefined)
@@ -548,10 +549,10 @@ describe('documentState', () => {
       const updatedState = documentStatePatch(state, operations)
 
       assert.deepStrictEqual(updatedState[STATE_KEYS], ['d'])
-      assert.deepStrictEqual(updatedState[STATE_EXPANDED], true)
+      assert.deepStrictEqual(updatedState[STATE_EXPANDED], false)
       assert.strictEqual(typeof updatedState.a, 'undefined')
       assert.strictEqual(typeof updatedState.b, 'undefined')
-      assert.strictEqual(typeof updatedState.d, 'object')
+      assert.strictEqual(typeof updatedState.d, 'undefined') // not expanded
     })
 
     it('copy: should copy a value into an object', () => {
