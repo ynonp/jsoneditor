@@ -330,7 +330,7 @@ describe('documentState', () => {
       const expected = []
       expected[STATE_ID] = state[STATE_ID]
       expected[STATE_EXPANDED] = false
-      expected[STATE_VISIBLE_SECTIONS] = []
+      expected[STATE_VISIBLE_SECTIONS] = DEFAULT_VISIBLE_SECTIONS
 
       assert.deepStrictEqual(state, expected)
       assert(typeof state[STATE_ID] === 'string')
@@ -451,7 +451,7 @@ describe('documentState', () => {
 
       const collapsedState = collapseSinglePath(doc, expandedState, [])
       assert.deepStrictEqual(collapsedState, state)
-      assert.deepStrictEqual(collapsedState[STATE_VISIBLE_SECTIONS], [])
+      assert.deepStrictEqual(collapsedState[STATE_VISIBLE_SECTIONS], DEFAULT_VISIBLE_SECTIONS)
       assert.strictEqual(collapsedState.length, 0)
       assert.strictEqual(collapsedState[1], undefined)
       assert.strictEqual(collapsedState[2], undefined)
@@ -533,7 +533,7 @@ describe('documentState', () => {
         b: 3
       }
       const state = syncState(doc, undefined, [], () => true)
-      console.log('state', state)
+
       assert.deepStrictEqual(state[STATE_KEYS], ['a', 'b'])
       assert.deepStrictEqual(state[STATE_EXPANDED], true)
       assert.strictEqual(typeof state.a, 'object')
@@ -546,7 +546,7 @@ describe('documentState', () => {
         value: { d: 4 }
       }]
       const updatedState = documentStatePatch(state, operations)
-      console.log('updatedState', updatedState)
+
       assert.deepStrictEqual(updatedState[STATE_KEYS], ['d'])
       assert.deepStrictEqual(updatedState[STATE_EXPANDED], true)
       assert.strictEqual(typeof updatedState.a, 'undefined')
