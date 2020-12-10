@@ -490,7 +490,7 @@
 
     emitOnChange()
 
-    domHiddenInput.focus()
+    focusHiddenInput()
   }
 
   function handleRedo () {
@@ -511,7 +511,7 @@
 
     emitOnChange()
 
-    domHiddenInput.focus()
+    focusHiddenInput()
   }
 
   function handleSort () {
@@ -538,7 +538,7 @@
         width: '400px'
       }
     }, {
-      onClose: () => domHiddenInput.focus()
+      onClose: () => focusHiddenInput()
     })
   }
 
@@ -574,7 +574,7 @@
         padding: 0
       }
     }, {
-      onClose: () => domHiddenInput.focus()
+      onClose: () => focusHiddenInput()
     })
   }
 
@@ -684,7 +684,7 @@
     // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
     setTimeout(() => {
       if (!activeElementIsChildOf(domJsonEditor)) {
-        domHiddenInput.focus()
+        focusHiddenInput()
       }
     })
   }
@@ -700,7 +700,7 @@
     }
 
     // set focus to the hidden input, so we can capture quick keys like Ctrl+X, Ctrl+C, Ctrl+V
-    setTimeout(() => domHiddenInput.focus())
+    focusHiddenInput()
   }
 
   function handleExpandSection (path, section) {
@@ -848,7 +848,7 @@
         activeElement.blur()
         setTimeout(() => {
           handleUndo()
-          setTimeout(() => activeElement.focus())
+          setTimeout(() => activeElement.select())
         })
       } else {
         handleUndo()
@@ -864,7 +864,7 @@
         activeElement.blur()
         setTimeout(() => {
           handleRedo()
-          setTimeout(() => activeElement.focus())
+          setTimeout(() => activeElement.select())
         })
       } else {
         handleRedo()
@@ -876,9 +876,17 @@
     setTimeout(() => {
       if (!focus && !isChildOfNodeName(event.target, 'BUTTON')) {
         // for example when clicking on the empty area in the main menu
-        domHiddenInput.focus()
+        focusHiddenInput()
       }
     })
+  }
+
+  function focusHiddenInput () {
+    // with just .focus(), sometimes the input doesn't react on onpaste events
+    // in Chrome when having a large document open and then doing cut/paste.
+    // Calling both .focus() and .select() did solve this issue.
+    domHiddenInput.focus()
+    domHiddenInput.select()
   }
 </script>
 
