@@ -181,12 +181,13 @@ export function forEachKey (state, callback) {
 
 /**
  * Expand all nodes on given path
+ * @param {JSON} doc
  * @param {JSON} state
  * @param {Path} path
  * @return {JSON} returns the updated state
  */
 // TODO: write unit tests for expandPath
-export function expandPath (state, path) {
+export function expandPath (doc, state, path) {
   let updatedState = state
 
   for (let i = 0; i < path.length; i++) {
@@ -195,8 +196,8 @@ export function expandPath (state, path) {
     updatedState = setIn(updatedState, expandedPath, true, true)
 
     // if needed, enlarge the expanded sections such that the search result becomes visible in the array
-    const key = path[i]
-    if (isNumber(key)) {
+    if (Array.isArray(getIn(updatedState, partialPath))) {
+      const key = path[i]
       const sectionsPath = partialPath.concat(STATE_VISIBLE_SECTIONS)
       const sections = getIn(updatedState, sectionsPath) || DEFAULT_VISIBLE_SECTIONS
       if (!inVisibleSection(sections, key)) {
@@ -207,6 +208,12 @@ export function expandPath (state, path) {
         updatedState = setIn(updatedState, sectionsPath, updatedSections)
       }
     }
+
+    // FIXME: the way to sync the state of this nested, just expanded object/array is complicated. Refactor this
+    const partialDoc = getIn(doc, partialPath)
+    updatedState = updateIn(updatedState, partialPath, partialState => {
+      return syncState(partialDoc, partialState, [], () => false)
+    })
   }
 
   return updatedState
