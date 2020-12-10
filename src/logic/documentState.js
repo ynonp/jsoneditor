@@ -443,6 +443,17 @@ export function documentStatePatch (doc, state, operations) {
       }
     }
 
+    if (op === 'replace') {
+      const parentPath = initial(path)
+      const keys = getKeys(updatedState, parentPath)
+      if (keys) {
+        const key = last(path)
+        if (!keys.includes(key)) {
+          updatedState = appendToKeys(updatedState, parentPath, key)
+        }
+      }
+    }
+
     return {
       json: updatedState,
       operation: updatedOperation
