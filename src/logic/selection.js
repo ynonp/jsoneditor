@@ -639,6 +639,11 @@ export function selectionToPartialJson (doc, selection, indentation = 2) {
   }
 
   if (selection.type === SELECTION_TYPE.MULTI) {
+    if (isEmpty(selection.focusPath)) {
+      // root object -> does not have a parent key/index
+      return JSON.stringify(doc, null, indentation)
+    }
+
     const parentPath = getParentPath(selection)
     const parent = getIn(doc, parentPath)
     if (Array.isArray(parent)) {

@@ -490,6 +490,15 @@ describe('selection', () => {
     })), '"obj": ' + JSON.stringify(doc.obj, null, 2) + ',')
   })
 
+  it('should turn selected root object into text', () => {
+    const doc2 = {}
+    const state2 = syncState(doc2, undefined, [], () => true)
+
+    assert.deepStrictEqual(selectionToPartialJson(doc2, createSelection(doc2, state2, { anchorPath: [], focusPath: [] })),
+      '{}'
+    )
+  })
+
   it('should turn selection into text with specified indentation', () => {
     const indentation = 4
     const objArr2 = '{\n' +

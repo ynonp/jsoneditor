@@ -1,7 +1,6 @@
 
 export const STATE_ID = Symbol('id')
 export const STATE_EXPANDED = Symbol('expanded')
-export const STATE_LIMIT = Symbol('limit')
 export const STATE_VISIBLE_SECTIONS = Symbol('visible sections')
 export const STATE_KEYS = Symbol('keys')
 export const STATE_SEARCH_PROPERTY = Symbol('search:property')
