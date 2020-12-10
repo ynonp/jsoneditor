@@ -11,7 +11,7 @@
     SCROLL_DURATION,
     SEARCH_PROGRESS_THROTTLE,
     SIMPLE_MODAL_OPTIONS,
-    STATE_EXPANDED
+    STATE_EXPANDED, STATE_VISIBLE_SECTIONS
   } from '../../constants.js'
   import {
     documentStatePatch,
@@ -516,8 +516,14 @@
       json: getIn(doc, rootPath),
       rootPath,
       onSort: async (operations) => {
+        const visibleSectionsPath = rootPath.concat([STATE_VISIBLE_SECTIONS])
+        const visibleSections = getIn(state, visibleSectionsPath)
+
         debug('onSort', rootPath, operations)
         patch(operations, selection)
+
+        // restore the original visible sections
+        state = setIn(state, visibleSectionsPath, visibleSections)
       }
     }, {
       ...SIMPLE_MODAL_OPTIONS,
