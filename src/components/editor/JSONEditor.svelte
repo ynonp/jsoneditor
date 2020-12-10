@@ -333,7 +333,16 @@
 
       handlePatch(operations)
 
-      // TODO: expand when inserted an object/array at a value
+      operations
+        .filter(operation => (operation.value !== undefined))
+        .forEach(async operation => {
+          const path = parseJSONPointerWithArrayIndices(doc, operation.path)
+
+          if (isObjectOrArray(operation.value)) {
+            // expand newly inserted object/array
+            handleExpand(path, true, false)
+          }
+        })
     } catch (err) {
       // TODO: report error to user -> onError callback
       console.error(err)
