@@ -16,8 +16,11 @@ import {
   documentStatePatch,
   expandSection,
   expandSinglePath,
+  forEachVisibleIndex,
   getVisibleCaretPositions,
   getVisiblePaths,
+  initializeState,
+  shiftVisibleSections,
   syncKeys,
   syncState
 } from './documentState.js'
@@ -155,8 +158,8 @@ describe('documentState', () => {
     ])
 
     // create a visible section from 200-300 (in addition to the visible section 0-100)
-    const start = 200
-    const end = 300
+    const start = 2 * ARRAY_SECTION_SIZE
+    const end = 3 * ARRAY_SECTION_SIZE
     const state2 = expandSection(doc, state1, ['array'], { start, end })
     assert.deepStrictEqual(getVisiblePaths(doc, state2), [
       [],
@@ -283,8 +286,8 @@ describe('documentState', () => {
     ]))
 
     // create a visible section from 200-300 (in addition to the visible section 0-100)
-    const start = 200
-    const end = 300
+    const start = 2 * ARRAY_SECTION_SIZE
+    const end = 3 * ARRAY_SECTION_SIZE
     const state2 = expandSection(doc, state1, ['array'], { start, end })
     assert.deepStrictEqual(getVisibleCaretPositions(doc, state2), flatMap([
       { path: [], type: CARET_POSITION.VALUE },
@@ -392,7 +395,7 @@ describe('documentState', () => {
       const expected = []
       expected[STATE_ID] = state[STATE_ID]
       expected[STATE_EXPANDED] = true
-      expected[STATE_VISIBLE_SECTIONS] = [{ start: 0, end: 100 }]
+      expected[STATE_VISIBLE_SECTIONS] = [{ start: 0, end: ARRAY_SECTION_SIZE }]
       expected[0] = { [STATE_ID]: state[0][STATE_ID] }
       expected[1] = { [STATE_ID]: state[1][STATE_ID] }
       expected[2] = { [STATE_ID]: state[2][STATE_ID] }
@@ -476,9 +479,9 @@ describe('documentState', () => {
       const doc = { a: 2, b: 3 }
       const state = createState(doc)
 
-      const updatedState = documentStatePatch(state, [
+      const updatedState = documentStatePatch(doc, state, [
         { op: 'add', path: '/c', value: 4 }
-      ])
+      ]).state
 
       assert.deepStrictEqual(updatedState[STATE_EXPANDED], false)
       assert.deepStrictEqual(updatedState[STATE_KEYS], ['a', 'b', 'c'])
@@ -490,9 +493,9 @@ describe('documentState', () => {
       const doc = { a: 2, b: 3 }
       const state = expandSinglePath(doc, createState(doc), [])
 
-      const updatedState = documentStatePatch(state, [
+      const updatedState = documentStatePatch(doc, state, [
         { op: 'add', path: '/c', value: 4 }
-      ])
+      ]).state
 
       assert.deepStrictEqual(updatedState[STATE_EXPANDED], true)
       assert.deepStrictEqual(updatedState[STATE_KEYS], ['a', 'b', 'c'])
@@ -546,7 +549,7 @@ describe('documentState', () => {
         path: '',
         value: { d: 4 }
       }]
-      const updatedState = documentStatePatch(state, operations)
+      const updatedState = documentStatePatch(doc, state, operations).state
 
       assert.deepStrictEqual(updatedState[STATE_KEYS], ['d'])
       assert.deepStrictEqual(updatedState[STATE_EXPANDED], false)
@@ -584,5 +587,188 @@ describe('documentState', () => {
     })
   })
 
-  // TODO: write more unit tests
+  describe ('shiftVisibleSections', () => {
+    const doc = [1, 2, 3, 4, 5, 6, 7, 8]
+    const state = syncState(doc, undefined, [], () => true)
+    state[STATE_VISIBLE_SECTIONS] = [
+      { start: 0, end: 2 },
+      { start: 4, end: 6 },
+    ]
+
+    it ('should have the right initial indices visible', () => {
+      assert.deepStrictEqual(getVisibleIndices(doc, state), [0, 1, 4, 5])
+    })
+
+    it ('should insert at the start of a visible section', () => {
+      const updatedState = shiftVisibleSections(state, [0], 1)
+
+      assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
+        { start: 0, end: 3 },
+        { start: 5, end: 7 }
+      ])
+    })
+
+    it ('should insert halfway a visible section', () => {
+      const updatedState = shiftVisibleSections(state, [1], 1)
+
+      assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
+        { start: 0, end: 3 },
+        { start: 5, end: 7 }
+      ])
+    })
+
+    it ('should insert at the end of a visible section', () => {
+      const updatedState = shiftVisibleSections(state, [2], 1)
+
+      assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
+        { start: 0, end: 3 },
+        { start: 5, end: 7 }
+      ])
+    })
+
+    it ('should remove at the start of a visible section', () => {
+      const updatedState = shiftVisibleSections(state, [0], -1)
+
+      assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
+        { start: 0, end: 1 },
+        { start: 3, end: 5 }
+      ])
+    })
+
+    it ('should remove halfway a visible section', () => {
+      const updatedState = shiftVisibleSections(state, [1], -1)
+
+      assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
+        { start: 0, end: 1 },
+        { start: 3, end: 5 }
+      ])
+    })
+
+    it ('should remove at the end of a visible section', () => {
+      const updatedState = shiftVisibleSections(state, [2], -1)
+
+      assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
+        { start: 0, end: 1 },
+        { start: 3, end: 5 }
+      ])
+    })
+  })
+
+  describe ('initializeState', () => {
+    const doc = {
+      array: [1, 2, { c: 6 }],
+      object: { a: 4, b: 5 },
+      value: 'hello'
+    }
+    const state = syncState(doc, undefined, [], () => false)
+
+
+    it ('should have non expanded initial state', () => {
+      assert.deepStrictEqual(state[STATE_EXPANDED], false)
+      assert.deepStrictEqual(state[STATE_KEYS], ['array', 'object', 'value'])
+      assert.deepStrictEqual(state.array, undefined)
+      assert.deepStrictEqual(state.object, undefined)
+      assert.deepStrictEqual(state.value, undefined)
+    })
+
+    it ('should initialize nested state for operation add', () => {
+      const operations = [{ op: 'add', path: '/array/2/d', value: 7 }]
+      const updatedState = initializeState(doc, state, operations)
+
+      assert.deepStrictEqual(Array.isArray(updatedState.array), true)
+      assert.deepStrictEqual(updatedState.array[STATE_EXPANDED], false)
+      assert.deepStrictEqual(typeof updatedState.array[2], 'object')
+      assert.deepStrictEqual(updatedState.array[2][STATE_EXPANDED], false)
+      assert.deepStrictEqual(updatedState.array[0], undefined)
+      assert.deepStrictEqual(updatedState.array[1], undefined)
+      assert.deepStrictEqual(updatedState.array[2].d, undefined)
+    })
+
+    it ('should initialize nested state for operation move', () => {
+      const operations = [{ op: 'move', from: '/object/a', path: '/array/0' }]
+      const updatedState = initializeState(doc, state, operations)
+
+      assert.deepStrictEqual(typeof updatedState.object, 'object')
+      assert.deepStrictEqual(updatedState.object[STATE_EXPANDED], false)
+      assert.deepStrictEqual(typeof updatedState.object.a, 'object')
+
+      assert.deepStrictEqual(Array.isArray(updatedState.array), true)
+      assert.deepStrictEqual(updatedState.array[STATE_EXPANDED], false)
+      assert.deepStrictEqual(updatedState.array[0], undefined)
+      assert.deepStrictEqual(updatedState.array[1], undefined)
+      assert.deepStrictEqual(updatedState.array[2], undefined)
+    })
+
+    it ('should initialize nested state for operation copy', () => {
+      const operations = [{ op: 'copy', from: '/object/a', path: '/array/0' }]
+      const updatedState = initializeState(doc, state, operations)
+
+      assert.deepStrictEqual(typeof updatedState.object, 'object')
+      assert.deepStrictEqual(updatedState.object[STATE_EXPANDED], false)
+      assert.deepStrictEqual(typeof updatedState.object.a, 'object')
+
+      assert.deepStrictEqual(Array.isArray(updatedState.array), true)
+      assert.deepStrictEqual(updatedState.array[STATE_EXPANDED], false)
+      assert.deepStrictEqual(updatedState.array[0], undefined)
+      assert.deepStrictEqual(updatedState.array[1], undefined)
+      assert.deepStrictEqual(updatedState.array[2], undefined)
+    })
+
+    it ('should initialize nested state for operation remove', () => {
+      const operations = [{ op: 'remove', path: '/object/a' }]
+      const updatedState = initializeState(doc, state, operations)
+
+      assert.deepStrictEqual(typeof updatedState.object, 'object')
+      assert.deepStrictEqual(updatedState.object[STATE_EXPANDED], false)
+      assert.deepStrictEqual(typeof updatedState.object.a, 'object')
+    })
+
+    it ('should initialize nested state for operation replace', () => {
+      const operations = [{ op: 'replace', path: '/object/a', value: 42 }]
+      const updatedState = initializeState(doc, state, operations)
+
+      assert.deepStrictEqual(typeof updatedState.object, 'object')
+      assert.deepStrictEqual(updatedState.object[STATE_EXPANDED], false)
+      assert.deepStrictEqual(typeof updatedState.object.a, 'object')
+    })
+
+    it ('should initialize nested state for operation test', () => {
+      const operations = [{ op: 'test', path: '/object/a', value: 42 }]
+      const updatedState = initializeState(doc, state, operations)
+
+      assert.deepStrictEqual(typeof updatedState.object, 'object')
+      assert.deepStrictEqual(updatedState.object[STATE_EXPANDED], false)
+      assert.deepStrictEqual(typeof updatedState.object.a, 'object')
+    })
+
+    it ('should not initialize nested state when not existing in doc itself', () => {
+      const operations = [{ op: 'add', path: '/foo/bar', value: 42 }]
+      const updatedState = initializeState(doc, state, operations)
+
+      assert.deepStrictEqual(updatedState.foo, undefined)
+    })
+
+    it ('should initialize state for replacing the whole doc', () => {
+      const operations = [{ op: 'replace', path: '', value: 42 }]
+      const updatedState = initializeState(doc, state, operations)
+
+      assert.deepStrictEqual(updatedState, state)
+    })
+  })
 })
+
+/**
+ * Helper function to get the visible indices of an Array state
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @returns {number[]}
+ */
+function getVisibleIndices (doc, state) {
+  const visibleIndices = []
+
+  forEachVisibleIndex(doc, state, (index) => {
+    visibleIndices.push(index)
+  })
+
+  return visibleIndices
+}

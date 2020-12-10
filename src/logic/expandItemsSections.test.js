@@ -1,24 +1,25 @@
 import assert from 'assert'
+import { ARRAY_SECTION_SIZE } from '../constants.js'
 import {
-  mergeSections,
   getExpandItemsSections,
+  mergeSections,
   nextRoundNumber,
   previousRoundNumber
 } from './expandItemsSections.js'
 
 describe('expandItemsSections', () => {
   it('should find the next round number', () => {
-    assert.strictEqual(nextRoundNumber(5), 100)
-    assert.strictEqual(nextRoundNumber(99), 100)
-    assert.strictEqual(nextRoundNumber(100), 200)
+    assert.strictEqual(nextRoundNumber(ARRAY_SECTION_SIZE / 2), ARRAY_SECTION_SIZE)
+    assert.strictEqual(nextRoundNumber(ARRAY_SECTION_SIZE - 1), ARRAY_SECTION_SIZE)
+    assert.strictEqual(nextRoundNumber(ARRAY_SECTION_SIZE), 2 * ARRAY_SECTION_SIZE)
   })
 
   it('should find the previous round number', () => {
-    assert.strictEqual(previousRoundNumber(100), 0)
-    assert.strictEqual(previousRoundNumber(199), 100)
-    assert.strictEqual(previousRoundNumber(200), 100)
-    assert.strictEqual(previousRoundNumber(101), 100)
-    assert.strictEqual(previousRoundNumber(500), 400)
+    assert.strictEqual(previousRoundNumber(ARRAY_SECTION_SIZE), 0)
+    assert.strictEqual(previousRoundNumber(2 * ARRAY_SECTION_SIZE - 1), ARRAY_SECTION_SIZE)
+    assert.strictEqual(previousRoundNumber(2 * ARRAY_SECTION_SIZE), ARRAY_SECTION_SIZE)
+    assert.strictEqual(previousRoundNumber(ARRAY_SECTION_SIZE + 1), ARRAY_SECTION_SIZE)
+    assert.strictEqual(previousRoundNumber(5 * ARRAY_SECTION_SIZE), 4 * ARRAY_SECTION_SIZE)
   })
 
   it('should calculate expandable sections (start, middle, end)', () => {

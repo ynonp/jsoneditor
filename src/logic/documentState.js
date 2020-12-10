@@ -15,7 +15,10 @@ import {
   setIn,
   updateIn
 } from '../utils/immutabilityHelpers.js'
-import { compileJSONPointer } from '../utils/jsonPointer.js'
+import {
+  compileJSONPointer,
+  parseJSONPointerWithArrayIndices
+} from '../utils/jsonPointer.js'
 import { isObject } from '../utils/typeUtils.js'
 import {
   inVisibleSection,
@@ -342,13 +345,14 @@ export function syncKeys (object, prevKeys) {
 }
 
 /**
- * @param {JSON}state
+ * Apply patch operations to both doc and state
+ * @param {JSON} doc
+ * @param {JSON} state
  * @param {JSONPatchDocument} operations
- * @returns {JSON}
+ * @returns {{doc: JSON, state: JSON}}
  */
-export function documentStatePatch (state, operations) {
+export function documentStatePatch (doc, state, operations) {
   // TODO: split this function in smaller functions, it's too large
-  debug('documentStatePatch', state, operations)
 
   function before (state, operation) {
     const { op, path, from } = operation
@@ -407,20 +411,21 @@ export function documentStatePatch (state, operations) {
         }
       } else {
         // move from one object/array to an other -> remove old key, add new key
-        const fromKeys = getKeys(updatedState, initial(from))
+        const fromParentPath = initial(from)
+        const fromKeys = getKeys(updatedState, fromParentPath)
         if (fromKeys) {
-          updatedState = removeFromKeys(updatedState, initial(from), oldKey)
+          updatedState = removeFromKeys(updatedState, fromParentPath, oldKey)
         }
         if (keys) {
-          updatedState = appendToKeys(updatedState, initial(from), newKey)
+          updatedState = appendToKeys(updatedState, parentPath, newKey)
         }
-
-        // shift the visible sections one up from where removed, and one down from where inserted
-        updatedState = shiftVisibleSections(updatedState, from, -1)
-        updatedState = shiftVisibleSections(updatedState, path, 1)
       }
 
-      // we must keep the existing state
+      // shift the visible sections one up from where removed, and one down from where inserted
+      updatedState = shiftVisibleSections(updatedState, from, -1)
+      updatedState = shiftVisibleSections(updatedState, path, 1)
+
+      // we must keep the existing state for example when renaming an object property
       const existingState = getIn(state, from)
       updatedOperation = { ...updatedOperation, value: existingState }
     }
@@ -459,16 +464,77 @@ export function documentStatePatch (state, operations) {
     return updatedState
   }
 
-  return immutableJSONPatch(state, operations, { before, after })
+  debug('documentStatePatch', doc, state, operations)
+
+  const updatedDoc = immutableJSONPatch(doc, operations)
+  const initializedState = initializeState(doc, state, operations)
+  const updatedState = immutableJSONPatch(initializedState, operations, { before, after })
+
+  return {
+    doc: updatedDoc,
+    state: updatedState
+  }
 }
 
 /**
+ * Initialize the state needed to perform the JSON patch operations.
+ * For example to a change in a nested object which is not expanded and
+ * hence has no state initialize, we need to create this nested state
+ * @param {JSON} doc
+ * @param {JSON} state
+ * @param {JSONPatchDocument} operations
+ */
+export function initializeState(doc, state, operations) {
+  let updatedState = state
+
+  function initializePath (doc, state, path) {
+    let updatedState = state
+
+    if (existsIn(doc, path) && !existsIn(updatedState, path)) {
+      // first make sure the parent is initialized
+      if (path.length > 0) {
+        updatedState = initializePath(doc, updatedState, initial(path))
+      }
+
+      // then initialize the state itself
+      updatedState = setIn(updatedState, path, createState(getIn(doc, path)))
+    }
+
+    return updatedState
+  }
+
+  operations.forEach(operation => {
+    const from = typeof operation.from === 'string'
+      ? parseJSONPointerWithArrayIndices(doc, operation.from)
+      : null
+    const path = typeof operation.path === 'string'
+      ? parseJSONPointerWithArrayIndices(doc, operation.path)
+      : null
+
+    if (operation.op === 'add') {
+      updatedState = initializePath(doc, updatedState, initial(path)) // initialize parent only
+    }
+
+    if (operation.op === 'copy' || operation.op === 'move') {
+      updatedState = initializePath(doc, updatedState, from)
+      updatedState = initializePath(doc, updatedState, initial(path)) // initialize parent only
+    }
+
+    if (operation.op === 'remove' || operation.op === 'replace' || operation.op === 'test') {
+      updatedState = initializePath(doc, updatedState, path)
+    }
+  })
+
+  return updatedState
+}
+
+/**
+ * Shift visible sections in an Array with a specified offset
  * @param {JSON} state
  * @param {Path} path
  * @param {number} offset
- * @returns {JSON}
+ * @returns {JSON} Returns the updated state
  */
-// TODO: write unit test
 export function shiftVisibleSections (state, path, offset) {
   const parentPath = initial(path)
   const sectionsPath = parentPath.concat([STATE_VISIBLE_SECTIONS])
@@ -481,7 +547,7 @@ export function shiftVisibleSections (state, path, offset) {
   const index = parseInt(last(path), 10)
   const shiftedVisibleSections = visibleSections.map(section => {
     return {
-      start: section.start >= index
+      start: section.start > index
         ? section.start + offset
         : section.start,
 

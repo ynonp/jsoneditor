@@ -250,8 +250,9 @@
     debug('patch', operations, newSelection)
 
     const undo = revertJSONPatch(doc, operations)
-    doc = immutableJSONPatch(doc, operations)
-    state = documentStatePatch(state, operations)
+    const update = documentStatePatch(doc, state, operations)
+    doc = update.doc
+    state = update.state
 
     if (newSelection) {
       selection = newSelection
