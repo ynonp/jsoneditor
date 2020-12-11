@@ -23,8 +23,9 @@
   }
 
   .contents {
-    margin: 0 $padding;
+    margin: 2em $padding 0;
     color: $gray;
+    overflow: hidden;
 
     ul {
       $list-padding: 10px;
