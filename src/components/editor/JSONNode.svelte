@@ -137,7 +137,8 @@
     ) {
       // do nothing: event already handled by event listener on the element or component itself
     } else {
-      onSelect(null)
+      // select all
+      onSelect({ type: SELECTION_TYPE.VALUE, path })
     }
 
     event.stopPropagation()

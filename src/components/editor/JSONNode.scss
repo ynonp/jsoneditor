@@ -8,8 +8,12 @@
 
   &.root {
     min-height: 100%;
-    padding-bottom: $input-padding;
+    padding-bottom: $contents-padding;
     box-sizing: border-box;
+
+    > .contents-outer > .contents {
+      padding-left: 0;
+    }
   }
 
   &.hovered {

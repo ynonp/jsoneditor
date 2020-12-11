@@ -34,5 +34,7 @@
     flex: 1;
     overflow: auto;
     background: $contents-background;
+    position: relative;
+    padding: $contents-padding;
   }
 }

@@ -65,6 +65,7 @@
   import TransformModal from '../modals/TransformModal.svelte'
   import JSONNode from './JSONNode.svelte'
   import Menu from './Menu.svelte'
+  import Welcome from './Welcome.svelte'
 
   // TODO: document how to enable debugging in the readme: localStorage.debug="jsoneditor:*", then reload
   const debug = createDebug('jsoneditor:TreeMode')
@@ -145,6 +146,7 @@
       : (path.length === 1 && path[0] === 0) // first item of an array?
   }
 
+  $: docIsEmpty = doc !== ''
   $: validationErrorsList = validate ? validate(doc) : []
   $: validationErrors = mapValidationErrors(validationErrorsList)
 
@@ -227,14 +229,14 @@
     return doc
   }
 
-  export function set (newDocument) {
+  export function set (newDocument = '') {
     doc = newDocument
     state = syncState(doc, undefined, [], defaultExpand)
     searchResult = undefined
     history.clear()
   }
 
-  export function update (updatedDocument) {
+  export function update (updatedDocument = '') {
     doc = updatedDocument
     state = syncState(doc, state, [], defaultExpand)
   }
@@ -929,6 +931,9 @@
     />
   </label>
   <div class="contents" bind:this={divContents}>
+    {#if !docIsEmpty}
+      <Welcome />
+    {/if}
     <JSONNode
       value={doc}
       path={[]}
