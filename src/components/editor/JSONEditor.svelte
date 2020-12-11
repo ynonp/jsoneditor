@@ -875,11 +875,14 @@
   }
 
   function handleMouseDown (event) {
+    // TODO: ugly to have to have two setTimeout here. Without it, hiddenInput will blur
     setTimeout(() => {
-      if (!focus && !isChildOfNodeName(event.target, 'BUTTON')) {
-        // for example when clicking on the empty area in the main menu
-        focusHiddenInput()
-      }
+      setTimeout(() => {
+        if (!focus && !isChildOfNodeName(event.target, 'BUTTON')) {
+          // for example when clicking on the empty area in the main menu
+          focusHiddenInput()
+        }
+      })
     })
   }
 
