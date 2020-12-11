@@ -3,7 +3,7 @@
 <script>
   import createDebug from 'debug'
   import { immutableJSONPatch, revertJSONPatch } from 'immutable-json-patch'
-  import { initial, isEmpty, throttle, uniqueId } from 'lodash-es'
+  import { initial, isEmpty, isEqual, throttle, uniqueId } from 'lodash-es'
   import { getContext, onDestroy, onMount, tick } from 'svelte'
   import jump from '../../assets/jump.js/src/jump.js'
   import {
@@ -238,8 +238,25 @@
   }
 
   export function update (updatedDocument = '') {
+    if (isEqual(doc, updatedDocument)) {
+      // no actual change, don't do anything
+      return
+    }
+
+    const prevState = state
+    const prevDoc = doc
+
     doc = updatedDocument
     state = syncState(doc, state, [], defaultExpand)
+
+    history.add({
+      undo: [{ op: 'replace', path: '', value: prevDoc }],
+      redo: [{ op: 'replace', path: '', value: doc }],
+      prevState,
+      state,
+      prevSelection: removeEditModeFromSelection(selection),
+      selection: removeEditModeFromSelection(selection)
+    })
   }
 
   /**
