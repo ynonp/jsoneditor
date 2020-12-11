@@ -8,9 +8,9 @@
     Start
     <ul>
       <li>Click inside the editor</li>
-      <li>Paste data from clipboard using <b>Ctrl+V</b></li>
-      <li>Create a new object by typing <b>&lbrace;</b></li>
-      <li>Create a new array by typing <b>[</b></li>
+      <li>Paste data from clipboard using <span class="bold">Ctrl+V</span></li>
+      <li>Create a new object by typing <span class="bold">&lbrace;</span></li>
+      <li>Create a new array by typing <span class="bold">[</span></li>
     </ul>
   </div>
   <div class="space after"></div>

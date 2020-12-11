@@ -36,9 +36,8 @@
       li {
         padding-left: $list-padding;
 
-        b {
+        span.bold {
           font-family: $font-family-mono;
-          font-size: 1.5 * $font-size-mono;
           font-weight: bold;
         }
       }
