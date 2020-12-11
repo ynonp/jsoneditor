@@ -3,7 +3,7 @@
 <script>
   import createDebug from 'debug'
   import { immutableJSONPatch, revertJSONPatch } from 'immutable-json-patch'
-  import { initial, throttle, uniqueId } from 'lodash-es'
+  import { initial, isEmpty, throttle, uniqueId } from 'lodash-es'
   import { getContext, onDestroy, onMount, tick } from 'svelte'
   import jump from '../../assets/jump.js/src/jump.js'
   import {
@@ -11,7 +11,8 @@
     SCROLL_DURATION,
     SEARCH_PROGRESS_THROTTLE,
     SIMPLE_MODAL_OPTIONS,
-    STATE_EXPANDED, STATE_VISIBLE_SECTIONS
+    STATE_EXPANDED,
+    STATE_VISIBLE_SECTIONS
   } from '../../constants.js'
   import {
     documentStatePatch,
@@ -60,7 +61,7 @@
     parseJSONPointerWithArrayIndices
   } from '../../utils/jsonPointer.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
-  import { isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
+  import { isObject, isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
   import JSONNode from './JSONNode.svelte'
@@ -395,15 +396,17 @@
         if (isObjectOrArray(newValue)) {
           // expand newly inserted object/array
           handleExpand(path, true, true)
+          focusHiddenInput() // TODO: find a more robust way to keep focus than sprinkling focusHiddenInput() everywhere
         }
 
         if (newValue === '') {
           // open the newly inserted value in edit mode
-          const parentPath = initial(path)
-          const parent = getIn(doc, parentPath)
+          const parent = !isEmpty(path)
+            ? getIn(doc, initial(path))
+            : null
 
           selection = createSelection(doc, state, {
-            type: Array.isArray(parent) ? SELECTION_TYPE.VALUE : SELECTION_TYPE.KEY,
+            type: isObject(parent) ? SELECTION_TYPE.KEY : SELECTION_TYPE.VALUE,
             path,
             edit: true
           })
