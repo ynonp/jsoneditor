@@ -431,7 +431,7 @@ export function createSelectionFromOperations (doc, operations) {
     }
   }
 
-  if (operations.every(operation => operation.op === 'move')) {
+  if (!isEmpty(operations) && operations.every(operation => operation.op === 'move')) {
     const firstOp = first(operations)
     const otherOps = operations.slice(1)
 

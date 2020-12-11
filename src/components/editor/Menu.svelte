@@ -14,6 +14,7 @@
     faTimes,
     faUndo
   } from '@fortawesome/free-solid-svg-icons'
+  import { isEmpty } from 'lodash-es'
   import { getContext } from 'svelte'
   import Icon from 'svelte-awesome'
   import { SIMPLE_MODAL_OPTIONS } from '../../constants.js'
@@ -54,7 +55,9 @@
     selection.type === SELECTION_TYPE.KEY ||
     selection.type === SELECTION_TYPE.VALUE
   )
-  $: hasMultiSelection = selection != null && selection.type === SELECTION_TYPE.MULTI
+  $: canDuplicate = selection != null &&
+    (selection.type === SELECTION_TYPE.MULTI) &&
+    !isEmpty(selection.path) // must not be root
 
   function handleToggleSearch () {
     showSearch = !showSearch
@@ -153,7 +156,7 @@
   <button
     class="button duplicate"
     on:click={onDuplicate}
-    disabled={!hasMultiSelection}
+    disabled={!canDuplicate}
     title="Duplicate (Ctrl+D)"
   >
     <Icon data={faClone} />

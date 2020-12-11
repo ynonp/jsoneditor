@@ -203,6 +203,11 @@ export function replace (doc, state, paths, values) { // TODO: find a better nam
 export function duplicate (doc, state, paths) {
   // FIXME: here we assume selection.paths is sorted correctly, that's a dangerous assumption
   const lastPath = last(paths)
+
+  if (isEmpty(lastPath)) {
+    throw new Error('Cannot duplicate root object')
+  }
+
   const parentPath = initial(lastPath)
   const beforeKey = last(lastPath)
   const parent = getIn(doc, parentPath)
@@ -265,7 +270,10 @@ export function insert (doc, state, selection, clipboardText) {
     return rename(parentPath, keys, oldKey, newKey)
   }
 
-  if (selection.type === SELECTION_TYPE.VALUE) {
+  if (
+    selection.type === SELECTION_TYPE.VALUE ||
+    (selection.type === SELECTION_TYPE.MULTI && isEmpty(selection.focusPath)) // root selected
+  ) {
     // replace selected value (new value can be primitive or an array/object with contents)
     return [
       {
@@ -470,8 +478,20 @@ export function createRemoveOperations (doc, state, selection) {
 
   if (selection.type === SELECTION_TYPE.MULTI) {
     const operations = removeAll(selection.paths)
-
     const lastPath = last(selection.paths)
+
+    if (isEmpty(lastPath)) {
+      // there is no parent, this is the root document
+      const operations = [{ op: 'replace', path: '', value: '' }]
+
+      const newSelection = createSelection(doc, state, {
+        type: SELECTION_TYPE.VALUE,
+        path: []
+      })
+
+      return { operations, newSelection }
+    }
+
     const parentPath = initial(lastPath)
     const parent = getIn(doc, parentPath)
 

@@ -362,7 +362,11 @@
   }
 
   function handleDuplicate () {
-    if (!selection || selection.type !== SELECTION_TYPE.MULTI) {
+    if (
+      !selection ||
+      (selection.type !== SELECTION_TYPE.MULTI) ||
+      isEmpty(selection.focusPath) // root selected, cannot duplicate
+    ) {
       return
     }
 
