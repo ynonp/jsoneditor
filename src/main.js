@@ -1,13 +1,9 @@
 import Main from './components/Main.svelte'
 
-export default function jsoneditor (config) {
-  const { target, ...restConfig } = config
-
+export default function jsoneditor (target, config) {
   return new Main({
     target,
-    props: {
-      config: restConfig
-    }
+    props: config
   })
 }
 

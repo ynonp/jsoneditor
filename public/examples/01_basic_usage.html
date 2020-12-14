@@ -23,9 +23,7 @@
   import jsoneditor from '../dist/es/jsoneditor.js'
 
   // create the editor
-  const editor = jsoneditor({ 
-    target: document.getElementById('jsoneditor')
-  })
+  const editor = jsoneditor(document.getElementById('jsoneditor'))
 
   // set json
   document.getElementById('setJSON').onclick = function () {

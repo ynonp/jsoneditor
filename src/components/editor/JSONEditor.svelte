@@ -80,6 +80,8 @@
   let domJsonEditor
   let focus = false
 
+  export let doc = {}
+  export let mainMenuBar = true
   export let validate = null
   export let onChangeJson = () => {}
   export let onFocus = () => {}
@@ -136,7 +138,6 @@
     return validate
   }
 
-  export let doc = {}
   let state = syncState(doc, undefined, [], defaultExpand)
 
   let selection = null
@@ -926,29 +927,31 @@
   bind:this={domJsonEditor}
   class:focus
 >
-  <Menu 
-    historyState={historyState}
-    searchText={searchText}
-    searching={searching}
-    searchResult={searchResult}
-    bind:showSearch
+  {#if mainMenuBar}
+    <Menu
+      historyState={historyState}
+      searchText={searchText}
+      searching={searching}
+      searchResult={searchResult}
+      bind:showSearch
 
-    selection={selection}
-    
-    onCut={handleCut}
-    onCopy={handleCopy}
-    onRemove={handleRemove}
-    onDuplicate={handleDuplicate}
-    onInsert={handleInsert}
-    onUndo={handleUndo}
-    onRedo={handleRedo}
-    onSort={handleSort}
-    onTransform={handleTransform}
+      selection={selection}
 
-    onSearchText={handleSearchText}
-    onNextSearchResult={handleNextSearchResult}
-    onPreviousSearchResult={handlePreviousSearchResult}
-  />
+      onCut={handleCut}
+      onCopy={handleCopy}
+      onRemove={handleRemove}
+      onDuplicate={handleDuplicate}
+      onInsert={handleInsert}
+      onUndo={handleUndo}
+      onRedo={handleRedo}
+      onSort={handleSort}
+      onTransform={handleTransform}
+
+      onSearchText={handleSearchText}
+      onNextSearchResult={handleNextSearchResult}
+      onPreviousSearchResult={handlePreviousSearchResult}
+    />
+  {/if}
   <label class="hidden-input-label">
     <input
       class="hidden-input"

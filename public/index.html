@@ -25,6 +25,11 @@
 			box-sizing: border-box;
 		}
 
+		button, input, body {
+			font-family: arial, Verdana, sans-serif;
+			font-size: 14px;
+		}
+
 		h1 {
 			color: purple;
 		}
@@ -51,6 +56,11 @@
 		<button id="expandAll">expand all</button>
 		<button id="expand2">expand 2 levels</button>
 		<button id="collapseAll">collapse all</button>
+	</p>
+	<p>
+		<label for="mainMenuBar">
+			<input id="mainMenuBar" type="checkbox" checked /> Show menu
+		</label>
 	</p>
 
 	<script type="module">
@@ -96,15 +106,15 @@
 			"<button onclick=alert('oopsie!!!')>test xss</button>": "xss?"
 		}
 
-		const testEditor = jsoneditor({
-			target: document.getElementById('testEditorContainer'),
+		const target = document.getElementById('testEditorContainer')
+		const config = {
 			doc,
 			onChangeJson: doc => console.log('onChangeJson', doc),
 			onFocus: () => console.log('got focus...'),
 			onBlur: () => console.log('lost focus...'),
 			validate: doc => {
 				if (
-					doc && typeof doc === 'object' && 
+					doc && typeof doc === 'object' &&
 					doc.object && typeof doc.object === 'object' &&
 					doc.object.a === 'b') {
 					return [
@@ -117,7 +127,8 @@
 
 				return []
 			}
-		})
+		}
+		const testEditor = jsoneditor(target, config)
 		window.testEditor = testEditor // expose to window for debugging
 
 		document.getElementById('loadLargeJson').onclick = function handleLoadLargeJson() {
@@ -222,6 +233,10 @@
 
 		document.getElementById('collapseAll').onclick = function collapseAll () {
 			testEditor.collapse(() => false)
+		}
+
+		document.getElementById('mainMenuBar').onclick = function mainMenuBar (event) {
+			testEditor.setMainMenuBar(event.target.checked)
 		}
 	</script>
 </body>
