@@ -57,7 +57,7 @@
   )
   $: canDuplicate = selection != null &&
     (selection.type === SELECTION_TYPE.MULTI) &&
-    !isEmpty(selection.path) // must not be root
+    !isEmpty(selection.focusPath) // must not be root
 
   function handleToggleSearch () {
     showSearch = !showSearch
