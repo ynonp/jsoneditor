@@ -18,6 +18,7 @@
     STATE_VISIBLE_SECTIONS,
     VALIDATION_ERROR
   } from '../../constants.js'
+  import { getVisibleCaretPositions } from '../../logic/documentState.js'
   import { rename } from '../../logic/operations.js'
   import { SELECTION_TYPE } from '../../logic/selection.js'
   import {
@@ -137,8 +138,8 @@
     ) {
       // do nothing: event already handled by event listener on the element or component itself
     } else {
-      // select all
-      onSelect({ type: SELECTION_TYPE.VALUE, path })
+      const lastCaretPosition = last(getVisibleCaretPositions(value, state))
+      onSelect(lastCaretPosition)
     }
 
     event.stopPropagation()
