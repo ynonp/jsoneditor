@@ -105,7 +105,7 @@
       onSelect({ type: SELECTION_TYPE.KEY, path })
     }
 
-    if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+    if ((event.key === 'Enter' || event.key === 'Tab') && !event.ctrlKey && !event.shiftKey && !event.altKey) {
       // updating newKey here is important to handle when contents are changed
       // programmatically when edit mode is opened after typing a character
       newKey = getDomKey()
