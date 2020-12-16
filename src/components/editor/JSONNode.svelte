@@ -217,7 +217,7 @@
 </script>
 
 <div
-  class={classnames('json-node', onClassName(path, value))}
+  class={classnames('json-node', { expanded }, onClassName(path, value))}
   data-path={compileJSONPointer(path)}
   class:root={root}
   class:selected={selected}
