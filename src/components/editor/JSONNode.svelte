@@ -39,6 +39,7 @@
   export let value
   export let path
   export let state
+  export let readOnly
   export let searchResult
   export let validationErrors
   export let onPatch
@@ -294,6 +295,7 @@
               value={item}
               path={path.concat(visibleSection.start + itemIndex)}
               state={state[visibleSection.start + itemIndex]}
+              readOnly={readOnly}
               searchResult={searchResult ? searchResult[visibleSection.start + itemIndex] : undefined}
               validationErrors={validationErrors ? validationErrors[visibleSection.start + itemIndex] : undefined}
               onPatch={onPatch}
@@ -403,6 +405,7 @@
             value={value[key]}
             path={path.concat(key)}
             state={state[key]}
+            readOnly={readOnly}
             searchResult={searchResult ? searchResult[key] : undefined}
             validationErrors={validationErrors ? validationErrors[key] : undefined}
             onPatch={onPatch}
@@ -416,6 +419,7 @@
               <JSONKey
                 path={path.concat(key)}
                 key={key}
+                readOnly={readOnly}
                 onUpdateKey={handleUpdateKey}
                 selection={selection}
                 onSelect={onSelect}
@@ -450,6 +454,7 @@
         <JSONValue
           path={path}
           value={value}
+          readOnly={readOnly}
           onPatch={onPatch}
           selection={selection}
           onSelect={onSelect}

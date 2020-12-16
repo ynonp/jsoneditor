@@ -61,6 +61,9 @@
 		<label for="mainMenuBar">
 			<input id="mainMenuBar" type="checkbox" checked /> Show menu
 		</label>
+		<label for="readOnly">
+			<input id="readOnly" type="checkbox" /> Read only
+		</label>
 	</p>
 
 	<script type="module">
@@ -223,20 +226,24 @@
 			reader.readAsText(file)
 		}
 
-		document.getElementById('expandAll').onclick = function expandAll () {
+		document.getElementById('expandAll').onclick = function () {
 			testEditor.expand(() => true)
 		}
 
-		document.getElementById('expand2').onclick = function expandAll () {
+		document.getElementById('expand2').onclick = function () {
 			testEditor.expand(path => path.length < 2)
 		}
 
-		document.getElementById('collapseAll').onclick = function collapseAll () {
+		document.getElementById('collapseAll').onclick = function () {
 			testEditor.collapse(() => false)
 		}
 
-		document.getElementById('mainMenuBar').onclick = function mainMenuBar (event) {
+		document.getElementById('mainMenuBar').onclick = function (event) {
 			testEditor.setMainMenuBar(event.target.checked)
+		}
+
+		document.getElementById('readOnly').onclick = function (event) {
+			testEditor.setMode(event.target.checked ? 'view' : 'edit')
 		}
 	</script>
 </body>

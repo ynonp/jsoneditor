@@ -10,12 +10,13 @@
   // This Main.svelte wrapper is there purely to be able to wrap JSONEditor inside Modal
   // It would be nice if there is a solution that doesn't require this wrapping.
 
-  export let doc = {}
-  export let mainMenuBar = true
-  export let validate = null
-  export let onChangeJson = () => {}
-  export let onFocus = () => {}
-  export let onBlur = () => {}
+  export let doc
+  export let mode
+  export let mainMenuBar
+  export let validate
+  export let onChangeJson
+  export let onFocus
+  export let onBlur
 
   let ref
 
@@ -29,6 +30,10 @@
 
   export function get () {
     return ref.get()
+  }
+
+  export function patch (operations, newSelection) {
+    return ref.patch(operations, newSelection)
   }
 
   export function expand (callback) {
@@ -55,14 +60,19 @@
     return mainMenuBar
   }
 
-  export function patch (operations, newSelection) {
-    return ref.patch(operations, newSelection)
+  export function setMode (newMode) {
+    mode = newMode
+  }
+
+  export function getMode () {
+    return mode
   }
 </script>
 
 <Modal>
   <JSONEditor
     bind:this={ref}
+    bind:mode
     bind:doc
     bind:mainMenuBar
     bind:validate

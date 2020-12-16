@@ -17,6 +17,7 @@
 
   export let path
   export let value
+  export let readOnly
   export let onPatch
   export let selection
   export let onSelect
@@ -119,7 +120,7 @@
   }
 
   function handleValueDoubleClick (event) {
-    if (!editValue) {
+    if (!readOnly && !editValue) {
       event.preventDefault()
       onSelect({ type: SELECTION_TYPE.VALUE, path, edit: true })
     }
@@ -134,7 +135,7 @@
       onSelect({ type: SELECTION_TYPE.VALUE, path })
     }
 
-    if ((event.key === 'Enter' || event.key === 'Tab') && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+    if (!readOnly && (event.key === 'Enter' || event.key === 'Tab') && !event.ctrlKey && !event.shiftKey && !event.altKey) {
       // updating newValue here is important to handle when contents are changed
       // programmatically when edit mode is opened after typing a character
       newValue = getDomValue()

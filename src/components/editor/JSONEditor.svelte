@@ -8,6 +8,7 @@
   import jump from '../../assets/jump.js/src/jump.js'
   import {
     MAX_SEARCH_RESULTS,
+    MODE,
     SCROLL_DURATION,
     SEARCH_PROGRESS_THROTTLE,
     SIMPLE_MODAL_OPTIONS,
@@ -80,6 +81,7 @@
   let domJsonEditor
   let focus = false
 
+  export let mode = MODE.EDIT
   export let doc = {}
   export let mainMenuBar = true
   export let validate = null
@@ -148,6 +150,7 @@
       : (path.length === 1 && path[0] === 0) // first item of an array?
   }
 
+  $: readOnly = mode === MODE.VIEW
   $: docIsEmpty = doc !== ''
   $: validationErrorsList = validate ? validate(doc) : []
   $: validationErrors = mapValidationErrors(validationErrorsList)
@@ -301,7 +304,7 @@
   $: debug('selection', selection)
 
   async function handleCut () {
-    if (!selection) {
+    if (readOnly || !selection) {
       return
     }
 
@@ -342,7 +345,7 @@
   function handlePaste (event) {
     event.preventDefault()
 
-    if (!selection) {
+    if (readOnly || !selection) {
       return
     }
 
@@ -368,7 +371,7 @@
   }
 
   function handleRemove () {
-    if (!selection) {
+    if (readOnly || !selection) {
       return
     }
 
@@ -381,6 +384,7 @@
 
   function handleDuplicate () {
     if (
+      readOnly ||
       !selection ||
       (selection.type !== SELECTION_TYPE.MULTI) ||
       isEmpty(selection.focusPath) // root selected, cannot duplicate
@@ -399,7 +403,7 @@
    * @param {'value' | 'object' | 'array' | 'structure'} type
    */
   function handleInsert (type) {
-    if (!selection) {
+    if (readOnly || !selection) {
       return
     }
 
@@ -451,7 +455,7 @@
   async function handleInsertCharacter (char) {
     // a regular key like a, A, _, etc is entered.
     // Replace selected contents with a new value having this first character as text
-    if (!selection) {
+    if (readOnly || !selection) {
       return
     }
 
@@ -481,6 +485,10 @@
   }
 
   async function handleInsertValueWithCharacter (char) {
+    if (readOnly || !selection) {
+      return
+    }
+
     // first insert a new value
     handleInsert('value')
 
@@ -542,6 +550,10 @@
   }
 
   function handleSort () {
+    if (readOnly) {
+      return
+    }
+
     const rootPath = selection ? findRootPath(selection) : []
 
     open(SortModal, {
@@ -570,6 +582,10 @@
   }
 
   function handleTransform () {
+    if (readOnly) {
+      return
+    }
+
     const rootPath = selection ? findRootPath(selection) : []
 
     open(TransformModal, {
@@ -671,6 +687,10 @@
     operations,
     newSelection = createSelectionFromOperations(doc, operations)
   ) {
+    if (readOnly) {
+      return
+    }
+
     debug('handlePatch', operations, newSelection)
 
     const patchResult = patch(operations, newSelection)
@@ -796,7 +816,7 @@
         : getInitialSelection(doc, state)
     }
 
-    if (combo === 'Enter' && selection) {
+    if (combo === 'Enter' && selection && !readOnly) {
       // when the selection consists of one Array item, change selection to editing its value
       // TODO: this is a bit hacky
       if (selection.type === SELECTION_TYPE.MULTI && selection.paths.length === 1) {
@@ -929,6 +949,7 @@
 >
   {#if mainMenuBar}
     <Menu
+      readOnly={readOnly}
       historyState={historyState}
       searchText={searchText}
       searching={searching}
@@ -968,6 +989,7 @@
       value={doc}
       path={[]}
       state={state}
+      readOnly={readOnly}
       searchResult={searchResult && searchResult.itemsWithActive}
       validationErrors={validationErrors}
       onPatch={handlePatch}

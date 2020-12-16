@@ -18,6 +18,7 @@
 
   export let path
   export let key
+  export let readOnly
   export let onUpdateKey
   export let selection
   export let onSelect
@@ -105,7 +106,7 @@
       onSelect({ type: SELECTION_TYPE.KEY, path })
     }
 
-    if ((event.key === 'Enter' || event.key === 'Tab') && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+    if (!readOnly && (event.key === 'Enter' || event.key === 'Tab') && !event.ctrlKey && !event.shiftKey && !event.altKey) {
       // updating newKey here is important to handle when contents are changed
       // programmatically when edit mode is opened after typing a character
       newKey = getDomKey()
@@ -120,7 +121,7 @@
   }
 
   function handleKeyDoubleClick (event) {
-    if (!editKey) {
+    if (!editKey && !readOnly) {
       event.preventDefault()
       onSelect({ type: SELECTION_TYPE.KEY, path, edit: true })
     }

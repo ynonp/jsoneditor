@@ -25,6 +25,7 @@
 
   const { open } = getContext('simple-modal')
 
+  export let readOnly
   export let searchText
   export let searchResult
   export let searching
@@ -91,27 +92,27 @@
       text: 'Insert value',
       title: 'Insert a new value',
       onClick: () => onInsert('value'),
-      disabled: !hasSelection,
+      disabled: readOnly || !hasSelection,
       default: true
     },
     {
       text: 'Insert object',
       title: 'Insert a new object',
       onClick: () => onInsert('object'),
-      disabled: !hasSelection
+      disabled: readOnly || !hasSelection
     },
     {
       text: 'Insert array',
       title: 'Insert a new array',
       onClick: () => onInsert('array'),
-      disabled: !hasSelection
+      disabled: readOnly || !hasSelection
     },
     {
       text: 'Insert structure',
       title: 'Insert a new item with the same structure as other items. ' +
         'Only applicable inside an array',
       onClick: handleInsertStructure,
-      disabled: !hasSelection
+      disabled: readOnly || !hasSelection
     }
   ]
 </script>
@@ -120,7 +121,7 @@
   <button
     class="button cut"
     on:click={onCut}
-    disabled={!hasSelectionContents}
+    disabled={readOnly || !hasSelectionContents}
     title="Cut (Ctrl+X)"
   >
     <Icon data={faCut} />
@@ -137,7 +138,7 @@
     class="button paste"
     bind:this={domPasteFromMenu}
     on:click={handlePasteFromMenu}
-    disabled={!hasSelection}
+    disabled={readOnly || !hasSelection}
     title="Paste (Ctrl+V)"
   >
     <Icon data={faPaste} />
@@ -148,7 +149,7 @@
   <button
     class="button remove"
     on:click={onRemove}
-    disabled={!hasSelectionContents}
+    disabled={readOnly || !hasSelectionContents}
     title="Remove (Delete)"
   >
     <Icon data={faTimes} />
@@ -156,7 +157,7 @@
   <button
     class="button duplicate"
     on:click={onDuplicate}
-    disabled={!canDuplicate}
+    disabled={readOnly || !canDuplicate}
     title="Duplicate (Ctrl+D)"
   >
     <Icon data={faClone} />
@@ -169,7 +170,7 @@
       class="button insert"
       slot="defaultItem" 
       on:click={handleInsertStructure}
-      disabled={!hasSelection}
+      disabled={readOnly || !hasSelection}
     >
       <Icon data={faPlus} />
     </button>
@@ -179,6 +180,7 @@
 
   <button
     class="button sort"
+    disabled={readOnly}
     on:click={onSort}
     title="Sort"
   >
@@ -186,6 +188,7 @@
   </button>
   <button
     class="button transform"
+    disabled={readOnly}
     on:click={onTransform}
     title="Transform contents (filter, sort, project)"
   >
