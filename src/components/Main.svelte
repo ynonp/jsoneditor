@@ -68,6 +68,10 @@
   export function getMode () {
     return mode
   }
+
+  export function destroy () {
+    this.$destroy()
+  }
 </script>
 
 <Modal>
