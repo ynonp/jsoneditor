@@ -86,6 +86,9 @@
   export let mainMenuBar = true
   export let validate = null
   export let onChangeJson = () => {}
+
+  /** @type {function (path: Path, value: *) : string} */
+  export let onClassName = () => {}
   export let onFocus = () => {}
   export let onBlur = () => {}
 
@@ -997,6 +1000,7 @@
       onExpand={handleExpand}
       onSelect={handleSelect}
       onExpandSection={handleExpandSection}
+      onClassName={onClassName}
       selection={selection}
     />
   </div>

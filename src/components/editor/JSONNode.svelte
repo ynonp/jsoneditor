@@ -2,6 +2,7 @@
 
 <script>
   import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
+  import classnames from 'classnames'
   import { isEqual, last } from 'lodash-es'
   import Icon from 'svelte-awesome'
   import {
@@ -46,6 +47,7 @@
   export let onInsert
   export let onExpand
   export let onSelect
+  export let onClassName
 
   /** @type {function (path: Path, section: Section)} */
   export let onExpandSection
@@ -215,7 +217,7 @@
 </script>
 
 <div
-  class='json-node'
+  class={classnames('json-node', onClassName(path, value))}
   data-path={compileJSONPointer(path)}
   class:root={root}
   class:selected={selected}
@@ -303,6 +305,7 @@
               onExpand={onExpand}
               onSelect={onSelect}
               onExpandSection={onExpandSection}
+              onClassName={onClassName}
               selection={selection}
             >
               <div slot="identifier" class="identifier">
@@ -413,6 +416,7 @@
             onExpand={onExpand}
             onSelect={onSelect}
             onExpandSection={onExpandSection}
+            onClassName={onClassName}
             selection={selection}
           >
             <div slot="identifier" class="identifier">

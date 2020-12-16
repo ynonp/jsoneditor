@@ -39,6 +39,14 @@
 			height: 500px;
 			max-width: 100%;
 		}
+
+		.json-node.custom-class-highlight {
+			background: greenyellow;
+		}
+
+		.json-node.custom-class-boolean .value {
+			background: pink;
+		}
 	</style>
 </head>
 
@@ -63,6 +71,9 @@
 		</label>
 		<label for="readOnly">
 			<input id="readOnly" type="checkbox" /> Read only
+		</label>
+		<label for="customClassNames">
+			<input id="customClassNames" type="checkbox" /> Custom class names
 		</label>
 	</p>
 
@@ -244,6 +255,27 @@
 
 		document.getElementById('readOnly').onclick = function (event) {
 			testEditor.setMode(event.target.checked ? 'view' : 'edit')
+		}
+
+		function onClassName (path, value) {
+			if (
+				JSON.stringify(path) === '["object","c"]' ||
+				JSON.stringify(path) === '["string"]'
+			) {
+				return 'custom-class-highlight'
+			}
+
+			if (value === true || value === false) {
+				return 'custom-class-boolean'
+			}
+		}
+
+		document.getElementById('customClassNames').onclick = function (event) {
+			testEditor.$set({
+				onClassName: event.target.checked
+					? onClassName
+					: () => {}
+			})
 		}
 	</script>
 </body>

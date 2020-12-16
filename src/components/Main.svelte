@@ -15,6 +15,7 @@
   export let mainMenuBar
   export let validate
   export let onChangeJson
+  export let onClassName
   export let onFocus
   export let onBlur
 
@@ -77,6 +78,7 @@
     bind:mainMenuBar
     bind:validate
     bind:onChangeJson
+    bind:onClassName
     bind:onFocus
     bind:onBlur
   />
