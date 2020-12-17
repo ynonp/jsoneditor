@@ -84,13 +84,15 @@
   export let mode = MODE.EDIT
   export let doc = {}
   export let mainMenuBar = true
-  export let validate = null
+  export let validator = null
   export let onChangeJson = () => {}
 
+  function noop () {}
+
   /** @type {function (path: Path, value: *) : string} */
-  export let onClassName = () => {}
-  export let onFocus = () => {}
-  export let onBlur = () => {}
+  export let onClassName
+  export let onFocus
+  export let onBlur
 
   onMount(() => {
     debug('register global focus listeners')
@@ -115,7 +117,9 @@
       clearTimeout(blurTimeoutHandle)
       if (!focus) {
         debug('focus')
-        onFocus()
+        if (onFocus) {
+          onFocus()
+        }
         focus = newFocus
       }
     }
@@ -130,17 +134,11 @@
       blurTimeoutHandle = setTimeout(() => {
         debug('blur')
         focus = false
-        onBlur()
+        if (onBlur) {
+          onBlur()
+        }
       })
     }
-  }
-
-  export function setValidator (newValidate) {
-    validate = newValidate
-  }
-
-  export function getValidator () {
-    return validate
   }
 
   let state = syncState(doc, undefined, [], defaultExpand)
@@ -155,7 +153,7 @@
 
   $: readOnly = mode === MODE.VIEW
   $: docIsEmpty = doc !== ''
-  $: validationErrorsList = validate ? validate(doc) : []
+  $: validationErrorsList = validator ? validator(doc) : []
   $: validationErrors = mapValidationErrors(validationErrorsList)
 
   let showSearch = false
@@ -1000,7 +998,7 @@
       onExpand={handleExpand}
       onSelect={handleSelect}
       onExpandSection={handleExpandSection}
-      onClassName={onClassName}
+      onClassName={onClassName || noop}
       selection={selection}
     />
   </div>

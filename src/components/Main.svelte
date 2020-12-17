@@ -13,7 +13,7 @@
   export let doc
   export let mode
   export let mainMenuBar
-  export let validate
+  export let validator
   export let onChangeJson
   export let onClassName
   export let onFocus
@@ -45,12 +45,12 @@
     return ref.collapse(callback)
   }
 
-  export function setValidator (newValidate) {
-    ref.setValidator(newValidate)
+  export function setValidator (newValidator) {
+    validator = newValidator
   }
 
   export function getValidator () {
-    return ref.getValidator()
+    return validator
   }
 
   export function setMainMenuBar (newMainMenuBar) {
@@ -80,7 +80,7 @@
     bind:mode
     bind:doc
     bind:mainMenuBar
-    bind:validate
+    bind:validator
     bind:onChangeJson
     bind:onClassName
     bind:onFocus
