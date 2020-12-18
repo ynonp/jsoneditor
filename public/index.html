@@ -76,6 +76,16 @@
 			<input id="customClassNames" type="checkbox" /> Custom class names
 		</label>
 	</p>
+	<p>
+		<button id="setTextValid">setText (valid)</button>
+		<button id="setTextRepairable">setText (repairable)</button>
+		<button id="setTextInvalid">setText (invalid)</button>
+	</p>
+	<p>
+		<button id="updateTextValid">updateText (valid)</button>
+		<button id="updateTextRepairable">updateText (repairable)</button>
+		<button id="updateTextInvalid">updateText (invalid)</button>
+	</p>
 
 	<script type="module">
 		import jsoneditor from './dist/es/jsoneditor.js'
@@ -126,7 +136,7 @@
 			onChangeJson: doc => console.log('onChangeJson', doc),
 			onFocus: () => console.log('got focus...'),
 			onBlur: () => console.log('lost focus...'),
-			validate: doc => {
+			validator: doc => {
 				if (
 					doc && typeof doc === 'object' &&
 					doc.object && typeof doc.object === 'object' &&
@@ -276,6 +286,45 @@
 					? onClassName
 					: undefined
 			})
+		}
+
+		document.getElementById('setTextValid').onclick = () =>	testEditor.setText('[1,2,3]')
+		document.getElementById('updateTextValid').onclick = () =>	testEditor.updateText('[1,2,3,4]')
+
+		document.getElementById('setTextRepairable').onclick = () => {
+			const str = JSON.stringify(doc, null, 2)
+			const index = str.lastIndexOf(',')
+			const invalidStr = str.slice(0, index) + str.slice(index + 1)
+			testEditor.setText(invalidStr)
+		}
+
+		document.getElementById('updateTextRepairable').onclick = () => {
+			const updatedDoc = {
+				...doc,
+				updated: ':)'
+			}
+			const str = JSON.stringify(updatedDoc, null, 2)
+			const index = str.lastIndexOf(',')
+			const invalidStr = str.slice(0, index) + str.slice(index + 1)
+			testEditor.updateText(invalidStr)
+		}
+
+		document.getElementById('setTextInvalid').onclick = () =>	{
+			const str = JSON.stringify(doc, null, 2)
+			const index = str.lastIndexOf('}')
+			const invalidStr = str.slice(0, index) + ']' + str.slice(index + 1)
+			testEditor.setText(invalidStr)
+		}
+
+		document.getElementById('updateTextInvalid').onclick = () =>	{
+			const updatedDoc = {
+				...doc,
+				updated: ':)'
+			}
+			const str = JSON.stringify(updatedDoc, null, 2)
+			const index = str.lastIndexOf('}')
+			const invalidStr = str.slice(0, index) + ']' + str.slice(index + 1)
+			testEditor.updateText(invalidStr)
 		}
 	</script>
 </body>

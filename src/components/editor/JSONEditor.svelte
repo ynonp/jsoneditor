@@ -69,7 +69,6 @@
   import Menu from './Menu.svelte'
   import Welcome from './Welcome.svelte'
 
-  // TODO: document how to enable debugging in the readme: localStorage.debug="jsoneditor:*", then reload
   const debug = createDebug('jsoneditor:TreeMode')
 
   const { open } = getContext('simple-modal')
@@ -85,6 +84,7 @@
   export let doc = {}
   export let mainMenuBar = true
   export let validator = null
+  export let visible = true
   export let onChangeJson = () => {}
 
   function noop () {}
@@ -236,6 +236,8 @@
   }
 
   export function set (newDocument = '') {
+    debug('set document')
+
     doc = newDocument
     state = syncState(doc, undefined, [], defaultExpand)
     searchResult = undefined
@@ -243,6 +245,9 @@
   }
 
   export function update (updatedDocument = '') {
+    debug('update document')
+
+    // TODO: this is inefficient. Make an optional flag promising that the updates are immutable so we don't have to do a deep equality check?
     if (isEqual(doc, updatedDocument)) {
       // no actual change, don't do anything
       return
@@ -943,6 +948,7 @@
 
 <div
   class="jsoneditor"
+  class:visible
   on:keydown={handleKeyDown}
   on:mousedown={handleMouseDown}
   bind:this={domJsonEditor}

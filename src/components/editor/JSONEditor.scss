@@ -9,6 +9,12 @@
   flex-direction: column;
   position: relative;
 
+  &:not(.visible) {
+    visibility: hidden;
+    height: 0;
+    min-height: 0;
+  }
+
   &.focus {
     box-shadow: $outline-shadow;
   }
