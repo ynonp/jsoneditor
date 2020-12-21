@@ -7,6 +7,7 @@
   import createDebug from 'debug'
   import simpleJsonRepair from 'simple-json-repair'
   import Modal from 'svelte-simple-modal'
+  import { parseAndRepair } from '../utils/jsonUtils.js'
   import { uniqueId } from '../utils/uniqueId.js'
   import JSONEditor from './editor/JSONEditor.svelte'
   import JSONRepair from './editor/JSONRepair.svelte'
@@ -32,11 +33,11 @@
 
   let ref
 
-  export function get() {
+  export function get () {
     return doc
   }
 
-  export function set(newDoc) {
+  export function set (newDoc) {
     debug('set')
 
     // new editor id -> will re-create the editor
@@ -46,61 +47,47 @@
     doc = newDoc
   }
 
-  export function update(updatedDoc) {
+  export function update (updatedDoc) {
     debug('update')
 
     text = null
     doc = updatedDoc
   }
 
-  export function setText(newText) {
+  export function setText (newText) {
     try {
-      const newDoc = JSON.parse(newText)
+      const newDoc = parseAndRepair(newText)
       debug('setText parsing successful')
       set(newDoc)
     } catch (err) {
-      // try auto repair
-      try {
-        const newDoc = JSON.parse(simpleJsonRepair(newText))
-        debug('setText parsing successful after auto repair')
-        set(newDoc)
-      } catch (err) {
-        // will open JSONRepair window
-        text = newText
-        createInstanceOnRepair = true
-        debug('setText parsing failed, could not auto repair')
-      }
+      // will open JSONRepair window
+      text = newText
+      createInstanceOnRepair = true
+      debug('setText parsing failed, could not auto repair')
     }
   }
 
-  export function updateText(newText) {
+  export function updateText (newText) {
     try {
-      const newDoc = JSON.parse(newText)
+      const newDoc = parseAndRepair(newText)
       debug('setText parsing successful')
       update(newDoc)
     } catch (err) {
-      // try auto repair
-      try {
-        const newDoc = JSON.parse(simpleJsonRepair(newText))
-        debug('setText parsing successful after auto repair')
-        update(newDoc)
-      } catch (err) {
-        // will open JSONRepair window
-        text = newText
-        createInstanceOnRepair = false
-        // FIXME: must remember to call update when applying fixed text
-        debug('setText parsing failed, could not auto repair')
-      }
+      // will open JSONRepair window
+      text = newText
+      createInstanceOnRepair = false
+      // FIXME: must remember to call update when applying fixed text
+      debug('setText parsing failed, could not auto repair')
     }
   }
 
-  export function getText() {
+  export function getText () {
     return repairing
       ? text
       : JSON.stringify(doc, null, 2)
   }
 
-  export function patch(operations, newSelection) {
+  export function patch (operations, newSelection) {
     if (repairing) {
       throw new Error('Cannot apply patch whilst repairing invalid JSON')
     }
@@ -108,47 +95,47 @@
     return ref.patch(operations, newSelection)
   }
 
-  export function expand(callback) {
+  export function expand (callback) {
     return ref.expand(callback)
   }
 
-  export function collapse(callback) {
+  export function collapse (callback) {
     return ref.collapse(callback)
   }
 
-  export function setValidator(newValidator) {
+  export function setValidator (newValidator) {
     validator = newValidator
   }
 
-  export function getValidator() {
+  export function getValidator () {
     return validator
   }
 
-  export function setMainMenuBar(newMainMenuBar) {
+  export function setMainMenuBar (newMainMenuBar) {
     mainMenuBar = newMainMenuBar
   }
 
-  export function getMainMenuBar() {
+  export function getMainMenuBar () {
     return mainMenuBar
   }
 
-  export function setMode(newMode) {
+  export function setMode (newMode) {
     mode = newMode
   }
 
-  export function getMode() {
+  export function getMode () {
     return mode
   }
 
-  export function destroy() {
+  export function destroy () {
     this.$destroy()
   }
 
-  function handleApplyRepair (newDoc) {
+  function handleApplyRepair (repairedText) {
     if (createInstanceOnRepair) {
-      set(newDoc)
+      setText(repairedText)
     } else {
-      update(newDoc)
+      updateText(repairedText)
     }
   }
 
@@ -198,6 +185,8 @@
       {#if repairing}
         <JSONRepair
           bind:text={text}
+          onParse={JSON.parse}
+          onRepair={simpleJsonRepair}
           onChange={handleChangeText}
           onApply={handleApplyRepair}
           onCancel={handleCancelRepair}

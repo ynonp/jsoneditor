@@ -8,7 +8,7 @@
     "dev": "rollup -c -w",
     "start": "sirv public",
     "test": "mocha src/**/*.test.js",
-    "lint": "eslint --cache src/**/*.svelte src/**/*.js tools/**/*.js tools/**/*.cjs *.js --ignore-pattern src/generated --ignore-pattern examples",
+    "lint": "eslint --cache src/**/*.svelte src/**/*.js tools/**/*.js *.js --ignore-pattern src/generated --ignore-pattern examples",
     "prepare": "node tools/generateAjvDrafts.js"
   },
   "license": "(MIT OR Apache-2.0)",

@@ -1,6 +1,11 @@
 import { cloneDeepWith, first, initial, isEmpty, last } from 'lodash-es'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
+import {
+  parseAndRepair,
+  parseAndRepairOrUndefined,
+  parsePartialJson
+} from '../utils/jsonUtils.js'
 import { findUniqueName } from '../utils/stringUtils.js'
 import { isObject, isObjectOrArray } from '../utils/typeUtils.js'
 import { getKeys, getNextKeys } from './documentState.js'
@@ -259,7 +264,7 @@ export function duplicate (doc, state, paths) {
 export function insert (doc, state, selection, clipboardText) {
   if (selection.type === SELECTION_TYPE.KEY) {
     // rename key
-    const clipboard = parsePartialJson(clipboardText)
+    const clipboard = parseAndRepairOrUndefined(clipboardText)
     const parentPath = initial(selection.focusPath)
     const keys = getKeys(state, parentPath)
     const oldKey = last(selection.focusPath)
@@ -279,7 +284,7 @@ export function insert (doc, state, selection, clipboardText) {
       {
         op: 'replace',
         path: compileJSONPointer(selection.focusPath),
-        value: parsePartialJson(clipboardText)
+        value: parsePartialJson(clipboardText, parseAndRepair)
       }
     ]
   }
@@ -418,10 +423,12 @@ function moveDown (parentPath, key) {
  * @returns {Array.<{key: string, value: *}>}
  */
 export function clipboardToValues (clipboardText) {
-  const clipboardOriginal = parseJsonOrUndefined(clipboardText)
+  // clipboardOriginal must not fix partial JSON, we need clipboardOriginal
+  // mostly to determine whether the original JSON was an object/array or not
+  const clipboardOriginal = parseAndRepairOrUndefined(clipboardText)
   const clipboardRepaired = clipboardOriginal !== undefined
-    ? clipboardOriginal
-    : parsePartialJson(clipboardText)
+    ? clipboardOriginal // just performance optimization
+    : parsePartialJson(clipboardText, parseAndRepair)
 
   if (isObjectOrArray(clipboardOriginal)) {
     return [{ key: 'New item', value: clipboardRepaired }]
@@ -532,46 +539,3 @@ export function createRemoveOperations (doc, state, selection) {
   // this should never happen
   throw new Error('Cannot remove: unsupported type of selection ' + JSON.stringify(selection))
 }
-
-/**
- * @param {string} partialJson
- * @return {JSON}
- */
-export function parsePartialJson (partialJson) {
-  // TODO: this should be processed and fixed by simple-json-repair
-  // for now: dumb brute force approach: simply try out a few things...
-
-  // remove trailing comma
-  partialJson = partialJson.replace(END_WITH_COMMA_AND_OPTIONAL_WHITESPACES_REGEX, '')
-
-  try {
-    return JSON.parse(partialJson)
-  } catch (err) {}
-
-  try {
-    return JSON.parse('[' + partialJson + ']')
-  } catch (err) {}
-
-  try {
-    return JSON.parse('{' + partialJson + '}')
-  } catch (err) {}
-
-  // return the whole partialJson as a single JSON string
-  return partialJson
-}
-
-/**
- * Just parse the JSON. When not valid, undefined is returned
- * @param {string} partialJson
- * @returns {undefined|JSON}
- */
-export function parseJsonOrUndefined (partialJson) {
-  try {
-    return JSON.parse(partialJson)
-  } catch (err) {
-    return undefined
-  }
-}
-
-// test whether a string ends with a comma, followed by zero or more white space characters
-const END_WITH_COMMA_AND_OPTIONAL_WHITESPACES_REGEX = /,\s*$/

@@ -587,19 +587,19 @@ describe('documentState', () => {
     })
   })
 
-  describe ('shiftVisibleSections', () => {
+  describe('shiftVisibleSections', () => {
     const doc = [1, 2, 3, 4, 5, 6, 7, 8]
     const state = syncState(doc, undefined, [], () => true)
     state[STATE_VISIBLE_SECTIONS] = [
       { start: 0, end: 2 },
-      { start: 4, end: 6 },
+      { start: 4, end: 6 }
     ]
 
-    it ('should have the right initial indices visible', () => {
+    it('should have the right initial indices visible', () => {
       assert.deepStrictEqual(getVisibleIndices(doc, state), [0, 1, 4, 5])
     })
 
-    it ('should insert at the start of a visible section', () => {
+    it('should insert at the start of a visible section', () => {
       const updatedState = shiftVisibleSections(state, [0], 1)
 
       assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
@@ -608,7 +608,7 @@ describe('documentState', () => {
       ])
     })
 
-    it ('should insert halfway a visible section', () => {
+    it('should insert halfway a visible section', () => {
       const updatedState = shiftVisibleSections(state, [1], 1)
 
       assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
@@ -617,7 +617,7 @@ describe('documentState', () => {
       ])
     })
 
-    it ('should insert at the end of a visible section', () => {
+    it('should insert at the end of a visible section', () => {
       const updatedState = shiftVisibleSections(state, [2], 1)
 
       assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
@@ -626,7 +626,7 @@ describe('documentState', () => {
       ])
     })
 
-    it ('should remove at the start of a visible section', () => {
+    it('should remove at the start of a visible section', () => {
       const updatedState = shiftVisibleSections(state, [0], -1)
 
       assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
@@ -635,7 +635,7 @@ describe('documentState', () => {
       ])
     })
 
-    it ('should remove halfway a visible section', () => {
+    it('should remove halfway a visible section', () => {
       const updatedState = shiftVisibleSections(state, [1], -1)
 
       assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
@@ -644,7 +644,7 @@ describe('documentState', () => {
       ])
     })
 
-    it ('should remove at the end of a visible section', () => {
+    it('should remove at the end of a visible section', () => {
       const updatedState = shiftVisibleSections(state, [2], -1)
 
       assert.deepStrictEqual(updatedState[STATE_VISIBLE_SECTIONS], [
@@ -654,7 +654,7 @@ describe('documentState', () => {
     })
   })
 
-  describe ('initializeState', () => {
+  describe('initializeState', () => {
     const doc = {
       array: [1, 2, { c: 6 }],
       object: { a: 4, b: 5 },
@@ -662,8 +662,7 @@ describe('documentState', () => {
     }
     const state = syncState(doc, undefined, [], () => false)
 
-
-    it ('should have non expanded initial state', () => {
+    it('should have non expanded initial state', () => {
       assert.deepStrictEqual(state[STATE_EXPANDED], false)
       assert.deepStrictEqual(state[STATE_KEYS], ['array', 'object', 'value'])
       assert.deepStrictEqual(state.array, undefined)
@@ -671,7 +670,7 @@ describe('documentState', () => {
       assert.deepStrictEqual(state.value, undefined)
     })
 
-    it ('should initialize nested state for operation add', () => {
+    it('should initialize nested state for operation add', () => {
       const operations = [{ op: 'add', path: '/array/2/d', value: 7 }]
       const updatedState = initializeState(doc, state, operations)
 
@@ -684,7 +683,7 @@ describe('documentState', () => {
       assert.deepStrictEqual(updatedState.array[2].d, undefined)
     })
 
-    it ('should initialize nested state for operation move', () => {
+    it('should initialize nested state for operation move', () => {
       const operations = [{ op: 'move', from: '/object/a', path: '/array/0' }]
       const updatedState = initializeState(doc, state, operations)
 
@@ -699,7 +698,7 @@ describe('documentState', () => {
       assert.deepStrictEqual(updatedState.array[2], undefined)
     })
 
-    it ('should initialize nested state for operation copy', () => {
+    it('should initialize nested state for operation copy', () => {
       const operations = [{ op: 'copy', from: '/object/a', path: '/array/0' }]
       const updatedState = initializeState(doc, state, operations)
 
@@ -714,7 +713,7 @@ describe('documentState', () => {
       assert.deepStrictEqual(updatedState.array[2], undefined)
     })
 
-    it ('should initialize nested state for operation remove', () => {
+    it('should initialize nested state for operation remove', () => {
       const operations = [{ op: 'remove', path: '/object/a' }]
       const updatedState = initializeState(doc, state, operations)
 
@@ -723,7 +722,7 @@ describe('documentState', () => {
       assert.deepStrictEqual(typeof updatedState.object.a, 'object')
     })
 
-    it ('should initialize nested state for operation replace', () => {
+    it('should initialize nested state for operation replace', () => {
       const operations = [{ op: 'replace', path: '/object/a', value: 42 }]
       const updatedState = initializeState(doc, state, operations)
 
@@ -732,7 +731,7 @@ describe('documentState', () => {
       assert.deepStrictEqual(typeof updatedState.object.a, 'object')
     })
 
-    it ('should initialize nested state for operation test', () => {
+    it('should initialize nested state for operation test', () => {
       const operations = [{ op: 'test', path: '/object/a', value: 42 }]
       const updatedState = initializeState(doc, state, operations)
 
@@ -741,14 +740,14 @@ describe('documentState', () => {
       assert.deepStrictEqual(typeof updatedState.object.a, 'object')
     })
 
-    it ('should not initialize nested state when not existing in doc itself', () => {
+    it('should not initialize nested state when not existing in doc itself', () => {
       const operations = [{ op: 'add', path: '/foo/bar', value: 42 }]
       const updatedState = initializeState(doc, state, operations)
 
       assert.deepStrictEqual(updatedState.foo, undefined)
     })
 
-    it ('should initialize state for replacing the whole doc', () => {
+    it('should initialize state for replacing the whole doc', () => {
       const operations = [{ op: 'replace', path: '', value: 42 }]
       const updatedState = initializeState(doc, state, operations)
 

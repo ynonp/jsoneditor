@@ -61,14 +61,15 @@
     compileJSONPointer,
     parseJSONPointerWithArrayIndices
   } from '../../utils/jsonPointer.js'
+  import { parsePartialJson, repairPartialJson } from '../../utils/jsonUtils.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
   import { isObject, isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
+  import JSONRepairModal from '../modals/JSONRepairModal.svelte'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
   import JSONNode from './JSONNode.svelte'
   import Menu from './Menu.svelte'
   import Welcome from './Welcome.svelte'
-  import JSONRepair from './JSONRepair.svelte'
 
   const debug = createDebug('jsoneditor:TreeMode')
 
@@ -359,30 +360,36 @@
     const clipboardText = event.clipboardData.getData('text/plain')
 
     try {
-      const operations = insert(doc, state, selection, clipboardText)
-
-      debug('paste', { clipboardText, operations, selection })
-
-      handlePatch(operations)
-
-      // expand newly inserted object/array
-      operations
-        .filter(operation => isObjectOrArray(operation.value))
-        .forEach(async operation => {
-          const path = parseJSONPointerWithArrayIndices(doc, operation.path)
-          handleExpand(path, true, false)
-        })
+      doPaste(clipboardText)
     } catch (err) {
-      // FIXME: WIP: must handle partial JSON correctly -> use parsePartialJson instead of JSON.parse
-      openRepairModal(clipboardText, (doc) => {
-        debug('repaired pasted text: ', doc)
+      openRepairModal(clipboardText, (repairedText) => {
+        debug('repaired pasted text: ', repairedText)
+        doPaste(repairedText)
       })
     }
   }
 
+  function doPaste (clipboardText) {
+    const operations = insert(doc, state, selection, clipboardText)
+
+    debug('paste', { clipboardText, operations, selection })
+
+    handlePatch(operations)
+
+    // expand newly inserted object/array
+    operations
+      .filter(operation => isObjectOrArray(operation.value))
+      .forEach(async operation => {
+        const path = parseJSONPointerWithArrayIndices(doc, operation.path)
+        handleExpand(path, true, false)
+      })
+  }
+
   function openRepairModal (text, onApply) {
-    open(JSONRepair, {
+    open(JSONRepairModal, {
       text,
+      onParse: parsePartialJson,
+      onRepair: repairPartialJson,
       onApply
     }, {
       ...SIMPLE_MODAL_OPTIONS,

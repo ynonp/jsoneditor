@@ -1,3 +1,93 @@
+import simpleJsonRepair from 'simple-json-repair'
+
+/**
+ * Parse the JSON. if this fails, try to repair and parse.
+ * Throws an exception when the JSON is invalid and could not be parsed.
+ * @param {string} jsonText
+ * @returns {JSON}
+ */
+export function parseAndRepair (jsonText) {
+  try {
+    return JSON.parse(jsonText)
+  } catch (err) {
+    // this can also throw
+    return JSON.parse(simpleJsonRepair(jsonText))
+  }
+}
+
+/**
+ * Parse the JSON and if needed repair it.
+ * When not valid, undefined is returned.
+ * @param {string} partialJson
+ * @returns {undefined|JSON}
+ */
+export function parseAndRepairOrUndefined (partialJson) {
+  try {
+    return parseAndRepair(partialJson)
+  } catch (err) {
+    return undefined
+  }
+}
+
+/**
+ * @param {string} partialJson
+ * @param {function} [parse=JSON.parse]
+ * @return {JSON}
+ */
+// TODO: deduplicate the logic in repairPartialJson and parseAndRepairPartialJson ?
+export function parsePartialJson (partialJson, parse = JSON.parse) {
+  // for now: dumb brute force approach: simply try out a few things...
+
+  // remove trailing comma
+  partialJson = partialJson.replace(END_WITH_COMMA_AND_OPTIONAL_WHITESPACES_REGEX, '')
+
+  try {
+    return parse(partialJson)
+  } catch (err) {}
+
+  try {
+    return parse('[' + partialJson + ']')
+  } catch (err) {}
+
+  try {
+    return parse('{' + partialJson + '}')
+  } catch (err) {}
+
+  throw new Error('Failed to parse partial JSON')
+}
+
+/**
+ * Repair partial JSON
+ * @param {string} partialJson
+ * @returns {string}
+ */
+// TODO: deduplicate the logic in repairPartialJson and parseAndRepairPartialJson ?
+export function repairPartialJson (partialJson) {
+  // for now: dumb brute force approach: simply try out a few things...
+
+  // remove trailing comma
+  partialJson = partialJson.replace(END_WITH_COMMA_AND_OPTIONAL_WHITESPACES_REGEX, '')
+
+  try {
+    return simpleJsonRepair(partialJson)
+  } catch (err) {}
+
+  try {
+    const repaired = simpleJsonRepair('[' + partialJson + ']')
+    return repaired.substring(1, repaired.length - 1) // remove the outer [...] again
+  } catch (err) {}
+
+  try {
+    const repaired = simpleJsonRepair('{' + partialJson + '}')
+    return repaired.substring(1, repaired.length - 1) // remove the outer {...} again
+  } catch (err) {}
+
+  throw new Error('Failed to repair partial JSON')
+}
+
+// test whether a string ends with a comma, followed by zero or more white space characters
+const END_WITH_COMMA_AND_OPTIONAL_WHITESPACES_REGEX = /,\s*$/
+
 /**
  * Normalize a parse error message like
  *     "Unexpected token i in JSON at position 4"
@@ -22,7 +112,7 @@ export function normalizeJsonParseError (jsonText, parseErrorMessage) {
 
   if (positionMatch) {
     // a message from Chrome, like "Unexpected token i in JSON at line 2 column 3"
-    const position = parseInt(positionMatch[1], 10)
+    const position = parseInt(positionMatch[2], 10)
 
     const line = countCharacterOccurrences(jsonText, '\n', 0, position)
     const lastIndex = jsonText.lastIndexOf('\n', position)
@@ -75,7 +165,7 @@ export function normalizeJsonParseError (jsonText, parseErrorMessage) {
  * @param {number} column   Zero-based column number
  * @returns {number | null}
  */
-export function calculatePosition(text, line, column) {
+export function calculatePosition (text, line, column) {
   let index = text.indexOf('\n')
   let i = 1
 
@@ -101,6 +191,6 @@ export function countCharacterOccurrences (text, character, start = 0, end = tex
   return count
 }
 
-const POSITION_REGEX = /position (\d+)/
+const POSITION_REGEX = /(position|char) (\d+)/
 const LINE_REGEX = /line (\d+)/
 const COLUMN_REGEX = /column (\d+)/

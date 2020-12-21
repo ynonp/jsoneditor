@@ -7,11 +7,12 @@
     faWrench
   } from '@fortawesome/free-solid-svg-icons'
   import createDebug from 'debug'
-  import simpleJsonRepair from 'simple-json-repair'
   import Icon from 'svelte-awesome'
   import { normalizeJsonParseError } from '../../utils/jsonUtils.js'
 
   export let text = ''
+  export let onParse
+  export let onRepair
   export let onChange = null
   export let onApply
   export let onCancel
@@ -21,16 +22,26 @@
   let domTextArea
 
   $: error = getErrorMessage(text)
+  $: repairable = isRepairable(text)
 
   $: debug('text changed', { text })
   $: debug('error', error)
 
   function getErrorMessage (jsonText) {
     try {
-      JSON.parse(jsonText)
+      onParse(jsonText)
       return null
     } catch (err) {
       return normalizeJsonParseError(jsonText, err.message)
+    }
+  }
+
+  function isRepairable (jsonText) {
+    try {
+      onRepair(jsonText)
+      return true
+    } catch (err) {
+      return false
     }
   }
 
@@ -60,18 +71,13 @@
   }
 
   function handleApply () {
-    try {
-      const repairedDoc = JSON.parse(text)
-      onApply(repairedDoc)
-    } catch (err) { // does not occur in practice
-      console.error(err)
-    }
+    onApply(text)
   }
 
   function handleRepair () {
     try {
       // TODO: simpleJsonRepair should also partially apply fixes. Now it's all or nothing
-      text = simpleJsonRepair(text)
+      text = onRepair(text)
     } catch (err) {
       // no need to do something with the error
     }
@@ -105,13 +111,15 @@
         >
           <Icon data={faArrowDown} /> Show me
         </button>
-        <button
-          on:click={handleRepair}
-          class="button primary action"
-          title="Try to automatically repair JSON"
-        >
-          <Icon data={faWrench}/> Auto repair
-        </button>
+        {#if repairable}
+          <button
+            on:click={handleRepair}
+            class="button primary action"
+            title="Automatically repair JSON"
+          >
+            <Icon data={faWrench}/> Auto repair
+          </button>
+        {/if}
       </div>
     </div>
   {:else}

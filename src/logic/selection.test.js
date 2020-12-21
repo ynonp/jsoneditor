@@ -568,13 +568,13 @@ describe('selection', () => {
 
   it('should get selection from removing a key', () => {
     assert.deepStrictEqual(createSelectionFromOperations(doc, [
-      { op: 'remove', path: '/str' },
+      { op: 'remove', path: '/str' }
     ]), null)
   })
 
   it('should get selection from inserting a new root document', () => {
     assert.deepStrictEqual(createSelectionFromOperations(doc, [
-      { op: 'replace', path: '', value: 'test' },
+      { op: 'replace', path: '', value: 'test' }
     ]), createSelection(doc, state, {
       type: SELECTION_TYPE.VALUE,
       path: []

@@ -1,6 +1,6 @@
 import createDebug from 'debug'
 import { immutableJSONPatch } from 'immutable-json-patch'
-import { initial, isEqual, isNumber, last, uniqueId } from 'lodash-es'
+import { initial, isEqual, last, uniqueId } from 'lodash-es'
 import {
   DEFAULT_VISIBLE_SECTIONS,
   STATE_EXPANDED,
@@ -502,7 +502,7 @@ export function documentStatePatch (doc, state, operations) {
  * @param {JSON} state
  * @param {JSONPatchDocument} operations
  */
-export function initializeState(doc, state, operations) {
+export function initializeState (doc, state, operations) {
   let updatedState = state
 
   function initializePath (doc, state, path) {
