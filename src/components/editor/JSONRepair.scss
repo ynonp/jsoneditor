@@ -7,12 +7,27 @@
   display: flex;
   flex-direction: column;
 
+  .menu {
+    .info {
+      padding: 0 $padding;
+    }
+  }
+
   .json-repair-error,
   .json-repair-valid {
     font-family: $font-family-mono;
     font-size: $font-size-mono;
 
     padding: $padding;
+    display: flex;
+    gap: $padding;
+    flex-wrap: wrap;
+    align-items: center;
+
+    .message {
+      flex: 1;
+      min-width: 60%;
+    }
   }
 
   .json-repair-error {
@@ -25,18 +40,14 @@
     color: $white;
   }
 
-  button.link-like {
-    background: inherit;
-    color: inherit;
-    font-family: inherit;
-    font-size: inherit;
+  button.action {
+    background: rgba(255, 255, 255, 0.2);
+    color: $white;
 
-    text-decoration: underline;
-    padding: 0;
-    margin: 0;
+    padding: $padding/2 $padding;
 
     &:hover {
-      opacity: 0.7;
+      background: rgba(255, 255, 255, 0.3);
     }
   }
 

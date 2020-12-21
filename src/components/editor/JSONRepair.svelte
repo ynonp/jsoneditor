@@ -1,19 +1,20 @@
 <script>
   import {
-    faExclamationTriangle,
+    faArrowDown,
     faCheck,
-    faTrash,
-    faWrench,
-    faArrowDown
+    faExclamationTriangle,
+    faTimes,
+    faWrench
   } from '@fortawesome/free-solid-svg-icons'
   import createDebug from 'debug'
-  import { normalizeJsonParseError } from '../../utils/jsonUtils.js'
-  import Icon from 'svelte-awesome'
   import simpleJsonRepair from 'simple-json-repair'
+  import Icon from 'svelte-awesome'
+  import { normalizeJsonParseError } from '../../utils/jsonUtils.js'
 
   export let text = ''
   export let onChange = null
   export let onApply
+  export let onCancel
 
   const debug = createDebug('jsoneditor:JSONRepair')
 
@@ -75,70 +76,58 @@
       // no need to do something with the error
     }
   }
-
-  function handleCancel () {
-    const emptyDoc = {}
-    onApply(emptyDoc)
-  }
 </script>
 
 <div class="json-repair">
   <div class="menu">
-    {#if error}
-      <button
-        class="button"
-        on:click={goToError}
-        title="Scroll to the error location"
-      >
-        <Icon data={faArrowDown} />
-      </button>
-    {:else}
-      <button
-        class="button"
-        title="Apply fixed JSON"
-        on:click={() => onApply()}
-      >
-        <Icon data={faCheck} />
-      </button>
-    {/if}
-    <div class="separator"></div>
+    <div class="info">
+      Repair invalid JSON, then click apply
+    </div>
+    <div class="space"></div>
     <button
       class="button"
-      title="Auto repair JSON"
-      on:click={handleRepair}
+      title="Cancel repair"
+      on:click={onCancel}
     >
-      <Icon data={faWrench}/>
-    </button>
-    <div class="separator"></div>
-    <button
-      class="button"
-      title="Cancel repair, open a new empty document instead"
-      on:click={handleCancel}
-    >
-      <Icon data={faTrash} />
+      <Icon data={faTimes} />
     </button>
   </div>
   {#if error}
     <div class="json-repair-error">
-      <Icon data={faExclamationTriangle} /> Cannot parse JSON: {error.message}.
-      <button
-        on:click={goToError}
-        class="link-like"
-        title="Scroll to the error location"
-      >
-        show me
-      </button>
+      <div class="message">
+        <Icon data={faExclamationTriangle} /> Cannot parse JSON: {error.message}.
+      </div>
+      <div class="actions">
+        <button
+          on:click={goToError}
+          class="button primary action"
+          title="Scroll to the error location"
+        >
+          <Icon data={faArrowDown} /> Show me
+        </button>
+        <button
+          on:click={handleRepair}
+          class="button primary action"
+          title="Try to automatically repair JSON"
+        >
+          <Icon data={faWrench}/> Auto repair
+        </button>
+      </div>
     </div>
   {:else}
     <div class="json-repair-valid">
-      JSON is valid now and can be parsed.
-      <button
-        on:click={handleApply}
-        class="link-like"
-        title="Apply fixed JSON"
-      >
-        apply
-      </button>
+      <div class="message">
+        JSON is valid now and can be parsed.
+      </div>
+      <div class="actions">
+        <button
+          on:click={handleApply}
+          class="button primary action"
+          title="Apply fixed JSON"
+        >
+          <Icon data={faCheck} /> Apply
+        </button>
+      </div>
     </div>
   {/if}
   <textarea

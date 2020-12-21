@@ -26,6 +26,7 @@
   export let onBlur = () => {}
 
   let instanceId = uniqueId()
+  let createInstanceOnRepair = false
 
   $: repairing = (text != null)
 
@@ -38,7 +39,9 @@
   export function set(newDoc) {
     debug('set')
 
-    instanceId = uniqueId() // new editor id -> will re-create the editor
+    // new editor id -> will re-create the editor
+    instanceId = uniqueId()
+
     text = null
     doc = newDoc
   }
@@ -46,6 +49,7 @@
   export function update(updatedDoc) {
     debug('update')
 
+    text = null
     doc = updatedDoc
   }
 
@@ -63,6 +67,7 @@
       } catch (err) {
         // will open JSONRepair window
         text = newText
+        createInstanceOnRepair = true
         debug('setText parsing failed, could not auto repair')
       }
     }
@@ -82,6 +87,7 @@
       } catch (err) {
         // will open JSONRepair window
         text = newText
+        createInstanceOnRepair = false
         // FIXME: must remember to call update when applying fixed text
         debug('setText parsing failed, could not auto repair')
       }
@@ -139,7 +145,15 @@
   }
 
   function handleApplyRepair (newDoc) {
-    doc = newDoc
+    if (createInstanceOnRepair) {
+      set(newDoc)
+    } else {
+      update(newDoc)
+    }
+  }
+
+  function handleCancelRepair () {
+    text = null
   }
 
   function handleChangeText (updatedText) {
@@ -179,13 +193,14 @@
         bind:onClassName
         bind:onFocus
         bind:onBlur
-        visible={text == null}
+        visible={!repairing}
       />
-      {#if text}
+      {#if repairing}
         <JSONRepair
           bind:text={text}
           onChange={handleChangeText}
           onApply={handleApplyRepair}
+          onCancel={handleCancelRepair}
         />
       {/if}
     {/key}
