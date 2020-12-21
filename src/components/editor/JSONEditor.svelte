@@ -68,6 +68,7 @@
   import JSONNode from './JSONNode.svelte'
   import Menu from './Menu.svelte'
   import Welcome from './Welcome.svelte'
+  import JSONRepair from './JSONRepair.svelte'
 
   const debug = createDebug('jsoneditor:TreeMode')
 
@@ -81,7 +82,7 @@
   let focus = false
 
   export let mode = MODE.EDIT
-  export let doc = {}
+  export let externalDoc = {}
   export let mainMenuBar = true
   export let validator = null
   export let visible = true
@@ -95,14 +96,14 @@
   export let onBlur
 
   onMount(() => {
-    debug('register global focus listeners')
+    debug('create JSONEditor')
     const window = getWindow(domJsonEditor)
     window.addEventListener('focusin', handleFocusIn, true)
     window.addEventListener('focusout', handleFocusOut, true)
   })
 
   onDestroy(() => {
-    debug('unregister global focus listeners')
+    debug('destroy JSONEditor')
     const window = getWindow(domJsonEditor)
     window.removeEventListener('focusin', handleFocusIn, true)
     window.removeEventListener('focusout', handleFocusOut, true)
@@ -141,6 +142,7 @@
     }
   }
 
+  let doc = externalDoc
   let state = syncState(doc, undefined, [], defaultExpand)
 
   let selection = null
@@ -231,24 +233,23 @@
     state = syncState(doc, state, [], callback, true)
   }
 
+  // two-way binding of externalDoc and doc (internal)
+  // when receiving an updated prop, we have to update state.
+  // when changing doc in the editor, the bound external property must be udpated
+  $: update(externalDoc)
+  $: externalDoc = doc
+
   export function get () {
     return doc
   }
 
-  export function set (newDocument = '') {
-    debug('set document')
+  function update (updatedDocument = {}) {
+    // TODO: this is inefficient. Make an optional flag promising that the updates are immutable so we don't have to do a deep equality check? First do some profiling!
+    const changed = !isEqual(doc, updatedDocument)
 
-    doc = newDocument
-    state = syncState(doc, undefined, [], defaultExpand)
-    searchResult = undefined
-    history.clear()
-  }
+    debug('update', { changed })
 
-  export function update (updatedDocument = '') {
-    debug('update document')
-
-    // TODO: this is inefficient. Make an optional flag promising that the updates are immutable so we don't have to do a deep equality check?
-    if (isEqual(doc, updatedDocument)) {
+    if (!changed) {
       // no actual change, don't do anything
       return
     }
@@ -355,8 +356,9 @@
       return
     }
 
+    const clipboardText = event.clipboardData.getData('text/plain')
+
     try {
-      const clipboardText = event.clipboardData.getData('text/plain')
       const operations = insert(doc, state, selection, clipboardText)
 
       debug('paste', { clipboardText, operations, selection })
@@ -371,9 +373,31 @@
           handleExpand(path, true, false)
         })
     } catch (err) {
-      // TODO: report error to user -> onError callback
-      console.error(err)
+      // FIXME: WIP: must handle partial JSON correctly -> use parsePartialJson instead of JSON.parse
+      openRepairModal(clipboardText, (doc) => {
+        debug('repaired pasted text: ', doc)
+      })
     }
+  }
+
+  function openRepairModal (text, onApply) {
+    open(JSONRepair, {
+      text,
+      onApply
+    }, {
+      ...SIMPLE_MODAL_OPTIONS,
+      styleWindow: {
+        ...SIMPLE_MODAL_OPTIONS.styleWindow,
+        width: '600px',
+        height: '500px'
+      },
+      styleContent: {
+        padding: 0,
+        height: '100%'
+      }
+    }, {
+      onClose: () => focusHiddenInput()
+    })
   }
 
   function handleRemove () {

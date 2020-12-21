@@ -28,7 +28,7 @@ describe('jsonUtils', () => {
   })
 
   it ('should normalize a parse error from Firefox (1)', () => {
-    const errorMessage = 'JSON.parse: expected property name or \'}\' at line 2 column 3 of the JSON data'
+    const errorMessage = 'expected property name or \'}\' at line 2 column 3 of the JSON data'
 
     deepStrictEqual(normalizeJsonParseError(jsonString, errorMessage), {
       position: 4,
@@ -50,7 +50,7 @@ describe('jsonUtils', () => {
   })
 
   it ('should normalize a parse error from Firefox (2)', () => {
-    const errorMessage = 'JSON.parse: expected double-quoted property name at line 3 column 3 of the JSON data'
+    const errorMessage = 'expected double-quoted property name at line 3 column 3 of the JSON data'
 
     deepStrictEqual(normalizeJsonParseError(jsonString2, errorMessage), {
       position: 15,

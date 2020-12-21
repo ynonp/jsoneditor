@@ -134,6 +134,7 @@
 		const config = {
 			doc,
 			onChangeJson: doc => console.log('onChangeJson', doc),
+			onChangeText: text => console.log('onChangeText', text),
 			onFocus: () => console.log('got focus...'),
 			onBlur: () => console.log('lost focus...'),
 			validator: doc => {

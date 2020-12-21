@@ -12,6 +12,7 @@
   import simpleJsonRepair from 'simple-json-repair'
 
   export let text = ''
+  export let onChange = null
   export let onApply
 
   const debug = createDebug('jsoneditor:JSONRepair')
@@ -21,7 +22,6 @@
   $: error = getErrorMessage(text)
 
   $: debug('text changed', { text })
-
   $: debug('error', error)
 
   function getErrorMessage (jsonText) {
@@ -39,6 +39,22 @@
       setTimeout(() => {
         domTextArea.focus()
       })
+    }
+  }
+
+  function handleChange (event) {
+    debug('handleChange')
+
+    const value = event.target.value
+
+    if (text === value) {
+      return
+    }
+
+    text = value
+
+    if (onChange) {
+      onChange(text)
     }
   }
 
@@ -127,7 +143,8 @@
   {/if}
   <textarea
     bind:this={domTextArea}
-    bind:value={text}
+    value={text}
+    on:input={handleChange}
     class="json-text"
     autocomplete="off"
     autocapitalize="off"

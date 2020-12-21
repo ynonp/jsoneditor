@@ -6,56 +6,47 @@
 <script>
   import createDebug from 'debug'
   import simpleJsonRepair from 'simple-json-repair'
-  import JSONRepair from './editor/JSONRepair.svelte'
   import Modal from 'svelte-simple-modal'
+  import { uniqueId } from '../utils/uniqueId.js'
   import JSONEditor from './editor/JSONEditor.svelte'
+  import JSONRepair from './editor/JSONRepair.svelte'
 
   // TODO: document how to enable debugging in the readme: localStorage.debug="jsoneditor:*", then reload
   const debug = createDebug('jsoneditor:Main')
 
-  // This Main.svelte wrapper is there purely to be able to wrap JSONEditor inside Modal
-  // It would be nice if there is a solution that doesn't require this wrapping.
-
   export let doc
+  export let text = null
   export let mode
   export let mainMenuBar
   export let validator
-  export let onChangeJson
-  export let onClassName
-  export let onFocus
-  export let onBlur
+  export let onChangeJson = () => {}
+  export let onChangeText = null
+  export let onClassName = () => {}
+  export let onFocus = () => {}
+  export let onBlur = () => {}
 
-  let text = null
+  let instanceId = uniqueId()
 
   $: repairing = (text != null)
-  $: docChanged(doc) // this will reset text on change of doc
 
   let ref
 
-  $: if (ref) {
-    debug('update doc')
-
-    ref.update(doc)
-  }
-
-  function docChanged (doc) {
-    text = null
-  }
-
   export function get() {
-    return ref.get()
+    return doc
   }
 
-  export function set(json) {
+  export function set(newDoc) {
     debug('set')
 
-    ref.set(json)
+    instanceId = uniqueId() // new editor id -> will re-create the editor
+    text = null
+    doc = newDoc
   }
 
-  export function update(json) {
+  export function update(updatedDoc) {
     debug('update')
 
-    ref.update(json)
+    doc = updatedDoc
   }
 
   export function setText(newText) {
@@ -150,28 +141,54 @@
   function handleApplyRepair (newDoc) {
     doc = newDoc
   }
+
+  function handleChangeText (updatedText) {
+    debug('handleChangeText')
+
+    if (onChangeText) {
+      onChangeText(updatedText)
+    }
+  }
+
+  function handleChangeJson (updatedDoc) {
+    debug('handleChangeJson')
+
+    text = null
+
+    if (onChangeJson) {
+      onChangeJson(updatedDoc)
+    }
+
+    if (onChangeText) {
+      onChangeText(JSON.stringify(updatedDoc, null, 2))
+    }
+  }
+
 </script>
 
 <Modal>
   <div class="jsoneditor-main">
-    <JSONEditor
-      bind:this={ref}
-      bind:mode
-      bind:doc
-      bind:mainMenuBar
-      bind:validator
-      bind:onChangeJson
-      bind:onClassName
-      bind:onFocus
-      bind:onBlur
-      visible={text == null}
-    />
-    {#if text}
-      <JSONRepair
-        bind:text={text}
-        onApply={handleApplyRepair}
+    {#key instanceId}
+      <JSONEditor
+        bind:this={ref}
+        bind:mode
+        bind:externalDoc={doc}
+        bind:mainMenuBar
+        bind:validator
+        onChangeJson={handleChangeJson}
+        bind:onClassName
+        bind:onFocus
+        bind:onBlur
+        visible={text == null}
       />
-    {/if}
+      {#if text}
+        <JSONRepair
+          bind:text={text}
+          onChange={handleChangeText}
+          onApply={handleApplyRepair}
+        />
+      {/if}
+    {/key}
   </div>
 </Modal>
 
