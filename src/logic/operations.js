@@ -3,7 +3,7 @@ import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import {
   parseAndRepair,
-  parseAndRepairOrUndefined,
+  parseAndRepairOrUndefined, parseAndRepairPartialJsonOrUndefined,
   parsePartialJson
 } from '../utils/jsonUtils.js'
 import { findUniqueName } from '../utils/stringUtils.js'
@@ -280,18 +280,24 @@ export function insert (doc, state, selection, clipboardText) {
     (selection.type === SELECTION_TYPE.MULTI && isEmpty(selection.focusPath)) // root selected
   ) {
     // replace selected value (new value can be primitive or an array/object with contents)
-    const clipboard =  parseAndRepairOrUndefined(clipboardText)
-    const value = typeof clipboard === 'string'
-      ? clipboard
-      : clipboardText
-
-    return [
-      {
-        op: 'replace',
-        path: compileJSONPointer(selection.focusPath),
-        value
-      }
-    ]
+    try {
+      return [
+        {
+          op: 'replace',
+          path: compileJSONPointer(selection.focusPath),
+          value: parsePartialJson(clipboardText, parseAndRepair)
+        }
+      ]
+    } catch (err) {
+      // parsing failed -> just paste the raw text as value
+      return [
+        {
+          op: 'replace',
+          path: compileJSONPointer(selection.focusPath),
+          value: clipboardText
+        }
+      ]
+    }
   }
 
   if (selection.type === SELECTION_TYPE.MULTI) {

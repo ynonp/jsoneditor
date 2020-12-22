@@ -57,6 +57,26 @@ export function parsePartialJson (partialJson, parse = JSON.parse) {
 }
 
 /**
+ * @param {string} partialJson
+ * @returns {JSON}
+ */
+export function parseAndRepairPartialJson (partialJson) {
+  return parsePartialJson(partialJson, parseAndRepair)
+}
+
+/**
+ * @param {string} partialJson
+ * @returns {JSON}
+ */
+export function parseAndRepairPartialJsonOrUndefined (partialJson) {
+  try {
+    return parseAndRepairPartialJson(partialJson)
+  } catch (err) {
+    return undefined
+  }
+}
+
+/**
  * Repair partial JSON
  * @param {string} partialJson
  * @returns {string}
