@@ -24,7 +24,6 @@
   $: error = getErrorMessage(text)
   $: repairable = isRepairable(text)
 
-  $: debug('text changed', { text })
   $: debug('error', error)
 
   function getErrorMessage (jsonText) {

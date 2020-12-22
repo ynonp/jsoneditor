@@ -280,11 +280,16 @@ export function insert (doc, state, selection, clipboardText) {
     (selection.type === SELECTION_TYPE.MULTI && isEmpty(selection.focusPath)) // root selected
   ) {
     // replace selected value (new value can be primitive or an array/object with contents)
+    const clipboard =  parseAndRepairOrUndefined(clipboardText)
+    const value = typeof clipboard === 'string'
+      ? clipboard
+      : clipboardText
+
     return [
       {
         op: 'replace',
         path: compileJSONPointer(selection.focusPath),
-        value: parsePartialJson(clipboardText, parseAndRepair)
+        value
       }
     ]
   }
