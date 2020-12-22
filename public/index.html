@@ -133,6 +133,7 @@
 		const target = document.getElementById('testEditorContainer')
 		const config = {
 			doc,
+			onChange: ({ json, text }) => console.log('onChange', { json, text }),
 			onChangeJson: doc => console.log('onChangeJson', doc),
 			// onChangeText: text => console.log('onChangeText', text),
 			onFocus: () => console.log('got focus...'),

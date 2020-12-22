@@ -77,6 +77,10 @@
     try {
       // TODO: simpleJsonRepair should also partially apply fixes. Now it's all or nothing
       text = onRepair(text)
+
+      if (onChange) {
+        onChange(text)
+      }
     } catch (err) {
       // no need to do something with the error
     }

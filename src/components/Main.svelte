@@ -16,11 +16,12 @@
   const debug = createDebug('jsoneditor:Main')
 
   export let doc
-  export let text = null
+  export let text = undefined
   export let mode
   export let mainMenuBar
   export let validator
-  export let onChangeJson = () => {}
+  export let onChange = null
+  export let onChangeJson = null
   export let onChangeText = null
   export let onClassName = () => {}
   export let onFocus = () => {}
@@ -29,7 +30,7 @@
   let instanceId = uniqueId()
   let createInstanceOnRepair = false
 
-  $: repairing = (text != null)
+  $: repairing = (text != undefined)
 
   let ref
 
@@ -43,14 +44,14 @@
     // new editor id -> will re-create the editor
     instanceId = uniqueId()
 
-    text = null
+    text = undefined
     doc = newDoc
   }
 
   export function update (updatedDoc) {
     debug('update')
 
-    text = null
+    text = undefined
     doc = updatedDoc
   }
 
@@ -137,14 +138,23 @@
     } else {
       updateText(repairedText)
     }
+
+    handleChangeJson(doc)
   }
 
   function handleCancelRepair () {
-    text = null
+    text = undefined
   }
 
   function handleChangeText (updatedText) {
     debug('handleChangeText')
+
+    if (onChange) {
+      onChange({
+        json: undefined,
+        text: updatedText
+      })
+    }
 
     if (onChangeText) {
       onChangeText(updatedText)
@@ -154,7 +164,14 @@
   function handleChangeJson (updatedDoc) {
     debug('handleChangeJson')
 
-    text = null
+    text = undefined
+
+    if (onChange) {
+      onChange({
+        json: updatedDoc,
+        text: undefined
+      })
+    }
 
     if (onChangeJson) {
       onChangeJson(updatedDoc)
