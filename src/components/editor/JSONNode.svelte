@@ -23,6 +23,7 @@
   import { rename } from '../../logic/operations.js'
   import { SELECTION_TYPE } from '../../logic/selection.js'
   import {
+    getSelectionTypeFromTarget,
     isChildOfAttribute,
     isChildOfNodeName,
     isContentEditableDiv
@@ -121,11 +122,13 @@
 
     singleton.mousedown = true
     singleton.selectionAnchor = path
-    singleton.selectionFocus = null
+    singleton.selectionAnchorType = getSelectionTypeFromTarget(event.target)
+    singleton.selectionFocus = path
 
     if (event.shiftKey) {
       // Shift+Click will select multiple entries
       onSelect({
+        type: SELECTION_TYPE.MULTI,
         anchorPath: selection.anchorPath,
         focusPath: path
       })
@@ -166,7 +169,12 @@
         }
       }
 
-      if (!isEqual(path, singleton.selectionFocus)) {
+      const selectionType = getSelectionTypeFromTarget(event.target)
+
+      if (
+        !isEqual(path, singleton.selectionFocus) ||
+        (selectionType !== singleton.selectionAnchorType)
+      ) {
         singleton.selectionFocus = path
 
         onSelect({

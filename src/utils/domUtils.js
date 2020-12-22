@@ -1,5 +1,7 @@
 // TODO: write unit tests for getPlainText and setPlainText
 
+import { SELECTION_TYPE } from '../logic/selection.js'
+
 /**
  * Get the plain text from an HTML element
  * @param {Element} element  An HTML DOM element like a DIV
@@ -233,4 +235,32 @@ export function getWindow (element) {
 export function activeElementIsChildOf (element) {
   const window = getWindow(element)
   return isChildOf(window.document.activeElement, e => e === element)
+}
+
+/**
+ * @param {HTMLElement} target
+ * @returns {string}
+ */
+export function getSelectionTypeFromTarget (target) {
+  if (isChildOfAttribute(target, 'data-type', 'selectable-key')) {
+    return SELECTION_TYPE.KEY
+  }
+
+  if (isChildOfAttribute(target, 'data-type', 'selectable-value')) {
+    return SELECTION_TYPE.VALUE
+  }
+
+  if (isChildOfAttribute(target, 'data-type', 'selectable-item')) {
+    return SELECTION_TYPE.MULTI
+  }
+
+  if (isChildOfAttribute(target, 'data-type', 'insert-button-area-inside')) {
+    return SELECTION_TYPE.INSIDE
+  }
+
+  if (isChildOfAttribute(target, 'data-type', 'insert-button-area-after')) {
+    return SELECTION_TYPE.AFTER
+  }
+
+  return SELECTION_TYPE.MULTI
 }
