@@ -7,7 +7,6 @@
   import createDebug from 'debug'
   import simpleJsonRepair from 'simple-json-repair'
   import Modal from 'svelte-simple-modal'
-  import { parseAndRepair } from '../utils/jsonUtils.js'
   import { uniqueId } from '../utils/uniqueId.js'
   import JSONEditor from './editor/JSONEditor.svelte'
   import JSONRepair from './editor/JSONRepair.svelte'
@@ -30,7 +29,7 @@
   let instanceId = uniqueId()
   let createInstanceOnRepair = false
 
-  $: repairing = (text != undefined)
+  let repairing = (text != undefined)
 
   let ref
 
@@ -44,6 +43,7 @@
     // new editor id -> will re-create the editor
     instanceId = uniqueId()
 
+    repairing = false
     text = undefined
     doc = newDoc
   }
@@ -51,34 +51,48 @@
   export function update (updatedDoc) {
     debug('update')
 
+    repairing = false
     text = undefined
     doc = updatedDoc
   }
 
   export function setText (newText) {
+    // do not automatically switch from text to doc when we where already in text mode
+    // else, it's not possible to stay in repair mode after clicking "Auto repair"
+    if (newText === text) {
+      return
+    }
+
     try {
-      const newDoc = parseAndRepair(newText)
+      const newDoc = JSON.parse(newText)
       debug('setText parsing successful')
       set(newDoc)
     } catch (err) {
       // will open JSONRepair window
-      text = newText
+      repairing = true
       createInstanceOnRepair = true
+      text = newText
       debug('setText parsing failed, could not auto repair')
     }
   }
 
   export function updateText (newText) {
+    // do not automatically switch from text to doc when we where already in text mode
+    // else, it's not possible to stay in repair mode after clicking "Auto repair"
+    if (newText === text) {
+      return
+    }
+
     try {
-      const newDoc = parseAndRepair(newText)
-      debug('setText parsing successful')
+      const newDoc = JSON.parse(newText)
+      debug('updateText parsing successful')
       update(newDoc)
     } catch (err) {
       // will open JSONRepair window
-      text = newText
+      repairing = true
       createInstanceOnRepair = false
-      // FIXME: must remember to call update when applying fixed text
-      debug('setText parsing failed, could not auto repair')
+      text = newText
+      debug('updateText parsing failed, could not auto repair')
     }
   }
 
@@ -133,17 +147,27 @@
   }
 
   function handleApplyRepair (repairedText) {
+    debug('handleApplyRepair')
+
+    repairing = false
+
+    const repairedDoc = JSON.parse(repairedText)
+
     if (createInstanceOnRepair) {
-      setText(repairedText)
+      set(repairedDoc)
     } else {
-      updateText(repairedText)
+      update(repairedDoc)
     }
 
-    handleChangeJson(doc)
+    handleChangeJson(repairedDoc)
   }
 
   function handleCancelRepair () {
+    repairing = false
     text = undefined
+    if (doc === undefined) {
+      doc = {}
+    }
   }
 
   function handleChangeText (updatedText) {
@@ -164,6 +188,7 @@
   function handleChangeJson (updatedDoc) {
     debug('handleChangeJson')
 
+    repairing = false
     text = undefined
 
     if (onChange) {
