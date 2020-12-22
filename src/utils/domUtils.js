@@ -239,7 +239,7 @@ export function activeElementIsChildOf (element) {
 
 /**
  * @param {HTMLElement} target
- * @returns {string}
+ * @returns {string | null}
  */
 export function getSelectionTypeFromTarget (target) {
   if (isChildOfAttribute(target, 'data-type', 'selectable-key')) {
@@ -248,10 +248,6 @@ export function getSelectionTypeFromTarget (target) {
 
   if (isChildOfAttribute(target, 'data-type', 'selectable-value')) {
     return SELECTION_TYPE.VALUE
-  }
-
-  if (isChildOfAttribute(target, 'data-type', 'selectable-item')) {
-    return SELECTION_TYPE.MULTI
   }
 
   if (isChildOfAttribute(target, 'data-type', 'insert-button-area-inside')) {

@@ -132,20 +132,30 @@
         anchorPath: selection.anchorPath,
         focusPath: path
       })
-    } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-key')) {
-      onSelect({ type: SELECTION_TYPE.KEY, path })
-    } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-value')) {
-      onSelect({ type: SELECTION_TYPE.VALUE, path })
-    } else if (isChildOfAttribute(event.target, 'data-type', 'selectable-item')) {
-      onSelect({ type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path })
-    } else if (
-      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-inside') ||
-      isChildOfAttribute(event.target, 'data-type', 'insert-button-area-after')
-    ) {
-      // do nothing: event already handled by event listener on the element or component itself
     } else {
-      const lastCaretPosition = last(getVisibleCaretPositions(value, state))
-      onSelect(lastCaretPosition)
+      switch (singleton.selectionAnchorType) {
+        case SELECTION_TYPE.KEY:
+          onSelect({ type: SELECTION_TYPE.KEY, path })
+          break
+
+        case SELECTION_TYPE.VALUE:
+          onSelect({ type: SELECTION_TYPE.VALUE, path })
+          break
+
+        case SELECTION_TYPE.MULTI:
+          if (root && event.target.hasAttribute('data-path')) {
+            const lastCaretPosition = last(getVisibleCaretPositions(value, state))
+            onSelect(lastCaretPosition)
+          } else {
+            onSelect({ type: SELECTION_TYPE.MULTI, anchorPath: path, focusPath: path })
+          }
+          break
+
+        case SELECTION_TYPE.AFTER:
+        case SELECTION_TYPE.INSIDE:
+          // do nothing: event already handled by event listener on the element or component itself
+          break
+     }
     }
 
     event.stopPropagation()
@@ -317,7 +327,7 @@
               selection={selection}
             >
               <div slot="identifier" class="identifier">
-                <div class="index" data-type="selectable-item">{visibleSection.start + itemIndex}</div>
+                <div class="index">{visibleSection.start + itemIndex}</div>
               </div>
             </svelte:self>
           {/each}
