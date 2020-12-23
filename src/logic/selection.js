@@ -513,7 +513,9 @@ export function findSharedPath (path1, path2) {
 export function findRootPath (selection) {
   return selection.type === SELECTION_TYPE.MULTI && selection.paths.length > 1
     ? initial(selection.focusPath) // the parent path of the paths
-    : selection.focusPath
+    : selection.type === SELECTION_TYPE.VALUE
+      ? selection.focusPath
+      : []
 }
 
 /**

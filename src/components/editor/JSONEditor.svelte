@@ -591,7 +591,9 @@
       return
     }
 
-    const rootPath = selection ? findRootPath(selection) : []
+    // TODO: select root path based on selection (should also allow user to switch)
+    // const rootPath = selection ? findRootPath(selection) : []
+    const rootPath = []
 
     open(SortModal, {
       id: sortModalId,
@@ -623,7 +625,9 @@
       return
     }
 
-    const rootPath = selection ? findRootPath(selection) : []
+    // TODO: select root path based on selection (should also allow user to switch)
+    // const rootPath = selection ? findRootPath(selection) : []
+    const rootPath = []
 
     open(TransformModal, {
       id: transformModalId,

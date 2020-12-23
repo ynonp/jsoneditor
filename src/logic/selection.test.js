@@ -119,9 +119,9 @@ describe('selection', () => {
     }), ['a'])
 
     const path = ['a', 'b']
-    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.AFTER, path, anchorPath: path, focusPath: path }), path)
-    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.INSIDE, path, anchorPath: path, focusPath: path }), path)
-    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.KEY, path, anchorPath: path, focusPath: path }), path)
+    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.AFTER, path, anchorPath: path, focusPath: path }), [])
+    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.INSIDE, path, anchorPath: path, focusPath: path }), [])
+    assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.KEY, path, anchorPath: path, focusPath: path }), [])
     assert.deepStrictEqual(findRootPath({ type: SELECTION_TYPE.VALUE, path, anchorPath: path, focusPath: path }), path)
   })
 
