@@ -1,6 +1,9 @@
+import diffSequencesExport from 'diff-sequences'
 import naturalCompare from 'natural-compare-lite'
 import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
+
+const diffSequences = diffSequencesExport.default || diffSequencesExport
 
 function caseInsensitiveNaturalCompare (a, b) {
   const aLower = typeof a === 'string' ? a.toLowerCase() : a
@@ -52,12 +55,38 @@ export function sortObjectKeys (object, rootPath = [], direction = 1) {
 export function sortArray (array, rootPath = [], propertyPath = [], direction = 1) {
   const comparator = createObjectComparator(propertyPath, direction)
 
-  return getSortingMoves(array, comparator).map(({ fromIndex, toIndex }) => {
-    return {
-      op: 'move',
-      from: compileJSONPointer(rootPath.concat(fromIndex)),
-      path: compileJSONPointer(rootPath.concat(toIndex))
+  // TODO: make sortOperationsMoveAdvanced configurable
+  const operations = sortOperationsMove(array, comparator)
+
+  return prependPaths(operations, rootPath)
+}
+
+/**
+ * Prepend all "path" and "from" properties in each of the operations
+ * with a (compiled) rootPath.
+ * @param {JSONPatchDocument} operations
+ * @param {Path} rootPath
+ * @returns {JSONPatchDocument}
+ */
+function prependPaths (operations, rootPath) {
+  const rootPathPointer = compileJSONPointer(rootPath)
+
+  if (rootPathPointer === '') {
+    return operations
+  }
+
+  return operations.map(operation => {
+    const updated = { ...operation }
+
+    if (typeof operation.path === 'string') {
+      updated.path = rootPathPointer + operation.path
     }
+
+    if (typeof operation.from === 'string') {
+      updated.from = rootPathPointer + operation.from
+    }
+
+    return updated
   })
 }
 
@@ -92,19 +121,18 @@ function createObjectComparator (propertyPath, direction) {
 }
 
 /**
- * Create an array containing all move operations
+ * Create an a list with JSON Patch move operations
  * needed to sort the array contents.
  * @param {Array} array
- * @param {function (a, b) => number} comparator
- * @param {Array.<{fromIndex: number, toIndex: number}>}
+ * @param {function (a, b) : number} comparator
+ * @return {Array.<{ op: 'move', from: string, path: string }>}
  */
-export function getSortingMoves (array, comparator) {
+export function sortOperationsMove (array, comparator) {
   const operations = []
   const sorted = []
 
   // TODO: rewrite the function to pass a callback instead of returning an array?
   for (let i = 0; i < array.length; i++) {
-    // TODO: implement a faster way to sort. Something with longest increasing subsequence?
     // TODO: can we simplify the following code?
     const item = array[i]
     if (i > 0 && comparator(sorted[i - 1], item) > 0) {
@@ -114,8 +142,9 @@ export function getSortingMoves (array, comparator) {
       }
 
       operations.push({
-        fromIndex: i,
-        toIndex: j
+        op: 'move',
+        from: '/' + i,
+        path: '/' + j
       })
 
       sorted.splice(j, 0, item)
@@ -125,4 +154,68 @@ export function getSortingMoves (array, comparator) {
   }
 
   return operations
+}
+
+/**
+ * Create an array containing all move operations
+ * needed to sort the array contents.
+ * @param {Array} array
+ * @param {function (a, b) : number} comparator
+ * @return {Array.<{ op: 'move', from: string, path: string }>}
+ */
+export function sortOperationsMoveAdvanced (array, comparator) {
+  const moves = []
+
+  const sortedIndices = array
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => comparator(a.item, b.item))
+    .map(entry => entry.index)
+
+  let bIndex = 0
+
+  function foundSubsequence (nCommon, aCommon, bCommon) {
+    for (let b = bIndex; b < bCommon; b++) {
+      moves.push({
+        from: sortedIndices[b],
+        to: aCommon
+      })
+    }
+
+    bIndex = bCommon + nCommon
+  }
+
+  const size = array.length
+
+  function isCommon (aIndex, bIndex) {
+    return aIndex === sortedIndices[bIndex]
+  }
+
+  diffSequences(size, size, isCommon, foundSubsequence)
+  foundSubsequence(0, size, size)
+
+  // every move will change the actual indices, so we've to adjust for that
+  // in all moves that still have to be executed
+  for (let i = 0; i < moves.length; i++) {
+    if (moves[i].to > moves[i].from) {
+      moves[i].to--
+    }
+
+    const { from, to } = moves[i]
+
+    for (let j = i + 1; j < moves.length; j++) {
+      const other = moves[j]
+      if (other.from >= from) { other.from-- }
+      if (other.to >= from) { other.to-- }
+      if (other.from >= to) { other.from++ }
+      if (other.to >= to) { other.to++ }
+    }
+  }
+
+  return moves.map(({ from, to }) => {
+    return {
+      op: 'move',
+      from: '/' + from,
+      path: '/' + to
+    }
+  })
 }

@@ -15,7 +15,7 @@
   const debug = createDebug('jsoneditor:Main')
 
   export let doc
-  export let text = undefined
+  export let text
   export let mode
   export let mainMenuBar
   export let validator
@@ -29,7 +29,7 @@
   let instanceId = uniqueId()
   let createInstanceOnRepair = false
 
-  let repairing = (text != undefined)
+  let repairing = (text !== undefined)
 
   let ref
 

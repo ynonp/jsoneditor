@@ -155,7 +155,7 @@
         case SELECTION_TYPE.INSIDE:
           // do nothing: event already handled by event listener on the element or component itself
           break
-     }
+      }
     }
 
     event.stopPropagation()

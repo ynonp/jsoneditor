@@ -591,9 +591,7 @@
       return
     }
 
-    // TODO: select root path based on selection (should also allow user to switch)
-    // const rootPath = selection ? findRootPath(selection) : []
-    const rootPath = []
+    const rootPath = selection ? findRootPath(selection) : []
 
     open(SortModal, {
       id: sortModalId,

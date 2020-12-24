@@ -3,7 +3,7 @@ import { getIn } from '../utils/immutabilityHelpers.js'
 import { compileJSONPointer } from '../utils/jsonPointer.js'
 import {
   parseAndRepair,
-  parseAndRepairOrUndefined, parseAndRepairPartialJsonOrUndefined,
+  parseAndRepairOrUndefined,
   parsePartialJson
 } from '../utils/jsonUtils.js'
 import { findUniqueName } from '../utils/stringUtils.js'
