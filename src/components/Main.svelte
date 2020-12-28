@@ -14,8 +14,8 @@
   // TODO: document how to enable debugging in the readme: localStorage.debug="jsoneditor:*", then reload
   const debug = createDebug('jsoneditor:Main')
 
-  export let doc
-  export let text
+  export let doc = ''
+  export let text = undefined
   export let mode
   export let mainMenuBar
   export let validator
@@ -166,7 +166,7 @@
     repairing = false
     text = undefined
     if (doc === undefined) {
-      doc = {}
+      doc = ''
     }
   }
 
