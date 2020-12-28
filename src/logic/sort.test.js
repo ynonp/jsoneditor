@@ -1,7 +1,8 @@
 import assert from 'assert'
 import { immutableJSONPatch } from 'immutable-json-patch'
-import { sortBy, times } from 'lodash-es'
+import { sortBy } from 'lodash-es'
 import {
+  fastPatchSort,
   sortArray,
   sortObjectKeys,
   sortOperationsMove,
@@ -160,49 +161,12 @@ describe('sort', () => {
     }
   })
 
-  // TODO: move this into a benchmark file
-  // TODO: also compare size of patch (KB)
-  // TODO: also compare with simply replacing the whole array
-  it.skip('should generate the move operations to sort given array for a large array', () => {
+  it('should fast apply move operations', () => {
     const comparator = (a, b) => a - b
 
-    function benchmark (size, changes) {
-      const array = generateArray(size, changes)
-
-      const [operationsSimple, sortDurationSimple] = measure(() => sortOperationsMove(array, comparator))
-      const [operationsAdvanced, sortDurationAdvanced] = measure(() => sortOperationsMoveAdvanced(array, comparator))
-
-      const [sortedSimple, applyDurationSimple] = measure(() => immutableJSONPatch(array, operationsSimple))
-      const [sortedAdvanced, applyDurationAdvanced] = measure(() => immutableJSONPatch(array, operationsAdvanced))
-
-      // validate the results
-      const sorted = sortBy(array)
-      assert.deepStrictEqual(sortedSimple, sorted)
-      assert.deepStrictEqual(sortedAdvanced, sortBy(array))
-
-      return {
-        size,
-        changes,
-        operationsSimple: operationsSimple.length,
-        operationsAdvanced: operationsAdvanced.length,
-        sortDurationSimple: sortDurationSimple + ' ms',
-        sortDurationAdvanced: sortDurationAdvanced + ' ms',
-        applyDurationSimple: applyDurationSimple + ' ms',
-        applyDurationAdvanced: applyDurationAdvanced + ' ms'
-      }
-    }
-
-    const results = [
-      benchmark(100, 5),
-      benchmark(100, 25),
-      benchmark(1000, 5),
-      benchmark(1000, 100),
-      benchmark(1000, 1000),
-      benchmark(10000, 100),
-      benchmark(10000, 1000)
-    ]
-
-    console.table(results)
+    const array = [0, 1, 3, 5, 4, 2]
+    const operations = sortOperationsMoveAdvanced(array, comparator)
+    assert.deepStrictEqual(fastPatchSort(array, operations), sortBy(array))
   })
 
   it('should give the move operations needed to sort given array containing objects', () => {
@@ -232,26 +196,3 @@ describe('sort', () => {
     assert.deepStrictEqual(actual, expected)
   })
 })
-
-function generateArray (size, changes) {
-  const array = times(size).map((item, index) => index)
-
-  for (let i = 0; i < changes; i++) {
-    const fromIndex = Math.floor(Math.random() * size)
-    const toIndex = Math.floor(Math.random() * size)
-
-    const value = array.splice(fromIndex, 1)[0]
-    array.splice(toIndex, 0, value)
-  }
-
-  return array
-}
-
-function measure (callback) {
-  const start = Date.now()
-  const result = callback()
-  const end = Date.now()
-  const duration = end - start
-
-  return [result, duration]
-}

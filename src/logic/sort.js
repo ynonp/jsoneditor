@@ -1,7 +1,11 @@
 import diffSequencesExport from 'diff-sequences'
+import { first, initial, isEmpty, isEqual, last } from 'lodash-es'
 import naturalCompare from 'natural-compare-lite'
-import { getIn } from '../utils/immutabilityHelpers.js'
-import { compileJSONPointer } from '../utils/jsonPointer.js'
+import { getIn, setIn } from '../utils/immutabilityHelpers.js'
+import {
+  compileJSONPointer,
+  parseJSONPointerWithArrayIndices
+} from '../utils/jsonPointer.js'
 
 const diffSequences = diffSequencesExport.default || diffSequencesExport
 
@@ -218,4 +222,67 @@ export function sortOperationsMoveAdvanced (array, comparator) {
       path: '/' + to
     }
   })
+}
+
+/**
+ * Fast solution to apply many JSON patch move operations inside a single array,
+ * like applying all moves needed to sort an array.
+ *
+ * Throws an error when not all operations are move operation inside the same
+ * array.
+ *
+ * @param {JSON} doc
+ * @param {JSONPatchDocument} operations
+ * @returns {JSON}
+ */
+// TODO: write unit tests
+export function fastPatchSort (doc, operations) {
+  if (isEmpty(operations)) {
+    // nothing to do :)
+    return doc
+  }
+
+  // validate whether all operations are "move" operations
+  const invalidOp = operations.find(operation => {
+    return operation.op !== 'move'
+  })
+  if (invalidOp) {
+    throw new Error('Cannot apply fastPatchSort: not a "move" operation ' +
+      '(actual: ' + JSON.stringify(invalidOp) +')')
+  }
+
+  // parse all paths
+  const parsedOperations = operations.map(operation => ({
+    from: parseJSONPointerWithArrayIndices(doc, operation.from),
+    path: parseJSONPointerWithArrayIndices(doc, operation.path)
+  }))
+
+  // validate whether the move actions take place in an array
+  const arrayPath = initial(first(parsedOperations).path)
+  const array = getIn(doc, arrayPath)
+  if (!Array.isArray(array)) {
+    throw new Error('Cannot apply fastPatchSort: not an Array ' +
+      '(path: ' + JSON.stringify(arrayPath) +')')
+  }
+
+  // validate whether all paths are in the same array
+  const invalidPath = parsedOperations.find(parsedOperation => {
+    return !isEqual(arrayPath, initial(parsedOperation.path)) || !isEqual(arrayPath, initial(parsedOperation.from))
+  })
+  if (invalidPath) {
+    throw new Error('Cannot apply fastPatchSort: not all move operations are in the same array ' +
+      '(expected: ' + JSON.stringify(arrayPath) +  ', actual: ' + JSON.stringify(invalidPath) + ')')
+  }
+
+  // apply the actual operations on the same array. Only copy the only array once
+  const updatedArray = array.slice(0)
+  parsedOperations.forEach(parsedOperation => {
+    const fromIndex = last(parsedOperation.from)
+    const toIndex = last(parsedOperation.path)
+
+    const value = updatedArray.splice(fromIndex, 1)[0]
+    updatedArray.splice(toIndex, 0, value)
+  })
+
+  return setIn(doc, arrayPath, updatedArray)
 }
