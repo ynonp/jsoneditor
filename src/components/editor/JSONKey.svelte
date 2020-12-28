@@ -1,6 +1,5 @@
 <script>
   import classnames from 'classnames'
-  import createDebug from 'debug'
   import { isEqual } from 'lodash-es'
   import { onDestroy, tick } from 'svelte'
   import {
@@ -14,8 +13,6 @@
     setPlainText
   } from '../../utils/domUtils.js'
 
-  const debug = createDebug('jsoneditor:JSONKey')
-
   export let path
   export let key
   export let readOnly
@@ -25,7 +22,6 @@
   export let searchResult
 
   onDestroy(() => {
-    debug('destroy', path)
     updateKey()
   })
 
@@ -45,7 +41,6 @@
   }
 
   $: if (domKey) {
-    debug('received updated key', { key, editKey })
     setDomKey(key)
   }
 
@@ -55,8 +50,6 @@
 
   function updateKey () {
     if (key !== newKey) {
-      debug('updateKey', { key, newKey })
-
       // must be handled by the parent which has knowledge about the other keys
       const uniqueKey = onUpdateKey(key, newKey)
       if (uniqueKey !== newKey) {

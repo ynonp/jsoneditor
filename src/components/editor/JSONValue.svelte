@@ -1,6 +1,5 @@
 <script>
   import classnames from 'classnames'
-  import createDebug from 'debug'
   import { isEqual } from 'lodash-es'
   import { onDestroy } from 'svelte'
   import { ACTIVE_SEARCH_RESULT, STATE_SEARCH_VALUE } from '../../constants.js'
@@ -13,8 +12,6 @@
   import { compileJSONPointer } from '../../utils/jsonPointer.js'
   import { isUrl, stringConvert, valueType } from '../../utils/typeUtils.js'
 
-  const debug = createDebug('jsoneditor:JSONValue')
-
   export let path
   export let value
   export let readOnly
@@ -24,7 +21,6 @@
   export let searchResult
 
   onDestroy(() => {
-    debug('destroy', path)
     updateValue()
   })
 
@@ -48,14 +44,11 @@
   }
 
   $: if (domValue) {
-    debug('received updated value', { value, editValue })
     setDomValue(value)
   }
 
   function updateValue () {
     if (newValue !== value) {
-      debug('updateValue', { value, newValue })
-
       value = newValue // prevent loops when value and newValue are temporarily not in sync
 
       onPatch([{
