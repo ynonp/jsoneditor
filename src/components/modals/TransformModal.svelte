@@ -1,28 +1,32 @@
 <svelte:options immutable={true} />
 
 <script>
+  import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
+  import * as _ from 'lodash-es'
+  import { debounce, isEmpty } from 'lodash-es'
   import { getContext } from 'svelte'
   import Icon from 'svelte-awesome'
-  import { debounce } from 'lodash-es'
+  import { DEBOUNCE_DELAY, MAX_PREVIEW_CHARACTERS } from '../../constants.js'
+  import { getIn } from '../../utils/immutabilityHelpers.js'
   import { compileJSONPointer } from '../../utils/jsonPointer.js'
+  import { stringifyPath } from '../../utils/pathUtils.js'
+  import { truncate } from '../../utils/stringUtils.js'
   import Header from './Header.svelte'
   import { transformModalState } from './transformModalState.js'
-  import { DEBOUNCE_DELAY, MAX_PREVIEW_CHARACTERS } from '../../constants.js'
-  import { truncate } from '../../utils/stringUtils.js'
   import TransformWizard from './TransformWizard.svelte'
-  import * as _ from 'lodash-es'
-  import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons'
 
   export let id
   export let json
-  export let rootPath
+  export let selectedPath
   export let onTransform
+
+  $: selectedJson = getIn(json, selectedPath)
 
   const DEFAULT_QUERY = 'function query (data) {\n  return data\n}'
 
   const { close } = getContext('simple-modal')
 
-  const stateId = `${id}:${compileJSONPointer(rootPath)}`
+  const stateId = `${id}:${compileJSONPointer(selectedPath)}`
 
   const state = transformModalState[stateId] || {}
 
@@ -69,17 +73,17 @@
   const previewTransformDebounced = debounce(previewTransform, DEBOUNCE_DELAY)
 
   $: {
-    previewTransformDebounced(json, query)
+    previewTransformDebounced(selectedJson, query)
   }
 
   function handleTransform () {
     try {
-      const jsonTransformed = evalTransform(json, query)
+      const jsonTransformed = evalTransform(selectedJson, query)
 
       onTransform([
         {
           op: 'replace',
-          path: compileJSONPointer(rootPath),
+          path: compileJSONPointer(selectedPath),
           value: jsonTransformed
         }
       ])
@@ -132,13 +136,24 @@
     </div>
 
     <div class="label">
+      Path
+    </div>
+    <input
+      class="path"
+      type="text"
+      readonly
+      title="Selected path"
+      value={!isEmpty(selectedPath) ? stringifyPath(selectedPath) : '(whole document)'}
+    />
+
+    <div class="label">
       <button on:click={toggleShowWizard}>
         <Icon data={showWizard ? faCaretDown : faCaretRight} />
         Wizard
       </button>
     </div>
     {#if showWizard}
-      {#if Array.isArray(json)}
+      {#if Array.isArray(selectedJson)}
         <TransformWizard 
           bind:filterField
           bind:filterRelation
@@ -146,7 +161,7 @@
           bind:sortField
           bind:sortDirection
           bind:pickFields
-          json={json} 
+          json={selectedJson}
           onQuery={updateQuery}
         />
       {:else}

@@ -33,7 +33,11 @@ describe('sort', () => {
   })
 
   it('should sort object keys using a rootPath', () => {
-    const object = { b: 1, c: 1, a: 1 }
+    const object = {
+      root: {
+        path: { b: 1, c: 1, a: 1 }
+      }
+    }
 
     assert.deepStrictEqual(sortObjectKeys(object, ['root', 'path']), [
       { op: 'move', from: '/root/path/a', path: '/root/path/a' },
@@ -53,29 +57,34 @@ describe('sort', () => {
 
   it('should sort array', () => {
     assert.deepStrictEqual(sortArray([2, 3, 1]), [
-      { op: 'move', from: '/2', path: '/0' }
+      { op: 'replace', path: '', value: [1, 2, 3] }
     ])
     assert.deepStrictEqual(sortArray([2, 3, 1], undefined, undefined, -1), [
-      { op: 'move', from: '/1', path: '/0' }
+      { op: 'replace', path: '', value: [3, 2, 1] }
     ])
   })
 
   it('should sort array using natural sort', () => {
     assert.deepStrictEqual(sortArray(['10', '2', '1']), [
-      { op: 'move', from: '/1', path: '/0' },
-      { op: 'move', from: '/2', path: '/0' }
+      { op: 'replace', path: '', value: ['1', '2', '10'] }
     ])
   })
 
   it('should sort array case insensitive', () => {
     assert.deepStrictEqual(sortArray(['B', 'a']), [
-      { op: 'move', from: '/1', path: '/0' }
+      { op: 'replace', path: '', value: ['a', 'B'] }
     ])
   })
 
   it('should sort array using a rootPath', () => {
-    assert.deepStrictEqual(sortArray([2, 3, 1], ['root', 'path']), [
-      { op: 'move', from: '/root/path/2', path: '/root/path/0' }
+    const json = {
+      root: {
+        path: [2, 3, 1]
+      }
+    }
+
+    assert.deepStrictEqual(sortArray(json, ['root', 'path']), [
+      { op: 'replace', path: '/root/path', value: [1, 2, 3] }
     ])
   })
 
@@ -85,13 +94,13 @@ describe('sort', () => {
     const c = { data: { value: 3 } }
 
     assert.deepStrictEqual(sortArray([b, a, c], undefined, ['data', 'value']), [
-      { op: 'move', from: '/1', path: '/0' }
+      { op: 'replace', path: '', value: [a, b, c] }
     ])
     assert.deepStrictEqual(sortArray([b, a, c], undefined, ['data', 'value'], 1), [
-      { op: 'move', from: '/1', path: '/0' }
+      { op: 'replace', path: '', value: [a, b, c] }
     ])
     assert.deepStrictEqual(sortArray([b, a, c], undefined, ['data', 'value'], -1), [
-      { op: 'move', from: '/2', path: '/0' }
+      { op: 'replace', path: '', value: [c, b, a] }
     ])
   })
 

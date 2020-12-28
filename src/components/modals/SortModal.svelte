@@ -8,20 +8,22 @@
   import { getNestedPaths } from '../../utils/arrayUtils.js'
   import { isObject } from '../../utils/typeUtils.js'
   import { stringifyPath } from '../../utils/pathUtils.js'
+  import { getIn } from '../../utils/immutabilityHelpers.js'
   import { sortArray, sortObjectKeys } from '../../logic/sort.js'
   import { sortModalState } from './sortModalState.js'
   import { compileJSONPointer } from '../../utils/jsonPointer.js'
 
   export let id
-  export let json
-  export let rootPath
+  export let json // the whole document
+  export let selectedPath
   export let onSort
 
   const { close } = getContext('simple-modal')
 
-  const stateId = `${id}:${compileJSONPointer(rootPath)}`
-  $: jsonIsArray = Array.isArray(json)
-  $: paths = jsonIsArray ? getNestedPaths(json) : undefined
+  const stateId = `${id}:${compileJSONPointer(selectedPath)}`
+  const selectedJson = getIn(json, selectedPath)
+  $: jsonIsArray = Array.isArray(selectedJson)
+  $: paths = jsonIsArray ? getNestedPaths(selectedJson) : undefined
   $: properties = paths ? paths.map(pathToOption) : undefined
 
   const asc = {
@@ -68,12 +70,12 @@
 
       const property = selectedProperty.value
       const direction = selectedDirection.value
-      const operations = sortArray(json, rootPath, property, direction)
+      const operations = sortArray(json, selectedPath, property, direction)
 
       onSort(operations)
-    } else if (isObject(json)) {
+    } else if (isObject(selectedJson)) {
       const direction = selectedDirection.value
-      const operations = sortObjectKeys(json, rootPath, direction)
+      const operations = sortObjectKeys(json, selectedPath, direction)
   
       onSort(operations)
     } else {
@@ -104,8 +106,9 @@
             <input 
               class="path"
               type="text" 
-              readonly 
-              value={rootPath.length > 0 ? stringifyPath(rootPath) : '(whole document)'} 
+              readonly
+              title="Selected path"
+              value={!isEmpty(selectedPath) ? stringifyPath(selectedPath) : '(whole document)'}
             />
           </td>
         </tr>

@@ -18,13 +18,15 @@ function caseInsensitiveNaturalCompare (a, b) {
 
 /**
  * Sort the keys of an object
- * @param {Object} object         The object to be sorted
+ * @param {JSON} json             The the JSON containg the (optionally nested)
+ *                                object to be sorted
  * @param {Path} [rootPath=[]]    Relative path when the array was located
  * @param {1 | -1} [direction=1]  Pass 1 to sort ascending, -1 to sort descending
  * @return {JSONPatchDocument}    Returns a JSONPatch document with move operation
  *                                to get the array sorted.
  */
-export function sortObjectKeys (object, rootPath = [], direction = 1) {
+export function sortObjectKeys (json, rootPath = [], direction = 1) {
+  const object = getIn(json, rootPath)
   const keys = Object.keys(object)
   const sortedKeys = keys.slice()
 
@@ -49,49 +51,26 @@ export function sortObjectKeys (object, rootPath = [], direction = 1) {
 
 /**
  * Sort the items of an array
- * @param {Array} array             The array to be sorted
+ * @param {JSON} doc                The document containing (optionally nested)
+ *                                  the array to be sorted.
  * @param {Path} [rootPath=[]]      Relative path when the array was located
  * @param {Path} [propertyPath=[]]  Nested path to the property on which to sort the contents
  * @param {1 | -1} [direction=1]    Pass 1 to sort ascending, -1 to sort descending
  * @return {JSONPatchDocument}      Returns a JSONPatch document with move operation
  *                                  to get the array sorted.
  */
-export function sortArray (array, rootPath = [], propertyPath = [], direction = 1) {
+export function sortArray (doc, rootPath = [], propertyPath = [], direction = 1) {
   const comparator = createObjectComparator(propertyPath, direction)
 
-  // TODO: make sortOperationsMoveAdvanced configurable
-  const operations = sortOperationsMove(array, comparator)
-
-  return prependPaths(operations, rootPath)
-}
-
-/**
- * Prepend all "path" and "from" properties in each of the operations
- * with a (compiled) rootPath.
- * @param {JSONPatchDocument} operations
- * @param {Path} rootPath
- * @returns {JSONPatchDocument}
- */
-function prependPaths (operations, rootPath) {
-  const rootPathPointer = compileJSONPointer(rootPath)
-
-  if (rootPathPointer === '') {
-    return operations
-  }
-
-  return operations.map(operation => {
-    const updated = { ...operation }
-
-    if (typeof operation.path === 'string') {
-      updated.path = rootPathPointer + operation.path
+  // TODO: make the mechanism to sort configurable? Like use sortOperationsMove and sortOperationsMoveAdvanced
+  const array = getIn(doc, rootPath)
+  return [
+    {
+      op: 'replace',
+      path: compileJSONPointer(rootPath),
+      value: array.slice(0).sort(comparator)
     }
-
-    if (typeof operation.from === 'string') {
-      updated.from = rootPathPointer + operation.from
-    }
-
-    return updated
-  })
+  ]
 }
 
 /**
@@ -248,7 +227,7 @@ export function fastPatchSort (doc, operations) {
   })
   if (invalidOp) {
     throw new Error('Cannot apply fastPatchSort: not a "move" operation ' +
-      '(actual: ' + JSON.stringify(invalidOp) +')')
+      '(actual: ' + JSON.stringify(invalidOp) + ')')
   }
 
   // parse all paths
@@ -262,7 +241,7 @@ export function fastPatchSort (doc, operations) {
   const array = getIn(doc, arrayPath)
   if (!Array.isArray(array)) {
     throw new Error('Cannot apply fastPatchSort: not an Array ' +
-      '(path: ' + JSON.stringify(arrayPath) +')')
+      '(path: ' + JSON.stringify(arrayPath) + ')')
   }
 
   // validate whether all paths are in the same array
@@ -271,7 +250,7 @@ export function fastPatchSort (doc, operations) {
   })
   if (invalidPath) {
     throw new Error('Cannot apply fastPatchSort: not all move operations are in the same array ' +
-      '(expected: ' + JSON.stringify(arrayPath) +  ', actual: ' + JSON.stringify(invalidPath) + ')')
+      '(expected: ' + JSON.stringify(arrayPath) + ', actual: ' + JSON.stringify(invalidPath) + ')')
   }
 
   // apply the actual operations on the same array. Only copy the only array once

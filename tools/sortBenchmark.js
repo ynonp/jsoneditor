@@ -78,7 +78,7 @@ const results = [
   sortBenchmark(1e3, 1e3),
 
   sortBenchmark(1e4, 1e2),
-  sortBenchmark(1e4, 1e3),
+  sortBenchmark(1e4, 1e3)
 
   // sortBenchmark(1e5, 1e3),
   // sortBenchmark(1e6, 1e3),

@@ -12,8 +12,7 @@
     SCROLL_DURATION,
     SEARCH_PROGRESS_THROTTLE,
     SIMPLE_MODAL_OPTIONS,
-    STATE_EXPANDED,
-    STATE_VISIBLE_SECTIONS
+    STATE_EXPANDED
   } from '../../constants.js'
   import {
     documentStatePatch,
@@ -591,21 +590,19 @@
       return
     }
 
-    const rootPath = selection ? findRootPath(selection) : []
+    const selectedPath = selection ? findRootPath(selection) : []
 
     open(SortModal, {
       id: sortModalId,
-      json: getIn(doc, rootPath),
-      rootPath,
+      json: doc,
+      selectedPath,
       onSort: async (operations) => {
-        const visibleSectionsPath = rootPath.concat([STATE_VISIBLE_SECTIONS])
-        const visibleSections = getIn(state, visibleSectionsPath)
-
-        debug('onSort', rootPath, operations)
+        debug('onSort', selectedPath, operations)
         patch(operations, selection)
 
-        // restore the original visible sections
-        state = setIn(state, visibleSectionsPath, visibleSections)
+        // expand the newly replaced array
+        handleExpand(selectedPath, true)
+        // FIXME: because we apply expand *after* the patch, when doing undo/redo, the expanded state is not restored
       }
     }, {
       ...SIMPLE_MODAL_OPTIONS,
@@ -623,27 +620,19 @@
       return
     }
 
-    // TODO: select root path based on selection (should also allow user to switch)
-    // const rootPath = selection ? findRootPath(selection) : []
-    const rootPath = []
+    const selectedPath = selection ? findRootPath(selection) : []
 
     open(TransformModal, {
       id: transformModalId,
-      json: getIn(doc, rootPath),
-      rootPath,
+      json: doc,
+      selectedPath,
       onTransform: async (operations) => {
-        debug('onTransform', rootPath, operations)
+        debug('onTransform', selectedPath, operations)
+        patch(operations, selection)
 
-        const expanded = getIn(state, rootPath.concat(STATE_EXPANDED))
-
-        patch(operations)
-
-        if (expanded) {
-          // keep the root nodes expanded state
-          await tick()
-          handleExpand(rootPath, true)
-          // FIXME: because we apply expand *after* the patch, when doing undo/redo, the expanded state is not restored
-        }
+        // expand the newly replaced array
+        handleExpand(selectedPath, true)
+        // FIXME: because we apply expand *after* the patch, when doing undo/redo, the expanded state is not restored
       }
     }, {
       ...SIMPLE_MODAL_OPTIONS,

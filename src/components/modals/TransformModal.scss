@@ -28,6 +28,23 @@
     }
   }
 
+  input.path,
+  textarea.query,
+  textarea.preview {
+    border: 1px solid $border-gray;
+    border-radius: $border-radius;
+    outline: none;
+    box-sizing: border-box;
+    padding: $padding / 2;
+    font-family: $font-family-mono;
+    font-size: $font-size-mono;
+    color: $black;
+  }
+
+  input.path {
+    width: 100%;
+  }
+
   textarea.query,
   textarea.preview {
     border: 1px solid $border-gray;
@@ -36,11 +53,6 @@
     width: 100%;
     height: 100px;
     resize: vertical; // prevent resizing horizontally
-    box-sizing: border-box;
-    padding: $padding / 2;
-    font-family: $font-family-mono;
-    font-size: $font-size-mono;
-    color: $black;
   }
 
   textarea.preview {
@@ -48,6 +60,17 @@
     
     &.error {
       color: $red;
+    }
+  }
+
+  input,
+  textarea {
+    &:focus {
+      border-color: $theme-color;
+    }
+
+    &:read-only {
+      border-color: $background-gray;
     }
   }
 }
