@@ -32,7 +32,7 @@ export function createAjvValidator (schema, schemaRefs) {
 
   return function validate (doc) {
     validateAjv(doc)
-    const ajvErrors = validateAjv.errors
+    const ajvErrors = validateAjv.errors || []
 
     return ajvErrors
       .map(improveAjvError)
