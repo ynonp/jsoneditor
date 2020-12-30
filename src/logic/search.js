@@ -70,7 +70,7 @@ export function createRecursiveSearchResults (referenceDoc, flatResults) {
 export function searchNext (searchResult) {
   const nextActiveIndex = searchResult.activeIndex < searchResult.flatItems.length - 1
     ? searchResult.activeIndex + 1
-    : 0
+    : -1
 
   const nextActiveItem = searchResult.flatItems[nextActiveIndex]
 
