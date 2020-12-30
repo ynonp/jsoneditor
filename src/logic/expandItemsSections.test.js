@@ -1,10 +1,10 @@
 import assert from 'assert'
 import { ARRAY_SECTION_SIZE } from '../constants.js'
 import {
+  currentRoundNumber,
   getExpandItemsSections,
   mergeSections,
-  nextRoundNumber,
-  previousRoundNumber
+  nextRoundNumber
 } from './expandItemsSections.js'
 
 describe('expandItemsSections', () => {
@@ -14,18 +14,17 @@ describe('expandItemsSections', () => {
     assert.strictEqual(nextRoundNumber(ARRAY_SECTION_SIZE), 2 * ARRAY_SECTION_SIZE)
   })
 
-  it('should find the previous round number', () => {
-    assert.strictEqual(previousRoundNumber(ARRAY_SECTION_SIZE), 0)
-    assert.strictEqual(previousRoundNumber(2 * ARRAY_SECTION_SIZE - 1), ARRAY_SECTION_SIZE)
-    assert.strictEqual(previousRoundNumber(2 * ARRAY_SECTION_SIZE), ARRAY_SECTION_SIZE)
-    assert.strictEqual(previousRoundNumber(ARRAY_SECTION_SIZE + 1), ARRAY_SECTION_SIZE)
-    assert.strictEqual(previousRoundNumber(5 * ARRAY_SECTION_SIZE), 4 * ARRAY_SECTION_SIZE)
+  it('should find the current round number', () => {
+    assert.strictEqual(currentRoundNumber(ARRAY_SECTION_SIZE), ARRAY_SECTION_SIZE)
+    assert.strictEqual(currentRoundNumber(0), 0)
+    assert.strictEqual(currentRoundNumber(0.5 * ARRAY_SECTION_SIZE), 0)
+    assert.strictEqual(currentRoundNumber(1.5 * ARRAY_SECTION_SIZE), ARRAY_SECTION_SIZE)
   })
 
   it('should calculate expandable sections (start, middle, end)', () => {
     assert.deepStrictEqual(getExpandItemsSections(0, 1000), [
       { start: 0, end: 100 },
-      { start: 400, end: 500 },
+      { start: 500, end: 600 },
       { start: 900, end: 1000 }
     ])
 
@@ -33,6 +32,24 @@ describe('expandItemsSections', () => {
       { start: 30, end: 100 },
       { start: 200, end: 300 },
       { start: 500, end: 510 }
+    ])
+
+    assert.deepStrictEqual(getExpandItemsSections(30, 500), [
+      { start: 30, end: 100 },
+      { start: 200, end: 300 },
+      { start: 400, end: 500 }
+    ])
+
+    assert.deepStrictEqual(getExpandItemsSections(30, 410), [
+      { start: 30, end: 100 },
+      { start: 200, end: 300 },
+      { start: 400, end: 410 }
+    ])
+
+    assert.deepStrictEqual(getExpandItemsSections(30, 400), [
+      { start: 30, end: 100 },
+      { start: 200, end: 300 },
+      { start: 300, end: 400 }
     ])
 
     assert.deepStrictEqual(getExpandItemsSections(30, 250), [

@@ -17,15 +17,19 @@ export function getExpandItemsSections (startIndex, endIndex) {
   }
 
   // expand the middle of the section
-  const start2 = Math.max(previousRoundNumber((startIndex + endIndex) / 2), startIndex)
+  const start2 = Math.max(currentRoundNumber((startIndex + endIndex) / 2), startIndex)
   const section2 = {
     start: start2,
     end: Math.min(nextRoundNumber(start2), endIndex)
   }
 
   // expand the end of the section
+  const currentIndex = currentRoundNumber(endIndex)
+  const previousIndex = currentIndex === endIndex
+    ? (currentIndex - ARRAY_SECTION_SIZE)
+    : currentIndex
   const section3 = {
-    start: Math.max(previousRoundNumber(endIndex), startIndex),
+    start: Math.max(previousIndex, startIndex),
     end: endIndex
   }
 
@@ -33,7 +37,7 @@ export function getExpandItemsSections (startIndex, endIndex) {
     section1
   ]
 
-  const showSection2 = section2.start >= section1.end && section2.end <= section3.end
+  const showSection2 = section2.start >= section1.end && section2.end <= section3.start
   if (showSection2) {
     sections.push(section2)
   }
@@ -86,9 +90,9 @@ export function inVisibleSection (sections, index) {
 }
 
 export function nextRoundNumber (index) {
-  return Math.floor((index + ARRAY_SECTION_SIZE) / ARRAY_SECTION_SIZE) * ARRAY_SECTION_SIZE
+  return currentRoundNumber(index) + ARRAY_SECTION_SIZE
 }
 
-export function previousRoundNumber (index) {
-  return Math.ceil((index - ARRAY_SECTION_SIZE) / ARRAY_SECTION_SIZE) * ARRAY_SECTION_SIZE
+export function currentRoundNumber (index) {
+  return Math.floor(index / ARRAY_SECTION_SIZE) * ARRAY_SECTION_SIZE
 }

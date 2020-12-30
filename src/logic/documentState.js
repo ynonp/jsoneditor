@@ -21,10 +21,10 @@ import {
 } from '../utils/jsonPointer.js'
 import { isObject } from '../utils/typeUtils.js'
 import {
+  currentRoundNumber,
   inVisibleSection,
   mergeSections,
-  nextRoundNumber,
-  previousRoundNumber
+  nextRoundNumber
 } from './expandItemsSections.js'
 
 const debug = createDebug('jsoneditor:documentState')
@@ -201,7 +201,7 @@ export function expandPath (doc, state, path) {
       const sectionsPath = partialPath.concat(STATE_VISIBLE_SECTIONS)
       const sections = getIn(updatedState, sectionsPath) || DEFAULT_VISIBLE_SECTIONS
       if (!inVisibleSection(sections, key)) {
-        const start = previousRoundNumber(key)
+        const start = currentRoundNumber(key)
         const end = nextRoundNumber(start)
         const newSection = { start, end }
         const updatedSections = mergeSections(sections.concat(newSection))
@@ -236,7 +236,7 @@ export function ensureItemIsVisible (state, path, index) {
     return state
   }
 
-  const start = previousRoundNumber(index)
+  const start = currentRoundNumber(index)
   const end = nextRoundNumber(start)
   const newSection = { start, end }
   const updatedSections = mergeSections(sections.concat(newSection))
