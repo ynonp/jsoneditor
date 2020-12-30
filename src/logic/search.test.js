@@ -1,8 +1,9 @@
 import assert from 'assert'
 import { times } from 'lodash-es'
+import { syncState } from './documentState.js'
 import { searchAsync, searchGenerator, createRecursiveSearchResults } from './search.js'
 import {
-  SEARCH_RESULT,
+  SEARCH_RESULT, STATE_KEYS,
   STATE_SEARCH_PROPERTY,
   STATE_SEARCH_VALUE
 } from '../constants.js'
@@ -18,7 +19,7 @@ describe('search', () => {
       ]
     }
 
-    const search = searchGenerator('a', doc)
+    const search = searchGenerator('a', doc, undefined)
 
     assert.deepStrictEqual(search.next(), { done: false, value: ['b', 'c', STATE_SEARCH_VALUE] })
     assert.deepStrictEqual(search.next(), { done: false, value: ['a', STATE_SEARCH_PROPERTY] })
@@ -31,7 +32,7 @@ describe('search', () => {
   it('should yield every x items during search', () => {
     const doc = times(30, index => String(index))
 
-    const search = searchGenerator('4', doc, 10)
+    const search = searchGenerator('4', doc, undefined, 10)
     assert.deepStrictEqual(search.next(), { done: false, value: [4, STATE_SEARCH_VALUE] })
     assert.deepStrictEqual(search.next(), { done: false, value: null }) // at 10
     assert.deepStrictEqual(search.next(), { done: false, value: [14, STATE_SEARCH_VALUE] })
@@ -67,7 +68,7 @@ describe('search', () => {
     }
 
     const yieldAfterItemCount = 1
-    searchAsync('4', doc, { onProgress, onDone, yieldAfterItemCount })
+    searchAsync('4', doc, undefined, { onProgress, onDone, yieldAfterItemCount })
 
     // should not have results right after creation, but only on the first next tick
     assert.deepStrictEqual(callbacks, [])
@@ -87,7 +88,7 @@ describe('search', () => {
     }
 
     const yieldAfterItemCount = 1 // very low so we can see whether actually cancelled
-    const { cancel } = searchAsync('4', doc, { onProgress, onDone, yieldAfterItemCount })
+    const { cancel } = searchAsync('4', doc, undefined, { onProgress, onDone, yieldAfterItemCount })
 
     setTimeout(() => {
       cancel()
@@ -100,6 +101,34 @@ describe('search', () => {
     })
   })
 
+  it('should respect order of keys in document state in async search', () => {
+    return new Promise ((resolve, reject) => {
+      const doc = {
+        data: {
+          'text1': 'foo',
+          'text2': 'foo'
+        }
+      }
+
+      const state = syncState(doc, undefined, [], () => true)
+      state.data[STATE_KEYS] = ['text2', 'text1'] // reverse the order of the keys
+
+      function onDone (results) {
+        try {
+          assert.deepStrictEqual(results, [
+            [ 'data', 'text2', STATE_SEARCH_VALUE ],
+            [ 'data', 'text1', STATE_SEARCH_VALUE ]
+          ])
+          resolve()
+        } catch (err) {
+          reject(err)
+        }
+      }
+
+      searchAsync('foo', doc, state, { onDone })
+    })
+  })
+
   it('should limit async search results', (done) => {
     const doc = times(30, index => 'item ' + index)
 
@@ -109,7 +138,7 @@ describe('search', () => {
     }
 
     const maxResults = 10
-    searchAsync('item', doc, { onDone, maxResults })
+    searchAsync('item', doc, undefined, { onDone, maxResults })
   })
 
   it('should generate recursive search results from flat results', () => {

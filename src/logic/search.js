@@ -2,6 +2,7 @@ import { initial, isEqual } from 'lodash-es'
 import {
   ACTIVE_SEARCH_RESULT,
   SEARCH_RESULT,
+  STATE_KEYS,
   STATE_SEARCH_PROPERTY,
   STATE_SEARCH_VALUE
 } from '../constants.js'
@@ -70,7 +71,9 @@ export function createRecursiveSearchResults (referenceDoc, flatResults) {
 export function searchNext (searchResult) {
   const nextActiveIndex = searchResult.activeIndex < searchResult.flatItems.length - 1
     ? searchResult.activeIndex + 1
-    : -1
+    : searchResult.flatItems.length > 0
+      ? 0
+      : -1
 
   const nextActiveItem = searchResult.flatItems[nextActiveIndex]
 
@@ -114,9 +117,9 @@ async function tick () {
 }
 
 // TODO: comment
-export function searchAsync (searchText, doc, { onProgress, onDone, maxResults = Infinity, yieldAfterItemCount = 10000 }) {
+export function searchAsync (searchText, doc, state, { onProgress, onDone, maxResults = Infinity, yieldAfterItemCount = 10000 }) {
   // TODO: what is a good value for yieldAfterItemCount? (larger means faster results but also less responsive during search)
-  const search = searchGenerator(searchText, doc, yieldAfterItemCount)
+  const search = searchGenerator(searchText, doc, state, yieldAfterItemCount)
 
   // TODO: implement pause after having found x results (like 999)?
 
@@ -146,7 +149,9 @@ export function searchAsync (searchText, doc, { onProgress, onDone, maxResults =
         // time for a small break, give the browser space to do stuff
         if (newResults) {
           newResults = false
-          onProgress(results)
+          if (onProgress) {
+            onProgress(results)
+          }
         }
 
         await tick()
@@ -171,7 +176,7 @@ export function searchAsync (searchText, doc, { onProgress, onDone, maxResults =
 }
 
 // TODO: comment
-export function * searchGenerator (searchText, doc, yieldAfterItemCount = undefined) {
+export function * searchGenerator (searchText, doc, state = undefined, yieldAfterItemCount = undefined) {
   let count = 0
 
   function * incrementCounter () {
@@ -182,21 +187,25 @@ export function * searchGenerator (searchText, doc, yieldAfterItemCount = undefi
     }
   }
 
-  function * searchRecursiveAsync (searchText, doc, path) {
+  function * searchRecursiveAsync (searchText, doc, state, path) {
     const type = valueType(doc)
 
     if (type === 'array') {
       for (let i = 0; i < doc.length; i++) {
-        yield * searchRecursiveAsync(searchText, doc[i], path.concat([i]))
+        yield * searchRecursiveAsync(searchText, doc[i], state ? state[i] : undefined, path.concat([i]))
       }
     } else if (type === 'object') {
-      for (const prop of Object.keys(doc)) {
-        if (typeof prop === 'string' && containsCaseInsensitive(prop, searchText)) {
-          yield path.concat([prop, STATE_SEARCH_PROPERTY])
+      const keys = state
+        ? state[STATE_KEYS]
+        : Object.keys(doc)
+
+      for (const key of keys) {
+        if (typeof key === 'string' && containsCaseInsensitive(key, searchText)) {
+          yield path.concat([key, STATE_SEARCH_PROPERTY])
         }
         yield * incrementCounter()
 
-        yield * searchRecursiveAsync(searchText, doc[prop], path.concat([prop]))
+        yield * searchRecursiveAsync(searchText, doc[key], state ? state[key] : undefined, path.concat([key]))
       }
     } else { // type is a value
       if (containsCaseInsensitive(doc, searchText)) {
@@ -206,7 +215,7 @@ export function * searchGenerator (searchText, doc, yieldAfterItemCount = undefi
     }
   }
 
-  return yield * searchRecursiveAsync(searchText, doc, [])
+  return yield * searchRecursiveAsync(searchText, doc, state, [])
 }
 
 /**

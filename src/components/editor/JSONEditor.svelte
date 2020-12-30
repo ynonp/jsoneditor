@@ -211,7 +211,7 @@
     debug('start search', searchText)
     searching = true
 
-    searchHandler = searchAsync(searchText, doc, {
+    searchHandler = searchAsync(searchText, doc, state, {
       onProgress: handleSearchProgressDebounced,
       onDone: handleSearchDone,
       maxResults: MAX_SEARCH_RESULTS
