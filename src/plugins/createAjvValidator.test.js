@@ -102,5 +102,5 @@ describe('createAjvValidator', () => {
     ])
   })
 
-  // TODO: test support for draft04, draft-06, draft-07
+  // TODO: test support for draft-06, draft-07, ...
 })

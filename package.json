@@ -8,8 +8,7 @@
     "dev": "rollup -c -w",
     "start": "sirv public",
     "test": "mocha src/**/*.test.js",
-    "lint": "eslint --cache src/**/*.svelte src/**/*.js tools/**/*.js *.js --ignore-pattern src/generated --ignore-pattern examples",
-    "prepare": "node tools/generateAjvDrafts.js"
+    "lint": "eslint --cache src/**/*.svelte src/**/*.js tools/**/*.js *.js --ignore-pattern src/generated --ignore-pattern examples"
   },
   "license": "(MIT OR Apache-2.0)",
   "repository": {
@@ -19,7 +18,7 @@
   "dependencies": {
     "@fortawesome/free-regular-svg-icons": "5.15.1",
     "@fortawesome/free-solid-svg-icons": "5.15.1",
-    "ajv": "6.12.6",
+    "ajv": "7.0.2",
     "classnames": "2.2.6",
     "debug": "4.3.1",
     "diff-sequences": "26.6.2",
