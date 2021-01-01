@@ -30,13 +30,13 @@ div.editable-div {
 
   &.empty {
     &:not(:focus) {
-      outline: 1px dotted $light-gray;
+      outline: 1px dotted $light-gray-transparent;
       -moz-outline-radius: 2px;
     }
 
     &::after {
       pointer-events: none;
-      color: $light-gray;
+      color: $light-gray-transparent;
     }
   }
 }

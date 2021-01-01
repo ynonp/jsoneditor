@@ -23,7 +23,7 @@
     .props .contents,
     .items .contents,
     .footer {
-      background-color: $hovered-background;
+      background-color: $hovered-background-transparent;
     }
   }
 
@@ -113,7 +113,7 @@
 
     &.hovered {
       display: flex;
-      outline: $height/2 solid $hovered-background;
+      outline: $height/2 solid $hovered-background-transparent;
     }
 
     &.selected {
@@ -142,12 +142,12 @@
   border: none;
   cursor: pointer;
   background: transparent;
-  color: $gray-icon;
+  color: $gray-transparent;
   font-size: $font-size-mono;
   line-height: $line-height;
 
   &:hover {
-    color: lighten($gray-icon, 10%);
+    color: lighten($gray-transparent, 10%);
   }
 }
 
@@ -176,7 +176,7 @@
   border: none;
   font-size: $font-size-small;
   font-family: $font-family;
-  color: white;
+  color: $white;
   border-radius: 2px;
   cursor: pointer;
   position: relative;
@@ -187,10 +187,10 @@
   padding: 0 4px 1px;
   margin: 2px;
 
-  background: $light-gray;
+  background: $light-gray-transparent;
 
   &:hover {
-    background: lighten($light-gray, 5%);
+    background: lighten($light-gray-transparent, 15%);
   }
 }
 
@@ -199,6 +199,7 @@
   margin: 0;
   line-height: $line-height;
 
+  // not transparent: not inside header or contents (which may be highlighted with a special background or so)
   background: $hovered-background;
 
   &:hover {
