@@ -5,7 +5,7 @@
   import { immutableJSONPatch, revertJSONPatch } from 'immutable-json-patch'
   import { initial, isEmpty, isEqual, throttle, uniqueId } from 'lodash-es'
   import { getContext, onDestroy, onMount, tick } from 'svelte'
-  import jump from '../../assets/jump.js/src/jump.js'
+  import { createJump } from '../../assets/jump.js/src/jump.js'
   import {
     MAX_SEARCH_RESULTS,
     MODE,
@@ -80,6 +80,7 @@
   let domHiddenInput
   let domJsonEditor
   let focus = false
+  let jump = createJump()
 
   export let mode = MODE.EDIT
   export let externalDoc = {}
@@ -661,6 +662,7 @@
     const offset = -(divContents.getBoundingClientRect().height / 4)
 
     if (elem) {
+      debug('scrollTo', { path, elem, divContents })
       jump(elem, {
         container: divContents,
         offset,

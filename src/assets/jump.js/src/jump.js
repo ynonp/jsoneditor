@@ -1,6 +1,6 @@
 import easeInOutQuad from './easing.js'
 
-const jumper = () => {
+export const createJump = () => {
   // private variable cache
   // no variables are created during a jump, preventing memory leaks
 
@@ -190,6 +190,6 @@ const jumper = () => {
 
 // export singleton
 
-const singleton = jumper()
+const singleton = createJump()
 
 export default singleton

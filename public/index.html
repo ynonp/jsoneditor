@@ -86,6 +86,9 @@
 		<button id="updateTextRepairable">updateText (repairable)</button>
 		<button id="updateTextInvalid">updateText (invalid)</button>
 	</p>
+	<p>
+		<button id="scrollToPath">scrollTo /object/nested/name</button>
+	</p>
 
 	<script type="module">
 		import jsoneditor from './dist/es/jsoneditor.js'
@@ -327,6 +330,10 @@
 			const index = str.lastIndexOf('}')
 			const invalidStr = str.slice(0, index) + ']' + str.slice(index + 1)
 			testEditor.updateText(invalidStr)
+		}
+
+		document.getElementById('scrollToPath').onclick = () => {
+			testEditor.scrollTo(['object', 'nested', 'name'])
 		}
 	</script>
 </body>
