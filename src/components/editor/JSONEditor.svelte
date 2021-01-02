@@ -653,8 +653,11 @@
    * Scroll the window vertically to the node with given path
    * @param {Path} path
    */
-  function scrollTo (path) {
-    const elem = divContents.querySelector(`div[data-path="${compileJSONPointer(path)}"]`)
+  export async function scrollTo (path) {
+    state = expandPath(doc, state, path)
+    await tick()
+
+    const elem = findElement(path)
     const offset = -(divContents.getBoundingClientRect().height / 4)
 
     if (elem) {
@@ -664,6 +667,14 @@
         duration: SCROLL_DURATION
       })
     }
+  }
+
+  /**
+   * Find the DOM element of a given path.
+   * Note that the path can only be found when the node is expanded.
+   */
+  export function findElement(path) {
+    return divContents.querySelector(`div[data-path="${compileJSONPointer(path)}"]`)
   }
 
   /**

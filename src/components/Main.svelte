@@ -118,6 +118,14 @@
     return ref.collapse(callback)
   }
 
+  export function scrollTo (path) {
+    return ref.scrollTo(path)
+  }
+
+  export function findElement (path) {
+    return ref.findElement(path)
+  }
+
   export function setValidator (newValidator) {
     validator = newValidator
   }
