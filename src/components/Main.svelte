@@ -29,6 +29,7 @@
   let instanceId = uniqueId()
   let createInstanceOnRepair = false
 
+  let focus = false
   let repairing = (text !== undefined)
 
   let ref
@@ -215,10 +216,23 @@
     }
   }
 
+  function handleFocus () {
+    focus = true
+    if (onFocus) {
+      onFocus()
+    }
+  }
+
+  function handleBlur () {
+    focus = false
+    if (onBlur) {
+      onBlur()
+    }
+  }
 </script>
 
 <Modal>
-  <div class="jsoneditor-main">
+  <div class="jsoneditor-main" class:focus>
     {#key instanceId}
       <JSONEditor
         bind:this={ref}
@@ -228,8 +242,8 @@
         bind:validator
         onChangeJson={handleChangeJson}
         bind:onClassName
-        bind:onFocus
-        bind:onBlur
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         visible={!repairing}
       />
       {#if repairing}
@@ -240,6 +254,8 @@
           onChange={handleChangeText}
           onApply={handleApplyRepair}
           onCancel={handleCancelRepair}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
         />
       {/if}
     {/key}

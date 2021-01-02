@@ -7,8 +7,11 @@
     faWrench
   } from '@fortawesome/free-solid-svg-icons'
   import createDebug from 'debug'
+  import { onDestroy, onMount } from 'svelte'
   import Icon from 'svelte-awesome'
+  import { activeElementIsChildOf, getWindow } from '../../utils/domUtils.js'
   import { normalizeJsonParseError } from '../../utils/jsonUtils.js'
+  import { createFocusTracker } from '../controls/createFocusTracker.js'
 
   export let text = ''
   export let onParse
@@ -16,10 +19,31 @@
   export let onChange = null
   export let onApply
   export let onCancel
+  export let onFocus
+  export let onBlur
 
   const debug = createDebug('jsoneditor:JSONRepair')
 
+  let domJsonRepair
   let domTextArea
+
+  createFocusTracker({
+    onMount,
+    onDestroy,
+    getWindow: () => getWindow(domJsonRepair),
+    hasFocus: () => activeElementIsChildOf(domJsonRepair),
+    onFocus: () => {
+      if (onFocus) {
+        onFocus()
+      }
+    },
+    onBlur: () => {
+      if (onBlur) {
+        onBlur()
+      }
+    }
+  })
+
 
   $: error = getErrorMessage(text)
   $: repairable = isRepairable(text)
@@ -87,7 +111,10 @@
   }
 </script>
 
-<div class="json-repair">
+<div
+  class="json-repair"
+  bind:this={domJsonRepair}
+>
   <div class="menu">
     <div class="info">
       Repair invalid JSON, then click apply

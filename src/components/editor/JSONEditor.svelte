@@ -63,6 +63,7 @@
   import { parsePartialJson, repairPartialJson } from '../../utils/jsonUtils.js'
   import { keyComboFromEvent } from '../../utils/keyBindings.js'
   import { isObject, isObjectOrArray, isUrl } from '../../utils/typeUtils.js'
+  import { createFocusTracker } from '../controls/createFocusTracker.js'
   import JSONRepairModal from '../modals/JSONRepairModal.svelte'
   import SortModal from '../modals/SortModal.svelte'
   import TransformModal from '../modals/TransformModal.svelte'
@@ -96,52 +97,24 @@
   export let onFocus
   export let onBlur
 
-  onMount(() => {
-    debug('create JSONEditor')
-    const window = getWindow(domJsonEditor)
-    window.addEventListener('focusin', handleFocusIn, true)
-    window.addEventListener('focusout', handleFocusOut, true)
-  })
-
-  onDestroy(() => {
-    debug('destroy JSONEditor')
-    const window = getWindow(domJsonEditor)
-    window.removeEventListener('focusin', handleFocusIn, true)
-    window.removeEventListener('focusout', handleFocusOut, true)
-  })
-
-  let blurTimeoutHandle
-
-  function handleFocusIn () {
-    const newFocus = activeElementIsChildOf(domJsonEditor)
-
-    if (newFocus) {
-      clearTimeout(blurTimeoutHandle)
-      if (!focus) {
-        debug('focus')
-        if (onFocus) {
-          onFocus()
-        }
-        focus = newFocus
+  createFocusTracker({
+    onMount,
+    onDestroy,
+    getWindow: () => getWindow(domJsonEditor),
+    hasFocus: () => activeElementIsChildOf(domJsonEditor),
+    onFocus: () => {
+      focus = true
+      if (onFocus) {
+        onFocus()
+      }
+    },
+    onBlur: () => {
+      focus = false
+      if (onBlur) {
+        onBlur()
       }
     }
-  }
-
-  function handleFocusOut () {
-    if (focus) {
-      // We set focus to false after timeout. Often, you get a blur and directly
-      // another focus when moving focus from one button to another.
-      // The focusIn handler will cancel any pending blur timer in those cases
-      clearTimeout(blurTimeoutHandle)
-      blurTimeoutHandle = setTimeout(() => {
-        debug('blur')
-        focus = false
-        if (onBlur) {
-          onBlur()
-        }
-      })
-    }
-  }
+  })
 
   let doc = externalDoc
   let state = syncState(doc, undefined, [], defaultExpand)
@@ -987,7 +960,6 @@
   on:keydown={handleKeyDown}
   on:mousedown={handleMouseDown}
   bind:this={domJsonEditor}
-  class:focus
 >
   {#if mainMenuBar}
     <Menu

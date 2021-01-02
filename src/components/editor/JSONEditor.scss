@@ -14,10 +14,6 @@
     min-height: 0;
   }
 
-  &.focus {
-    box-shadow: $outline-shadow;
-  }
-
   .hidden-input-label {
     position: absolute;
     right: 0;
