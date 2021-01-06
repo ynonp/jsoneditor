@@ -1,4 +1,5 @@
 @import '../../styles.scss';
+@import './json-node-selected-mixin.scss';
 
 .json-node {
   position: relative;
@@ -211,107 +212,13 @@
   vertical-align: top;
 }
 
-// TODO: simplify the CSS needed to correctly highlight the selection
 .json-node {
-  // entry selected
-  &.selected {
-    .header,
-    .contents,
-    .meta,
-    .expand,
-    .footer,
-    :global(.key),
-    :global(.value) {
-      background-color: $selection-background !important;
-      color: $selection-color;
-    }
+  @include json-node-selected-mixin($selection-background, $selection-color);
+}
 
-    .bracket,
-    .separator,
-    .index {
-      color: $meta-color-selected;
-    }
-
-    .tag {
-      background: $theme-color-light;
-    }
-  }
-
-  // key selected
-  &.selected-key {
-    > .contents-outer > .contents > :global(.identifier) > :global(.key),
-    > .header-outer > .header > :global(.identifier) > :global(.key) {
-      background-color: $selection-background;
-      color: $selection-color;
-
-      &.empty::after {
-        content: none;
-      }
-    }
-  }
-
-  // value selected (part 1)
-  &.selected-value > .contents-outer > .contents > :global(.value) {
-    background-color: $selection-background;
-    color: $selection-color;
-
-    &.empty::after {
-      content: none;
-    }
-  }
-
-  &.selected :global(.collapsed-items),
-  &.selected-value :global(.collapsed-items) {
-    // TODO: this css is copied from CollapsedItems.scss. Figure out how to reuse this smartly with CSS or SASS
-    background-color: $selection-background;
-    background-image:
-            linear-gradient($theme-color-light, $theme-color-light),
-            linear-gradient(to bottom right, transparent 50.5%, $theme-color-light 50.5%),
-            linear-gradient(to bottom left, transparent 50.5%, $theme-color-light 50.5%),
-            linear-gradient(to top right, transparent 50.5%, $theme-color-light 50.5%),
-            linear-gradient(to top left, transparent 50.5%, $theme-color-light 50.5%);
-    color: $selection-color;
-
-    :global(.expand-items) {
-      color: $selection-color;
-
-      :global(&:hover) {
-        color: $red;
-      }
-    }
-  }
-
-  // value selected (part 2)
-  &.selected-value {
-    .meta,
-    > .footer-outer > .footer,
-    .props .contents,
-    .props .header,
-    .props .footer,
-    .props .expand,
-    .items .contents,
-    .items .header,
-    .items .footer,
-    .items .expand {
-      background-color: $selection-background !important;
-      color: $selection-color;
-
-      :global(.key),
-      :global(.value) {
-        background-color: $selection-background !important;
-        color: $selection-color;
-      }
-
-      .index,
-      .bracket,
-      .separator {
-        color: $meta-color-selected;
-      }
-
-      .tag {
-        background: $theme-color-light;
-      }
-    }
+:global(.jsoneditor-main:not(.focus)) {
+  .json-node {
+    @include json-node-selected-mixin($light-gray, $white);
   }
 }
 
