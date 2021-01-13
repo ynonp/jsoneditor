@@ -179,4 +179,4 @@
   ></textarea>
 </div>
 
-<style src="./JSONRepair.scss"></style>
+<style src="./JSONRepairEditor.scss"></style>

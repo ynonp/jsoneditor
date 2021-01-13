@@ -5,11 +5,11 @@
 
 <script>
   import createDebug from 'debug'
-  import simpleJsonRepair from 'simple-json-repair'
+  import jsonrepair from 'jsonrepair'
   import Modal from 'svelte-simple-modal'
   import { uniqueId } from '../utils/uniqueId.js'
   import JSONEditor from './editor/JSONEditor.svelte'
-  import JSONRepair from './editor/JSONRepair.svelte'
+  import JSONRepairEditor from './editor/JSONRepairEditor.svelte'
 
   // TODO: document how to enable debugging in the readme: localStorage.debug="jsoneditor:*", then reload
   const debug = createDebug('jsoneditor:Main')
@@ -247,10 +247,10 @@
         visible={!repairing}
       />
       {#if repairing}
-        <JSONRepair
+        <JSONRepairEditor
           bind:text={text}
           onParse={JSON.parse}
-          onRepair={simpleJsonRepair}
+          onRepair={jsonrepair}
           onChange={handleChangeText}
           onApply={handleApplyRepair}
           onCancel={handleCancelRepair}

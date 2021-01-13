@@ -2,7 +2,7 @@
 
 <script>
   import { getContext } from 'svelte'
-  import JSONRepair from '../editor/JSONRepair.svelte'
+  import JSONRepairEditor from '../editor/JSONRepairEditor.svelte'
 
   export let text
   export let onParse
@@ -21,7 +21,7 @@
   }
 </script>
 
-<JSONRepair
+<JSONRepairEditor
   bind:text
   onParse={onParse}
   onRepair={onRepair}
