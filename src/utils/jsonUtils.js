@@ -1,4 +1,4 @@
-import simpleJsonRepair from 'simple-json-repair'
+import jsonrepair from 'jsonrepair'
 
 /**
  * Parse the JSON. if this fails, try to repair and parse.
@@ -11,7 +11,7 @@ export function parseAndRepair (jsonText) {
     return JSON.parse(jsonText)
   } catch (err) {
     // this can also throw
-    return JSON.parse(simpleJsonRepair(jsonText))
+    return JSON.parse(jsonrepair(jsonText))
   }
 }
 
