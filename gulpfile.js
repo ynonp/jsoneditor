@@ -15,7 +15,6 @@ const NAME = 'jsoneditor'
 const NAME_MINIMALIST = 'jsoneditor-minimalist'
 const ENTRY = './src/js/JSONEditor.js'
 const HEADER = './src/js/header.js'
-const IMAGE = './src/scss/img/jsoneditor-icons.svg'
 const DOCS = './src/docs/*'
 const DIST = path.join(__dirname, 'dist')
 
@@ -199,14 +198,6 @@ gulp.task('bundle-css', function (done) {
 })
 
 // create a folder img and copy the icons
-gulp.task('copy-img', function (done) {
-  gulp.src(IMAGE).pipe(gulp.dest(DIST + '/img'))
-  log('Copied images')
-
-  done()
-})
-
-// create a folder img and copy the icons
 gulp.task('copy-docs', function (done) {
   gulp.src(DOCS).pipe(gulp.dest(DIST))
   log('Copied doc')
@@ -229,8 +220,8 @@ gulp.task('minify-minimalist', function (done) {
 // The watch task (to automatically rebuild when the source code changes)
 // Does only generate jsoneditor.js and jsoneditor.css, and copy the image
 // Does NOT minify the code and does NOT generate the minimalist version
-gulp.task('watch', gulp.series('bundle', 'bundle-css', 'copy-img', function () {
-  gulp.watch(['src/**/*'], gulp.series('bundle', 'bundle-css', 'copy-img'))
+gulp.task('watch', gulp.series('bundle', 'bundle-css', function () {
+  gulp.watch(['src/**/*'], gulp.series('bundle', 'bundle-css'))
 }))
 
 // The default task (called when you run `gulp`)
@@ -238,7 +229,6 @@ gulp.task('default', gulp.series(
   'mkdir',
   'embed-json-worker',
   gulp.parallel(
-    'copy-img',
     'copy-docs',
     'bundle-css',
     gulp.series('bundle', 'minify'),
